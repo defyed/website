@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="/dashboardstyle.css">
+    <script src="/auth.js" defer></script>
+    <script src="/dashboard.js" defer></script>
+    <script src="/utils.js" defer></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="sidebar">
+            
+                <a href="league-services.html">
+        <img src="assets/logo.png" alt="C|H Boosting Logo" class="sidebar-logo">
+    </a>
+            <ul>
+                <li><a href="#" id="account-balance-link"><span>💰</span>Account Balance</a></li>
+                <li><a href="#" id="orders-link"><span>📋</span>Orders</a></li>
+                <li><a href="#" id="available-orders-link"><span>🔍</span>Available Orders</a></li>
+                <li><a href="#" id="working-orders-link"><span>⚙️</span>My Working Orders</a></li>
+                <li><a href="#" id="order-boost-link"><span>🚀</span>Order Boost</a></li>
+                <li><a href="#" id="discord-link"><span>💬</span>Discord Server</a></li>
+                <li><a href="#" id="logout-link"><span>🚪</span>Logout</a></li>
+                <li><a href="#" id="completed-orders-link"><span>✅</span>Completed Orders</a></li>
+            </ul>
+        </div>
+        <div class="panel-container">
+            <div class="main-content">
+                <div id="account-balance-panel" class="panel">
+                    <h3>Account Balance</h3>
+                    <p id="balance-display">Loading balance...</p>
+                </div>
+                <div id="orders-panel" class="panel">
+                    <h3>My Orders</h3>
+                    <div id="my-orders">Loading orders...</div>
+                    <button id="close-orders" class="button">Close</button>
+                </div>
+                <div id="available-orders-panel" class="panel">
+                    <h3>Available Orders</h3>
+                    <div id="available-orders">Loading available orders...</div>
+                    <button id="close-available-orders" class="button">Close</button>
+                </div>
+                <div id="working-orders-panel" class="panel">
+                    <h3>My Working Orders</h3>
+                    <div id="working-orders">Loading working orders...</div>
+                    <button id="close-working-orders" class="button">Close</button>
+                </div>
+                <div id="order-boost-panel" class="panel">
+                    <h3>Order Booster</h3>
+                    <p>Start a new boosting order.</p>
+                    <a href="league-services.html"><button class="button">Order Now</button></a>
+                </div>
+                <div id="discord-panel" class="panel discord-server">
+                    <h3>Discord Server</h3>
+                    <p>Join our community for updates.</p>
+                    <a href="https://discord.gg/example"><button class="button">Join Discord</button></a>
+                </div>
+                <div id="settings-panel" class="panel">
+                    <h3>Account Settings</h3>
+                    <p>Manage your account details.</p>
+                    <button class="button">Settings</button>
+                </div>
+                <div id="completed-orders-panel" class="panel">
+                    <h3>Completed Orders</h3>
+                    <div id="completed-orders">Loading completed orders...</div>
+                    <button id="close-completed-orders" class="button">Close</button>
+                </div>
+            </div>
+            <div id="modal-container"></div>
+        </div>
+    </div>
+</body>
+</html>

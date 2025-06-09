@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation - CH|Boost</title>
+    <link rel="stylesheet" href="/styles.css?v=1.0.1">
+    <style>
+        body {
+            text-align: center;
+        }
+        .content-wrapper, header, nav, ul, li, section, div, h1, h2, p, span, button {
+            text-align: center;
+        }
+        .confirmation-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .confirmation-container p {
+            margin: 10px 0;
+        }
+        .home-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .home-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="content-wrapper">
+        <header>
+            <div class="logo">
+                <a href="/dashboard.html">CH|Boost</a>
+            </div>
+            <nav>
+                <span class="nav-toggle">☰</span>
+                <ul>
+                    <li><a href="/boosters.html">Boosters</a></li>
+                    <li><a href="/boosting.html">Boosting</a></li>
+                    <li><a href="/coaching.html">Coaching</a></li>
+                    <li><button class="sign-in-btn">Sign In</button></li>
+                </ul>
+            </nav>
+        </header>
+        <section class="title">
+            <h1>Order Confirmation</h1>
+        </section>
+        <div class="confirmation-container">
+            <h2>Thank You for Your Purchase!</h2>
+            <p>Your order has been successfully placed.</p>
+            
+            <p>We’ve sent a confirmation email with further instructions.</p>
+            <p>Track your boost progress on the <a href="/dashboard.html">Dashboard</a>.</p>
+            <button class="home-btn" onclick="window.location.href='/dashboard.html'">Return to Dashboard</button>
+        </div>
+        <footer>
+            <p>© 2025 CH|Boost. All rights reserved.</p>
+        </footer>
+    </div>
+    <script>
+        // Display order details
+        document.addEventListener('DOMContentLoaded', () => {
+            const orderData = JSON.parse(sessionStorage.getItem('orderData')) || {};
+            const details = document.getElementById('order-details');
+            details.innerHTML = `
+                Service: Rank Boost<br>
+                From: ${orderData.currentRank || 'N/A'} ${orderData.currentDivision || ''}<br>
+                To: ${orderData.desiredRank || 'N/A'} ${orderData.desiredDivision || ''}<br>
+                Current LP: ${orderData.currentLP || 'N/A'}<br>
+                Options: ${orderData.selectedOptions?.length ? orderData.selectedOptions.join(', ') : 'None'}<br>
+                Total: $${(parseFloat(orderData.finalPrice) * 0.85 || 0).toFixed(2)}
+            `;
+        });
+    </script>
+    <script src="/auth.js"></script>
+    <script src="/confirmation.js"></script>
+</body>
+</html>

@@ -1,0 +1,572 @@
+/* Dashboard-specific styles */
+body {
+    background-color: #1a1a2e;
+    color: #ffffff;
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.dashboard-container {
+    display: flex;
+    flex: 1;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #2a2a3e;
+    padding: 20px 0;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+.sidebar-logo {
+    width: 150px;
+    height: auto;
+    margin: 0 auto 20px;
+    display: block;
+    cursor: pointer; /* Added for clickable logo */
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar li {
+    margin-bottom: 5px;
+}
+
+.sidebar li a {
+    display: block;
+    color: #ffffff;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.sidebar li a:hover, .sidebar li a.active {
+    background-color: #007bff;
+}
+
+.panel-container {
+    margin-left: 250px;
+    flex: 1;
+    padding: 20px;
+    background: transparent;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+.main-content {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 20px;
+    max-width: calc(100% - 40px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.panel {
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    padding: 20px;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.panel[style*="display: flex"] {
+    display: flex !important;
+}
+
+#account-balance-panel, #order-boost-panel, #discord-panel, #settings-panel {
+    display: flex;
+}
+
+#orders-panel, #available-orders-panel, #working-orders-panel, #completed-orders-panel {
+    grid-column: span 2;
+    width: 100%;
+    overflow-x: auto;
+}
+
+.panel h3 {
+    color: #007bff;
+    margin-bottom: 15px;
+    font-size: 1.5em;
+}
+
+.panel p {
+    color: #cccccc;
+    font-size: 1em;
+}
+
+.panel button {
+    background-color: #007bff;
+    color: #ffffff;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.panel button:hover {
+    background-color: #0056b3;
+}
+
+#close-orders, #close-available-orders, #close-working-orders, #close-completed-orders {
+    background-color: #dc3545;
+    color: #ffffff;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+#close-orders:hover, #close-available-orders:hover, #close-working-orders:hover, #close-completed-orders:hover {
+    background-color: #c82333;
+}
+
+.orders-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
+.orders-table th, .orders-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.orders-table th {
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.orders-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.15);
+    cursor: pointer;
+}
+
+.customer-completed-order {
+    background-color: #1264253f !important; /* Light green for completed customer orders */
+}
+
+.customer-completed-order:hover {
+    background-color: #0f471c !important; /* Slightly darker green on hover */
+}
+
+.rank-logo {
+    width: 40px;
+    height: 40px;
+    vertical-align: middle;
+    margin-right: 10px;
+}
+
+.order-id-button {
+    background-color: #007bff;
+    color: #ffffff;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.order-id-button:hover {
+    background-color: #0056b3;
+}
+
+.info-button {
+    background-color: #007bff;
+    color: #ffffff;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.info-button:hover {
+    background-color: #0056b3;
+}
+
+.claim-btn {
+    background-color: #28a745;
+    color: #ffffff;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.claim-btn:hover {
+    background-color: #218838;
+}
+
+.cancel-btn {
+    background-color: #dc3545;
+    color: #ffffff;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.cancel-btn:hover {
+    background-color: #c82333;
+}
+
+.complete-btn {
+    background-color: #28a745;
+    color: #ffffff;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.complete-btn:hover {
+    background-color: #218838;
+}
+
+.complete-btn:disabled, .cancel-btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+.completed-order {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    opacity: 0.7;
+}
+
+.completed-order:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.approve-btn {
+    background-color: #28a745;
+    color: #ffffff;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.approve-btn:hover {
+    background-color: #218838;
+}
+
+.approve-btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+.price-payout {
+    font-size: 14px;
+    font-style: italic;
+    color: #28a745;
+    margin-left: 5px;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    z-index: 2000;
+    overflow: auto;
+}
+
+.modal-content {
+    background: #2a2a3e;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #444444;
+    border-radius: 10px;
+    color: #ffffff;
+    position: relative;
+    box-sizing: border-box;
+    max-width: calc(100vw - 270px);
+    width: 90%;
+    margin-left: 260px;
+}
+
+.order-id-modal {
+    max-width: 300px;
+    padding: 15px;
+}
+
+.order-form-modal .modal-content {
+    max-width: calc(100vw - 270px);
+    width: 90%;
+    margin-left: 260px;
+    margin-right: 10px;
+}
+
+.order-form-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.order-details-panel, .chat-panel {
+    flex: 1;
+    min-width: 280px;
+    padding: 10px;
+}
+
+.account-details-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.account-details-form label {
+    font-weight: bold;
+    color: #cccccc;
+}
+
+.account-details-form input {
+    padding: 8px;
+    border: 1px solid #444444;
+    border-radius: 5px;
+    background: #33333f;
+    color: #ffffff;
+}
+
+.account-details-form input:disabled {
+    background: #22222e;
+    color: #888888;
+}
+
+.account-details-form button {
+    background-color: #007bff;
+    color: #ffffff;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.account-details-form button:hover {
+    background-color: #0056b3;
+}
+
+.chat-messages {
+    background: #22222e;
+    border: 1px solid #33333f;
+    padding: 10px;
+    border-radius: 10px;
+    overflow-y: auto;
+    max-height: 300px;
+    margin-bottom: 10px;
+}
+
+.chat-message {
+    margin: 5px 0;
+}
+
+.chat-message.sent {
+    text-align: right;
+}
+
+.chat-message.received {
+    text-align: left;
+}
+
+.chat-message p {
+    display: inline-block;
+    padding: 8px;
+    border-radius: 10px;
+    margin: 2px 5px;
+    max-width: 80%;
+}
+
+.chat-message.sent p {
+    background-color: #007bff;
+}
+
+.chat-message.received p {
+    background-color: #55555f;
+}
+
+.chat-input {
+    display: flex;
+    gap: 5px;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #444444;
+    border-radius: 5px;
+    background: #33333f;
+    color: #ffffff;
+}
+
+.chat-input button {
+    background-color: #28a745;
+    color: #ffffff;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.chat-input button:hover {
+    background-color: #218838;
+}
+
+.password-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#password-field {
+    padding: 8px;
+    background-color: #33333f;
+    border: 1px solid #444444;
+    color: #ffffff;
+    border-radius: 5px;
+    min-width: 150px;
+}
+
+#toggle-password {
+    background-color: #28a745;
+    color: #ffffff;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#toggle-password:hover {
+    background-color: #218838;
+}
+
+.modal-close {
+    color: #999999;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.modal-close:hover {
+    color: #007bff;
+}
+
+#balance-display {
+    font-size: 28px;
+    font-weight: bold;
+    color: #28a745;
+    margin-bottom: 10px;
+}
+
+@media (max-width: 767px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: static;
+        z-index: 1;
+    }
+
+    .panel-container {
+        margin-left: 0;
+        padding: 10px;
+    }
+
+    .main-content {
+        grid-template-columns: 1fr;
+        max-width: 100%;
+        padding: 10px;
+    }
+
+    .panel {
+        width: 100%;
+        padding: 15px;
+    }
+
+    .modal-content, .order-form-modal .modal-content {
+        max-width: 95vw;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 10px;
+    }
+
+    .order-form-container {
+        flex-direction: column;
+    }
+
+    .order-details-panel, .chat-panel {
+        min-width: 100%;
+    }
+
+    .chat-messages {
+        max-height: 200px;
+    }
+
+    .orders-table {
+        font-size: 14px;
+    }
+
+    .orders-table th, .orders-table td {
+        padding: 8px;
+    }
+
+    .rank-logo {
+        width: 30px;
+        height: 30px;
+    }
+
+    .order-id-button {
+        width: 20px;
+        height: 20px;
+        font-size: 12px;
+    }
+
+    .info-button, .claim-btn, .cancel-btn, .complete-btn, .approve-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    .panel button, #close-orders, #close-available-orders, #close-working-orders, #close-completed-orders {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    #balance-display {
+        font-size: 20px;
+    }
+}
