@@ -1,0 +1,418 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+}
+
+header {
+    background-color: #2d2d2d;
+    color: #ffffff;
+    padding: 10px 0;
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+}
+
+nav ul li {
+    margin: 0 20px;
+}
+
+nav ul li a {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+nav ul li a.active {
+    color: #ffd700;
+}
+
+main {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    color: #ffffff;
+}
+
+#boosters-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.booster-card {
+    background: #2d2d2d;
+    padding: 15px;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #ffffff;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    position: relative;
+}
+
+.language-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.7em;
+    color: #a0a0a0;
+}
+
+.language-icon {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+}
+
+.username-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-grow: 1;
+    justify-content: center;
+}
+
+.card-header h3 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 1.2em;
+    text-align: center;
+    text-decoration: underline;
+    text-shadow: 0 0 5px #28a745, 0 0 10px #28a745;
+}
+
+.game-icon {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+}
+
+.status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+}
+
+.status-dot.online {
+    background-color: #28a745;
+    box-shadow: 0 0 5px #28a745;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+.status-dot.offline {
+    background-color: #dc3545;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 5px #28a745, 0 0 10px #28a745;
+    }
+    50% {
+        transform: scale(1.2);
+        box-shadow: 0 0 10px #28a745, 0 0 15px #28a745;
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 5px #28a745, 0 0 10px #28a745;
+    }
+}
+
+.card-content {
+    margin-bottom: 10px;
+}
+
+.rank-panel {
+    border: 1px solid #a0a0a0;
+    border-radius: 4px;
+    padding: 6px;
+    margin-bottom: 8px;
+    background-color: #333333;
+    box-shadow: 0 0 5px rgba(40, 167, 69, 0.3);
+}
+
+.rank-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9em;
+}
+
+.rank-label {
+    color: #a0a0a0;
+    font-weight: bold;
+}
+
+.rank-value {
+    color: #e0e0e0;
+}
+
+.bio-section {
+    border: 1px solid #a0a0a0;
+    border-radius: 4px;
+    padding: 6px;
+    margin-bottom: 8px;
+    background-color: #333333;
+    box-shadow: 0 0 5px rgba(40, 167, 69, 0.3);
+    font-size: 0.9em;
+    font-style: italic;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    color: #0082b2;
+    word-break: break-word;
+}
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.game-section {
+    flex: 1;
+    padding: 8px;
+}
+
+.game-section.lol-section {
+    border: 1px solid #a0a0a0;
+    border-radius: 4px;
+}
+
+.game-section.valorant-section {
+    border: 1px solid #a0a0a0;
+    border-radius: 4px;
+}
+
+.lanes, .champions, .roles, .agents {
+    margin-bottom: 8px;
+}
+
+.section-title {
+    display: block;
+    color: #a0a0a0;
+    font-size: 0.8em;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.images {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.profile-image {
+    width: 35px;
+    height: 35px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.champion-image, .agent-image {
+    width: 45px;
+    height: 45px;
+}
+
+.edit-profile-btn {
+    background-color: #007bff;
+    color: #ffffff;
+    border: none;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 8px;
+    align-self: center;
+}
+
+.edit-profile-btn:hover {
+    background-color: #0056b3;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7);
+    overflow: auto;
+}
+
+.modal-content {
+    background-color: #333;
+    margin: 5% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    color: #e0e0e0;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+    color: #ffffff;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #ffffff;
+}
+
+.form-group select, .form-group textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: #2d2d2d;
+    color: #e0e0e0;
+}
+
+.form-group select[multiple] {
+    height: 100px;
+}
+
+.form-group textarea {
+    height: 80px;
+    resize: vertical;
+}
+
+.image-container {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.selected-image {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.lane-button, .role-button {
+    background-color: #2d2d2d;
+    color: #e0e0e0;
+    border: 1px solid #555;
+    padding: 8px 12px;
+    margin: 2px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.lane-button.selected, .role-button.selected {
+    background-color: #007bff;
+    color: #ffffff;
+    border-color: #0056b3;
+}
+
+.lane-button:hover, .role-button:hover {
+    background-color: #0056b3;
+    color: #ffffff;
+}
+
+button[type="submit"] {
+    background-color: #28a745;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: block;
+    margin: 20px auto 0;
+}
+
+button[type="submit"]:hover {
+    background-color: #218838;
+}
+
+/* Select2 Custom Styles */
+.select2-container--default .select2-selection--multiple {
+    background-color: #2d2d2d;
+    border: 1px solid #555;
+    border-radius: 4px;
+    color: #e0e0e0;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__rendered {
+    padding: 5px;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: #007bff;
+    border: 1px solid #0056b3;
+    color: #ffffff;
+    border-radius: 4px;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    color: #ffffff;
+}
+
+.select2-dropdown {
+    background-color: #2d2d2d;
+    border: 1px solid #555;
+    color: #e0e0e0;
+}
+
+.select2-container--default .select2-results__option {
+    background-color: #2d2d2d;
+    color: #e0e0e0;
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #007bff;
+    color: #ffffff;
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field {
+    background-color: #333;
+    border: 1px solid #555;
+    color: #e0e0e0;
+}

@@ -9,67 +9,112 @@
     <script src="/dashboard.js" defer></script>
     <script src="/utils.js" defer></script>
 </head>
+
 <body>
     <div class="dashboard-container">
         <div class="sidebar">
-            
-                <a href="league-services.html">
-        <img src="assets/logo.png" alt="C|H Boosting Logo" class="sidebar-logo">
-    </a>
+            <a href="league-services.html">
+                <img src="assets/logo.png" alt="C|H Boosting Logo" class="sidebar-logo">
+            </a>
             <ul>
-                <li><a href="#" id="account-balance-link"><span>💰</span>Account Balance</a></li>
-                <li><a href="#" id="orders-link"><span>📋</span>Orders</a></li>
-                <li><a href="#" id="available-orders-link"><span>🔍</span>Available Orders</a></li>
-                <li><a href="#" id="working-orders-link"><span>⚙️</span>My Working Orders</a></li>
-                <li><a href="#" id="order-boost-link"><span>🚀</span>Order Boost</a></li>
-                <li><a href="#" id="discord-link"><span>💬</span>Discord Server</a></li>
-                <li><a href="#" id="logout-link"><span>🚪</span>Logout</a></li>
-                <li><a href="#" id="completed-orders-link"><span>✅</span>Completed Orders</a></li>
+                <li><a href="#" id="account-balance-link">💰Account Balance</a></li>
+                <li><a href="#" id="orders-link">📋Orders</a></li>
+                <li><a href="#" id="available-orders-link">🔍Available Orders</a></li>
+                <li><a href="#" id="working-orders-link">⚙️My Working Orders</a></li>
+                <li><a href="#" id="completed-orders-link">✅Completed Orders</a></li>
+                <li><a href="#" id="payout-history-link">💸Payout History</a></li>
+                <li><a href="#" id="payout-management-link">🛠️Payout Management</a></li>
+                <li><a href="/league-services.html" class="sidebar-link">🚀Order Boost</a></li>
+                 <li><a href="https://discord.gg/XCS94bnaRc" class="sidebar-link" target="_blank">💬Discord Server</a></li> 
+                <li><a href="#" id="logout-link">🚪Logout</a></li>
             </ul>
         </div>
-        <div class="panel-container">
-            <div class="main-content">
-                <div id="account-balance-panel" class="panel">
-                    <h3>Account Balance</h3>
-                    <p id="balance-display">Loading balance...</p>
-                </div>
-                <div id="orders-panel" class="panel">
-                    <h3>My Orders</h3>
-                    <div id="my-orders">Loading orders...</div>
-                    <button id="close-orders" class="button">Close</button>
-                </div>
-                <div id="available-orders-panel" class="panel">
-                    <h3>Available Orders</h3>
-                    <div id="available-orders">Loading available orders...</div>
-                    <button id="close-available-orders" class="button">Close</button>
-                </div>
-                <div id="working-orders-panel" class="panel">
-                    <h3>My Working Orders</h3>
-                    <div id="working-orders">Loading working orders...</div>
-                    <button id="close-working-orders" class="button">Close</button>
-                </div>
-                <div id="order-boost-panel" class="panel">
-                    <h3>Order Booster</h3>
-                    <p>Start a new boosting order.</p>
-                    <a href="league-services.html"><button class="button">Order Now</button></a>
-                </div>
-                <div id="discord-panel" class="panel discord-server">
-                    <h3>Discord Server</h3>
-                    <p>Join our community for updates.</p>
-                    <a href="https://discord.gg/example"><button class="button">Join Discord</button></a>
-                </div>
-                <div id="settings-panel" class="panel">
-                    <h3>Account Settings</h3>
-                    <p>Manage your account details.</p>
-                    <button class="button">Settings</button>
-                </div>
-                <div id="completed-orders-panel" class="panel">
-                    <h3>Completed Orders</h3>
-                    <div id="completed-orders">Loading completed orders...</div>
-                    <button id="close-completed-orders" class="button">Close</button>
+
+        <div class="main-content">
+            <div id="modal-container">
+                <!-- Payout Request Modal -->
+                <div id="payout-request-modal" class="modal" style="display: none;">
+                    <div class="modal-content">
+                        <span class="modal-close">×</span>
+                        <h3>Request Payout</h3>
+                        <form id="payout-request-form">
+                            <label for="payout-amount">Amount ($):</label>
+                            <input type="number" id="payout-amount" step="0.01" min="0" required>
+                            <label for="payment-method">Payment Method:</label>
+                            <select id="payment-method" required>
+                                <option value="">Select Method</option>
+                                <option value="PayPal">PayPal</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                            </select>
+                            <label for="payment-details">Payment Details (e.g., PayPal email):</label>
+                            <input type="text" id="payment-details" required>
+                            <button type="submit">Submit Request</button>
+                        </form>
+                    </div>
                 </div>
             </div>
-            <div id="modal-container"></div>
+
+            <div class="panels">
+                <div id="account-balance-panel" class="panel">
+    <h2>Account Balance</h2>
+    <p id="balance-display">Loading balance...</p>
+    <button id="request-payout-button">Request Payout</button>
+</div>
+
+                <div id="orders-panel" class="panel">
+                    <h2>My Orders</h2>
+                    <div id="my-orders">Loading orders...</div>
+                    <button id="close-orders">Close</button>
+                </div>
+
+                <div id="available-orders-panel" class="panel">
+                    <h2>Available Orders</h2>
+                    <div id="available-orders">Loading available orders...</div>
+                    <button id="close-available-orders">Close</button>
+                </div>
+
+                <div id="working-orders-panel" class="panel">
+                    <h2>My Working Orders</h2>
+                    <div id="working-orders">Loading working orders...</div>
+                    <button id="close-working-orders">Close</button>
+                </div>
+
+                <div id="completed-orders-panel" class="panel">
+                    <h2>Completed Orders</h2>
+                    <div id="completed-orders">Loading completed orders...</div>
+                    <button id="close-completed-orders">Close</button>
+                </div>
+
+                <div id="payout-history-panel" class="panel">
+                    <h2>Payout History</h2>
+                    <div id="payout-history">Loading payout history...</div>
+                    <button id="close-payout-history">Close</button>
+                </div>
+
+                <div id="payout-management-panel" class="panel">
+                    <h2>Payout Management</h2>
+                    <div id="payout-requests">Loading payout requests...</div>
+                    <button id="close-payout-management">Close</button>
+                </div>
+
+                <div id="order-boost-panel" class="panel">
+                    <h2>Order Booster</h2>
+                    <p>Start a new boosting order.</p>
+                    <button>Order Now</button>
+                </div>
+
+                <div id="discord-panel" class="panel">
+                    <h2>Discord Server</h2>
+                    <p>Join our community for updates.</p>
+                    <button>Join Discord</button>
+                </div>
+
+                <div id="settings-panel" class="panel">
+                    <h2>Account Settings</h2>
+                    <p>Manage your account details.</p>
+                    <button>Settings</button>
+                </div>
+            </div>
         </div>
     </div>
 </body>

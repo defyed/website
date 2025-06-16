@@ -42,14 +42,34 @@
 
         const updateSummary = () => {
             try {
-                document.getElementById('current-rank').textContent = `From: ${orderData.currentRank || 'N/A'} ${orderData.currentDivision || ''}`;
-                document.getElementById('desired-rank').textContent = `To: ${orderData.desiredRank || 'N/A'} ${orderData.desiredDivision || ''}`;
-                document.getElementById('current-lp').textContent = `Current LP: ${orderData.currentLP || 'N/A'}`;
-                
-                // Conditionally display Master LP
+                // Sanitize division to remove duplicates
+                const cleanDivision = (div) => {
+                    if (!div) return '';
+                    const parts = div.trim().split(/\s+/);
+                    return parts[0] || '';
+                };
+
+                const currentDivision = cleanDivision(orderData.currentDivision);
+                const desiredDivision = cleanDivision(orderData.desiredDivision);
+
+                // Format ranks without prepending From/To
+                const currentRankText = orderData.currentRank 
+                    ? `${orderData.currentRank}${currentDivision ? ' ' + currentDivision : ''}`
+                    : 'N/A';
+                const desiredRankText = orderData.desiredRank 
+                    ? `${orderData.desiredRank}${desiredDivision ? ' ' + desiredDivision : ''}`
+                    : 'N/A';
+
+                document.getElementById('current-rank').textContent = currentRankText;
+                document.getElementById('desired-rank').textContent = desiredRankText;
+                document.getElementById('current-lp').textContent = orderData.currentLP || 'N/A';
+
+                // Master LP logic
                 const masterLpElement = document.getElementById('MasterLP');
-                if (orderData.desiredRank?.startsWith('Master')) {
-                    masterLpElement.textContent = `Master LP: ${orderData.desiredMasterLP || 0}`;
+                const masterLpValue = document.getElementById('master-lp-value');
+                const isMasterRank = orderData.desiredRank && orderData.desiredRank.toLowerCase() === 'master';
+                if (isMasterRank) {
+                    masterLpValue.textContent = orderData.desiredMasterLP || '0';
                     masterLpElement.style.display = 'block';
                 } else {
                     masterLpElement.style.display = 'none';
@@ -58,7 +78,7 @@
                 const optionsDisplay = orderData.extras?.length 
                     ? orderData.extras.map(option => option.label).join(', ')
                     : 'None';
-                document.getElementById('options').textContent = `Options: ${optionsDisplay}`;
+                document.getElementById('options').textContent = optionsDisplay;
 
                 const finalPrice = parseFloat(orderData.finalPrice) || 0;
                 const discount = parseFloat(orderData.discount) || (orderData.couponApplied ? 0.15 : 0);
@@ -72,10 +92,14 @@
                 console.log('Order summary updated:', { basePrice, totalPrice, discount, discountAmount, finalPrice });
             } catch (error) {
                 console.error('Error updating order summary:', error);
+                document.getElementById('current-rank').textContent = 'N/A';
+                document.getElementById('desired-rank').textContent = 'N/A';
+                document.getElementById('current-lp').textContent = 'N/A';
+                document.getElementById('MasterLP').style.display = 'none';
+                document.getElementById('options').textContent = 'None';
                 document.getElementById('subtotal').textContent = '$0.00';
                 document.getElementById('discount').textContent = '$0.00';
                 document.getElementById('total').textContent = '$0.00';
-                document.getElementById('MasterLP').style.display = 'none';
             }
         };
         updateSummary();
@@ -98,25 +122,25 @@
 
             try {
                 const clientReference = {
-                    currentRank: orderData.currentRank,
-                    desiredRank: orderData.desiredRank,
-                    finalPrice: orderData.finalPrice,
-                    basePrice: orderData.basePrice || orderData.totalPrice || orderData.finalPrice,
-                    discount: orderData.discount || (orderData.couponApplied ? 0.15 : 0),
-                    couponApplied: orderData.couponApplied || false,
-                    currentDivision: orderData.currentDivision || '',
-                    desiredDivision: orderData.desiredDivision || '',
-                    currentLP: orderData.currentLP || '0-20',
-                    desiredLP: orderData.desiredMasterLP || 0,
-                    extras: orderData.extras || []
+                    cr: orderData.currentRank,
+                    dr: orderData.desiredRank,
+                    fp: orderData.finalPrice,
+                    bp: orderData.basePrice || orderData.totalPrice || orderData.finalPrice,
+                    d: orderData.discount || (orderData.couponApplied ? 0.15 : 0),
+                    ca: orderData.couponApplied || false,
+                    cd: orderData.currentDivision || '',
+                    dd: orderData.desiredDivision || '',
+                    lp: orderData.currentLP || '0-20',
+                    dlp: orderData.desiredMasterLP || orderData.desiredRR || 0,
+                    ex: orderData.extras?.map(e => ({ l: e.label, p: e.percentage })) || []
                 };
                 const clientReferenceString = JSON.stringify(clientReference);
                 console.log('client_reference_id:', { length: clientReferenceString.length, value: clientReferenceString });
-                console.log('Requesting Stripe Checkout Session with:', { orderData, userId });
+                console.log('Requesting Stripe Checkout Session with:', { orderData, userId, clientReferenceString });
                 const response = await fetch('/api/create-checkout-session', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ orderData, userId })
+                    body: JSON.stringify({ orderData, userId, clientReferenceString })
                 });
 
                 if (!response.ok) {

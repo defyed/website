@@ -12,6 +12,8 @@ body {
 .dashboard-container {
     display: flex;
     flex: 1;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .sidebar {
@@ -31,7 +33,7 @@ body {
     height: auto;
     margin: 0 auto 20px;
     display: block;
-    cursor: pointer; /* Added for clickable logo */
+    cursor: pointer;
 }
 
 .sidebar ul {
@@ -57,47 +59,50 @@ body {
     background-color: #007bff;
 }
 
-.panel-container {
-    margin-left: 250px;
-    flex: 1;
+.main-content {
+    margin-left: 250px; /* Offset for fixed sidebar */
+    width: calc(100% - 250px); /* Full width minus sidebar */
     padding: 20px;
     background: transparent;
     min-height: 100vh;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
 }
 
-.main-content {
+.panels {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 10px;
     padding: 20px;
-    max-width: calc(100% - 40px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 100%;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr); /* 2-column grid for default panels */
     gap: 20px;
+    box-sizing: border-box;
 }
 
 .panel {
     background: rgba(0, 0, 0, 0.5);
     border-radius: 10px;
     padding: 20px;
-    display: none;
+    display: none; /* Hidden by default */
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 200px; /* Ensure consistent panel height */
 }
 
-.panel[style*="display: flex"] {
-    display: flex !important;
-}
-
+/* Default visible panels on load */
 #account-balance-panel, #order-boost-panel, #discord-panel, #settings-panel {
-    display: flex;
+    display: flex; /* No !important to allow JS to override */
 }
 
-#orders-panel, #available-orders-panel, #working-orders-panel, #completed-orders-panel {
-    grid-column: span 2;
+/* Full-width panels */
+#orders-panel, #available-orders-panel, #working-orders-panel, #completed-orders-panel, #payout-history-panel, #payout-management-panel {
+    grid-column: span 2; /* Span both columns */
     width: 100%;
     overflow-x: auto;
 }
@@ -127,7 +132,8 @@ body {
     background-color: #0056b3;
 }
 
-#close-orders, #close-available-orders, #close-working-orders, #close-completed-orders {
+/* Close buttons */
+#close-orders, #close-available-orders, #close-working-orders, #close-completed-orders, #close-payout-history, #close-payout-management {
     background-color: #dc3545;
     color: #ffffff;
     padding: 8px 16px;
@@ -137,38 +143,38 @@ body {
     font-size: 14px;
 }
 
-#close-orders:hover, #close-available-orders:hover, #close-working-orders:hover, #close-completed-orders:hover {
+#close-orders:hover, #close-available-orders:hover, #close-working-orders:hover, #close-completed-orders:hover, #close-payout-history:hover, #close-payout-management:hover {
     background-color: #c82333;
 }
 
-.orders-table {
+.orders-table, .payout-table {
     width: 100%;
     border-collapse: collapse;
     background: rgba(255, 255, 255, 0.1);
     color: #ffffff;
 }
 
-.orders-table th, .orders-table td {
+.orders-table th, .orders-table td, .payout-table th, .payout-table td {
     padding: 12px;
     text-align: left;
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.orders-table th {
+.orders-table th, .payout-table th {
     background: rgba(0, 0, 0, 0.4);
 }
 
-.orders-table tbody tr:hover {
+.orders-table tbody tr:hover, .payout-table tbody tr:hover {
     background: rgba(255, 255, 255, 0.15);
     cursor: pointer;
 }
 
 .customer-completed-order {
-    background-color: #1264253f !important; /* Light green for completed customer orders */
+    background-color: #1264253f !important;
 }
 
 .customer-completed-order:hover {
-    background-color: #0f471c !important; /* Slightly darker green on hover */
+    background-color: #0f471c !important;
 }
 
 .rank-logo {
@@ -494,6 +500,73 @@ body {
     margin-bottom: 10px;
 }
 
+/* Payout request modal form */
+#payout-request-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#payout-request-form label {
+    font-weight: bold;
+    color: #cccccc;
+    margin-bottom: 5px;
+}
+
+#payout-request-form input, #payout-request-form select {
+    padding: 8px;
+    border: 1px solid #444444;
+    border-radius: 5px;
+    background: #33333f;
+    color: #ffffff;
+    width: 100%;
+}
+
+#payout-request-form button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 8px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 14px;
+}
+
+#payout-request-form button:hover {
+    background-color: #45a049;
+}
+
+.approve-payout-btn {
+    background-color: #28a745;
+    color: #ffffff;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-right: 5px;
+}
+
+.approve-payout-btn:hover {
+    background-color: #218838;
+}
+
+.reject-payout-btn {
+    background-color: #dc3545;
+    color: #ffffff;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.reject-payout-btn:hover {
+    background-color: #c82333;
+}
+
+/* Media queries */
 @media (max-width: 767px) {
     .sidebar {
         width: 100%;
@@ -502,14 +575,14 @@ body {
         z-index: 1;
     }
 
-    .panel-container {
+    .main-content {
         margin-left: 0;
+        width: 100%;
         padding: 10px;
     }
 
-    .main-content {
-        grid-template-columns: 1fr;
-        max-width: 100%;
+    .panels {
+        grid-template-columns: 1fr; /* Stack panels on mobile */
         padding: 10px;
     }
 
@@ -537,11 +610,11 @@ body {
         max-height: 200px;
     }
 
-    .orders-table {
+    .orders-table, .payout-table {
         font-size: 14px;
     }
 
-    .orders-table th, .orders-table td {
+    .orders-table th, .orders-table td, .payout-table th, .payout-table td {
         padding: 8px;
     }
 
@@ -556,12 +629,12 @@ body {
         font-size: 12px;
     }
 
-    .info-button, .claim-btn, .cancel-btn, .complete-btn, .approve-btn {
+    .info-button, .claim-btn, .cancel-btn, .complete-btn, .approve-btn, .approve-payout-btn, .reject-payout-btn {
         padding: 6px 12px;
         font-size: 12px;
     }
 
-    .panel button, #close-orders, #close-available-orders, #close-working-orders, #close-completed-orders {
+    .panel button, #close-orders, #close-available-orders, #close-working-orders, #close-completed-orders, #close-payout-history, #close-payout-management {
         padding: 6px 12px;
         font-size: 12px;
     }

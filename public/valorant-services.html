@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>League of Legends Boosting</title>
+    <link rel="stylesheet" href="styles.css">
+   <!--<script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.js"></script> --> 
+    
+ 
+    
+</head>
+<body class="league-services">
+    <div class="content-wrapper">
+        <canvas id="particle-canvas"></canvas>
+        <header>
+            <div class="logo">
+                <a href="/league-services.html"></a>
+            </div>
+            <nav>
+                <span class="nav-toggle">☰</span>
+                <ul>
+                    <li><a href="/index.html"></a></li>
+                    <li><a href="#" onclick="checkLoginAndNavigate('boosters.html')">Boosters</a></li>
+                    <li><a href="/boosting.html">Boosting</a></li>
+                    <li><a href="/coaching.html">Coaching</a></li>
+                   <a href="#" id="sign-in-btn" class="sign-in-btn">Sign In</a>
+                </ul>
+            </nav>
+        </header>
+        <div id="loginPopup" class="popup" style="display: none;"></div>
+        <main>
+            <section class="hero">
+                <h1>League of Legends Elo Boost</h1>
+                <h2>Reach Your Desired Rank with Expert Boosters</h2>
+               
+            </section>
+            <section class="ls-pricing-process">
+                <h3>Pricing & Process</h3>
+                <div class="ls-process-steps">
+                    <div class="ls-step">
+                        <h4>Step 1: Place Order</h4>
+                        <p>Select your current and target ranks, then proceed to payment.</p>
+                    </div>
+                    <div class="ls-step">
+                        <h4>Step 2: Booster Assigned</h4>
+                        <p>A Challenger-level booster is matched to your account within minutes.</p>
+                    </div>
+                    <div class="ls-step">
+                        <h4>Step 3: Track Progress</h4>
+                        <p>Monitor your boost in real-time with our dashboard.</p>
+                    </div>
+                </div>
+                <div class="ls-pricing-table">
+                    <p>Time varies by rank (1-5 days).</p>
+                </div>
+            </section>
+            <section class="ls-new-section-top">
+    <h2>Choose Your Game</h2>
+    <div class="game-selection">
+        <a href="league-services.html" class="game-card">
+            <img src="/Images/league-of-legends.png" alt="League of Legends">
+            <h3>League of Legends</h3>
+        </a>
+        <a href="valorant-services.html" class="game-card">
+            <img src="/Images/valorant.png" alt="Valorant">
+            <h3>Valorant</h3>
+        </a>
+        <a href="#tft-boost" class="game-card">
+            <img src="/Images/teamfight-tactics.png" alt="Teamfight Tactics">
+            <h3>Teamfight Tactics</h3>
+        </a>
+    </div>
+</section>
+            <div class="selection-and-payment-container">
+            <div class="league-selection-wrapper">
+                <section class="rank-selection">
+                    <div class="ls-rank-container">
+                        <div class="ls-current-league-group">
+                           <section class="ls-new-section">
+                                    <h2>CURRENT LEAGUE</h2>
+                            <div class="rank-display-section">
+                                <div class="rank-text">Select Rank</div>
+                                <img id="current-rank-image" src="/images/default.png" alt="Select a Rank">
+                            </div>
+                            <div class="ls-rank-box">
+                                <h3>Choose Current League</h3>
+                                <div class="rank-buttons">
+                                    <button class="rank-btn" data-rank="Iron"><img src="/images/Iron_1_Rank.png" alt="Iron"></button>
+                                    <button class="rank-btn" data-rank="Bronze"><img src="/images/Bronze_1_Rank.png" alt="Bronze"></button>
+                                    <button class="rank-btn" data-rank="Silver"><img src="/images/Silver_1_Rank.png" alt="Silver"></button>
+                                    <button class="rank-btn" data-rank="Gold"><img src="/images/Gold_1_Rank.png" alt="Gold"></button>
+                                    <button class="rank-btn" data-rank="Platinum"><img src="/images/Platinum_1_Rank.png" alt="Platinum"></button>
+                                    <button class="rank-btn" data-rank="Diamond"><img src="/images/Diamond_1_Rank.png" alt="Diamond"></button>
+                                    <button class="rank-btn" data-rank="Ascendant"><img src="/images/Ascendant_1_Rank.png" alt="Ascendant"></button>
+                                    <button class="rank-btn" data-rank="Immortal"><img src="/images/Immortal_1_Rank.png" alt="Immortal"></button>
+                                </div>
+                                <div class="division-select">
+                                    <div>Current Division</div>
+                                    <div class="division-container">
+                                        <button class="division-btn" data-division="I">I</button>
+                                        <button class="division-btn" data-division="II">II</button>
+                                        <button class="division-btn" data-division="III">III</button>
+                                    </div>
+                                </div>
+                                <div class="lp-select">
+                                    <div>Current RR</div>
+                                    <select id="current-lp-select">
+                                        <option value="0-20">0-20</option>
+                                        <option value="21-40">21-40</option>
+                                        <option value="41-60">41-60</option>
+                                        <option value="61-80">61-80</option>
+                                        <option value="81-100">81-100</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ls-target-league-group">
+                            
+                                <section class="ls-target-rank">
+                                    <h2>TARGET LEAGUE</h2>
+                            <div class="rank-display-section">
+                                <div class="rank-text">Select Rank</div>
+                                <img id="target-rank-image" src="/images/default.png" alt="Select a Rank">
+                            </div>
+                            <div class="ls-rank-box">
+                                <h3>Choose Target League</h3>
+                                <div class="rank-buttons">
+                                    <button class="rank-btn" data-rank="Iron"><img src="/images/Iron_1_Rank.png" alt="Iron"></button>
+                                    <button class="rank-btn" data-rank="Bronze"><img src="/images/Bronze_1_Rank.png" alt="Bronze"></button>
+                                    <button class="rank-btn" data-rank="Silver"><img src="/images/Silver_1_Rank.png" alt="Silver"></button>
+                                    <button class="rank-btn" data-rank="Gold"><img src="/images/Gold_1_Rank.png" alt="Gold"></button>
+                                    <button class="rank-btn" data-rank="Platinum"><img src="/images/Platinum_1_Rank.png" alt="Platinum"></button>
+                                    <button class="rank-btn" data-rank="Diamond"><img src="/images/Diamond_1_Rank.png" alt="Diamond"></button>
+                                    <button class="rank-btn" data-rank="Ascendant"><img src="/images/Ascendant_1_Rank.png" alt="Ascendant"></button>
+                                    <button class="rank-btn" data-rank="Immortal"><img src="/images/Immortal_1_Rank.png" alt="Immortal"></button>
+                                </div>
+                                <div class="division-select">
+                                    <div>Target Division</div>
+                                    <div class="division-container">
+                                        <button class="division-btn" data-division="I">I</button>
+                                        <button class="division-btn" data-division="II">II</button>
+                                        <button class="division-btn" data-division="III">III</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="queue-server-container">
+                        <div class="queue-select">
+                            <label for="queue-type">Queue Type</label>
+                            <select id="queue-type">
+                                <option value="solo">Solo</option>
+                                <option value="duo">Duo</option>
+                            </select>
+                        </div>
+                        <div class="server-select">
+                            <label for="server-type">Server Type</label>
+                            <select id="server-type">
+                                <option value="na">North America</option>
+                                <option value="eu">Europe</option>
+                                <option value="ap">Asia Pacific</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+        
+                    
+                </div>
+                    <section class="ls-payment-panel">
+                        <h2>Extra Options</h2>
+                        <div class="payment-options">
+                            <div class="option-row">
+                                <span>Agents</span>
+                                <div class="option-label free">Free</div>
+                                <div class="info-icon">?
+                                    <div class="tooltip">Choose specific champions or lanes for your boost.</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" class="option-toggle" data-price="0">
+                                    <span class="slider"></span>
+                                </label>
+                                <div class="option-price"></div>
+                            </div>
+                            <div class="option-row">
+                                <span>Assign Booster</span>
+                                <div class="option-label free">Free</div>
+                                <div class="info-icon">?
+                                    <div class="tooltip">Select a specific booster for your order (if available).</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" class="option-toggle" data-price="0">
+                                    <span class="slider"></span>
+                                </label>
+                                <div class="option-price"></div>
+                            </div>
+                            <div class="option-row">
+                                <span>VPN and Appear Offline</span>
+                                <div class="option-label free">Free</div>
+                                <div class="info-icon">?
+                                    <div class="tooltip">Your booster will use a VPN and appear offline to enhance account security.</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" class="option-toggle" data-price="0">
+                                    <span class="slider"></span>
+                                </label>
+                                <div class="option-price"></div>
+                            </div>
+                            <div class="option-row">
+                                <span>Priority</span>
+                                <div class="option-label percentage">+20%</div>
+                                <div class="info-icon">?
+                                    <div class="tooltip">Prioritize your boost to be completed faster (adds 20% to the cost).</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" class="option-toggle" data-price="20">
+                                    <span class="slider"></span>
+                                </label>
+                                <div class="option-price"></div>
+                            </div>
+                            <div class="option-row">
+                                <span>Stream</span>
+                                <div class="option-label percentage">+10%</div>
+                                <div class="info-icon">?
+                                    <div class="tooltip">Watch your booster play live via a private stream (adds 10% to the cost).</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" class="option-toggle" data-price="10">
+                                    <span class="slider"></span>
+                                </label>
+                                <div class="option-price"></div>
+                            </div>
+                            <div class="option-row">
+                                <span>Solo Only</span>
+                                <div class="option-label percentage">+40%</div>
+                                <div class="info-icon">?
+                                    <div class="tooltip">Your booster will only play solo, without duo queuing (adds 40% to the cost).</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" class="option-toggle" data-price="40">
+                                    <span class="slider"></span>
+                                </label>
+                                <div class="option-price"></div>
+                            </div>
+                            <div class="option-row">
+                                <span>Duo with Booster</span>
+                                <div class="option-label percentage">+50%</div>
+                                <div class="info-icon">?
+                                    <div class="tooltip">You play with the booster (adds 50% to the cost).</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" class="option-toggle" data-price="50">
+                                    <span class="slider"></span>
+                                </label>
+                                <div class="option-price"></div>
+                            </div>
+                        </div>
+                        <div class="total-price">
+                            <h3>TOTAL PRICE</h3>
+                            <p class="original-price">$0.00</p>
+                            <p class="discounted-price">$0.00</p>
+                        </div>
+                        <div class="cashback-offer">
+                            <p>Get $0.00 cashback on your purchase</p>
+                        </div>
+                        <div class="coupon-section">
+                            <p><span class="discount-rate">Coupon isn't active</span></p>
+                            <input type="text" id="coupon-input" placeholder="Enter Coupon Code">
+                        </div>
+                        <button class="proceed-payment">Proceed to Payment 🛒</button>
+                        <div class="secure-payment">
+                            <div class="payment-text">
+                                <img src="/Images/SSL-secured-Blue.png" alt="SSL Icon">
+                                <span><h3>Safe and Secure Payments</h3></span>
+                            </div>
+                            <p>Secure checkout by Stripe & PayPal</p>
+                        </div>
+                    </section>
+                </div>
+            </section>
+            <section class="ls-testimonials">
+                <h3>What Our Customers Say</h3>
+                <div class="ls-testimonial-card">
+                    <p>"Fast and secure boost to Platinum! Highly recommend."</p>
+                    <span>- John D., Gold I</span>
+                </div>
+                <div class="ls-testimonial-card">
+                    <p>"Great experience, booster was professional and quick."</p>
+                    <span>- Sarah K., Silver III</span>
+                </div>
+                
+                <section class="ls-guarantees">
+                    <h3>Why Choose Us?</h3>
+                    <ul>
+                        <li>100% Account Safety with VPN</li>
+                        <li>24/7 Customer Support</li>
+                    </ul>
+                </section>
+            </section>
+            <section class="service-panels">
+                <div class="service-card">
+                    <img src="https://via.placeholder.com/60?text=Strategy" alt="Strategic Advancement Icon">
+                    <h3>Strategic Advancement</h3>
+                    <p>Tailored training to dominate the competition.</p>
+                </div>
+                <div class="service-card">
+                    <img src="https://via.placeholder.com/60?text=Edge" alt="Competitive Edge Icon">
+                    <h3>Competitive Edge</h3>
+                    <p>Overcome slow climbs and low LP gains.</p>
+                </div>
+            </section>
+        </main>
+        <footer>
+            <p>© 2025 CH|Boost. All rights reserved.</p>
+        </footer>
+          
+        <script src="/utils.js" defer></script>
+<script src="/login.js" defer></script>
+<script src="/auth.js" defer></script>
+
+<script src="/js/particles.js"></script>
+
+<script src="/js/valorant-rankSelection.js"></script>
+
+<script src="/js/paymentPanel-valorant.js"></script>
+
+    
+    
+    </div>
+    <div id="loginPopup" class="popup" style="display: none;"></div>
+    
+
+</body>
+</html>

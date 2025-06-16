@@ -28,7 +28,7 @@ async function sendEmail({ to, subject, text }) {
   }
 }
 
-async function sendResetPasswordEmail({ to, resetLink }) {
+async function sendResetPasswordEmail({ to, resetLink, username }) {
   try {
     const mailOptions = {
       from: `"Climb Higher Boosting" <${process.env.EMAIL_USER}>`,
@@ -36,7 +36,8 @@ async function sendResetPasswordEmail({ to, resetLink }) {
       subject: 'Password Reset Request',
       html: `
         <h2>Reset Your Password</h2>
-        <p>You requested to reset your password. Click the link below to set a new password:</p>
+        <p>Dear ${username},</p>
+        <p>You requested to reset your password for your Climb Higher Boosting account. Click the link below to set a new password:</p>
         <a href="${resetLink}" style="display: inline-block; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 4px;">Reset Password</a>
         <p>This link will expire in 1 hour. If you did not request a password reset, please ignore this email.</p>
         <p>Best regards,<br>CH|Boost Team</p>

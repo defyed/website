@@ -25,6 +25,7 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
 -- Create the orders table
 CREATE TABLE orders (
     order_id VARCHAR(255) PRIMARY KEY,
