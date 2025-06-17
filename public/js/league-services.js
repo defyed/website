@@ -96,7 +96,7 @@
 
         const orderData = {
             currentRank: currentRank + (currentDivision && currentRank !== 'Master' ? ' ' + currentDivision : ''),
-            desiredRank: desiredRank + (desiredDivision && desiredRank !== 'Master' ? ' ' + desiredDivision : ''),
+            desiredRank: desiredRank + (desiredDivision && desiredRank !== 'Master' ? '' : ''),
             currentDivision: currentDivision || '',
             desiredDivision: desiredDivision || '',
             currentLP,
@@ -108,7 +108,8 @@
             basePrice: basePrice.toFixed(2),
             totalPrice: totalPrice.toFixed(2),
             finalPrice: finalPrice.toFixed(2),
-            cashback: cashback.toFixed(2)
+            cashback: cashback.toFixed(2),
+            game: 'League of Legends' // Explicitly set game type
         };
 
         const originalPriceEl = document.querySelector('.original-price');

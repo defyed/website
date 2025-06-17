@@ -952,15 +952,13 @@
             const isValorant = (order.game_type || 'League of Legends') === 'Valorant';
             let currentRankImgSrc, desiredRankImgSrc;
             if (isValorant) {
-                const divisionMap = { 'I': '1', 'II': '2', 'III': '3', '': '' };
-                const currentDivision = divisionMap[current.division] || '';
-                const desiredDivision = divisionMap[desired.division] || '';
-                currentRankImgSrc = current.division
-                    ? `/images/${current.rank}${currentDivision}.png`
-                    : `/images/${current.rank}.png`;
-                desiredRankImgSrc = desired.division
-                    ? `/images/${desired.rank}${desiredDivision}.png`
-                    : `/images/${desired.rank}.png`;
+                const divisionMap = { 'I': '1', 'II': '2', 'III': '3', '': '0' };
+                const currentDivision = divisionMap[current.division] || '0';
+                const desiredDivision = divisionMap[desired.division] || '0';
+                const currentRankCapitalized = current.rank.charAt(0).toUpperCase() + current.rank.slice(1);
+                const desiredRankCapitalized = desired.rank.charAt(0).toUpperCase() + desired.rank.slice(1);
+                currentRankImgSrc = `/images/${currentRankCapitalized}_${currentDivision}_Rank.png`;
+                desiredRankImgSrc = `/images/${desiredRankCapitalized}_${desiredDivision}_Rank.png`;
             } else {
                 currentRankImgSrc = `/images/${current.rank}.png`;
                 desiredRankImgSrc = `/images/${desired.rank}.png`;
@@ -1412,40 +1410,39 @@
 
         // Add navigation for panel buttons
         const orderNowButton = document.querySelector('#order-boost-panel button');
-    if (orderNowButton) {
-        console.log('Order Now button found:', orderNowButton);
-        orderNowButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('Order Now button clicked');
-            window.location.href = '/league-services.html';
-        });
-    } else {
-        console.error('Order Now button not found in #order-boost-panel');
-    }
+        if (orderNowButton) {
+            console.log('Order Now button found:', orderNowButton);
+            orderNowButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Order Now button clicked');
+                window.location.href = '/league-services.html';
+            });
+        } else {
+            console.error('Order Now button not found in #order-boost-panel');
+        }
 
-    const joinDiscordButton = document.querySelector('#discord-panel button');
-    if (joinDiscordButton) {
-        console.log('Join Discord button found:', joinDiscordButton);
-        joinDiscordButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('Join Discord button clicked');
-            window.open('https://discord.gg/XCS94bnaRc', '_blank');
-        });
-    } else {
-        console.error('Join Discord button not found in #discord-panel');
-    }
+        const joinDiscordButton = document.querySelector('#discord-panel button');
+        if (joinDiscordButton) {
+            console.log('Join Discord button found:', joinDiscordButton);
+            joinDiscordButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Join Discord button clicked');
+                window.open('https://discord.gg/XCS94bnaRc', '_blank');
+            });
+        } else {
+            console.error('Join Discord button not found in #discord-panel');
+        }
 
-    const settingsButton = document.querySelector('#settings-panel button');
-    if (settingsButton) {
-        console.log('Settings button found:', settingsButton);
-        settingsButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('Settings button clicked');
-            window.location.href = '/account-settings.html';
-        });
-    } else {
-        console.error('Settings button not found in #settings-panel');
-    }
-        
+        const settingsButton = document.querySelector('#settings-panel button');
+        if (settingsButton) {
+            console.log('Settings button found:', settingsButton);
+            settingsButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Settings button clicked');
+                window.location.href = '/account-settings.html';
+            });
+        } else {
+            console.error('Settings button not found in #settings-panel');
+        }
     });
 })();
