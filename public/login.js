@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const baseUrl = window.location.origin; // e.g., http://localhost:3000
+    // Removed baseUrl for relative paths
     console.log('login.js loaded at:', new Date().toISOString());
 
     // Create popup containers dynamically
@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const loginError = document.getElementById('login-error');
 
                 try {
-                    const response = await fetch(`${baseUrl}/api/login`, {
+                    const response = await fetch(`/api/login`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ username, password })
@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const registerError = document.getElementById('register-error');
 
                 try {
-                    const response = await fetch(`${baseUrl}/api/register`, {
+                    const response = await fetch(`/api/register`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ username, email, password })
@@ -247,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const forgotPasswordMessage = document.getElementById('forgot-password-message');
 
                 try {
-                    const response = await fetch(`${baseUrl}/api/forgot-password`, {
+                    const response = await fetch(`/api/forgot-password`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email })
@@ -291,7 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 try {
-                    const response = await fetch(`${baseUrl}/api/reset-password`, {
+                    const response = await fetch(`/api/reset-password`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ userId, token, newPassword })
