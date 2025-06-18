@@ -31,6 +31,7 @@
         const currentRR = document.querySelector('select[name="current-rr"]')?.value || '0-20';
         const currentImmortalRR = parseInt(document.querySelector('input[name="current-immortal-rr"]')?.value) || 0;
         const desiredImmortalRR = parseInt(document.querySelector('input[name="desired-immortal-rr"]')?.value) || 0;
+        
 
         const isHighRank = rank => rank === 'Immortal';
         const currentRankIndex = ranks.indexOf(currentRank);

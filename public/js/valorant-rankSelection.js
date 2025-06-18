@@ -73,7 +73,9 @@ document.addEventListener('DOMContentLoaded', () => {
         label.textContent = labelText;
         const input = document.createElement('input');
         input.id = inputId;
-        input.type = 'number';
+        input.type = 'text';
+        input.placeholder = 'Enter RR';
+        input.classList.add('input-lp');
         input.min = '0';
         input.value = '0';
         container.appendChild(label);
