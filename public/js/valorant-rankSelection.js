@@ -136,10 +136,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (desiredRRContainer) desiredRRContainer.style.display = (isDesiredImmortal || isAscendantToImmortal) ? '' : 'none';
-        if ((isDesiredImmortal || isAscendantToImmortal) && desiredRRInput && !window.desiredRR) {
-            desiredRRInput.value = isAscendantToImmortal ;
-            window.desiredRR = isAscendantToImmortal ;
-        }
+       if ((isDesiredImmortal || isAscendantToImmortal) && desiredRRInput) {
+    if (!desiredRRInput.value || Number(desiredRRInput.value) < (isAscendantToImmortal ? 0 : 40)) {
+        desiredRRInput.value = isAscendantToImmortal ? '' : '';
+    }
+}
+
 
         if (window.currentRank) {
             const displayDivision = window.currentRank === 'Immortal' ? '' : ` ${window.currentDivision || 'I'}`;
