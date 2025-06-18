@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (desiredRRContainer) desiredRRContainer.style.display = (isDesiredImmortal || isAscendantToImmortal) ? '' : 'none';
        if ((isDesiredImmortal || isAscendantToImmortal) && desiredRRInput) {
-    if (!desiredRRInput.value || Number(desiredRRInput.value) < (isAscendantToImmortal ? 0 : 40)) {
+    if (!desiredRRInput.value || Number(desiredRRInput.value) < (isAscendantToImmortal ?'' : '')) {
         desiredRRInput.value = isAscendantToImmortal ? '' : '';
     }
 }
@@ -346,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.currentRR = 0;
                 window.desiredRank = 'Immortal';
                 window.desiredDivision = '';
-                window.desiredRR = '';
+                window.desiredRR = 40;
                 if (desiredRRInput) desiredRRInput.value = '40';
                 desiredRankButtons.forEach(b => b.classList.toggle('selected', b.dataset.rank === 'Immortal'));
                 desiredDivisionButtons.forEach(b => b.classList.remove('selected'));
