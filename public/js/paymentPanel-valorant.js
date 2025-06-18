@@ -20,7 +20,7 @@ const priceData = {
     "Ascendant I": { "Ascendant II": 68.00 },
     "Ascendant II": { "Ascendant III": 75.00 },
     "Ascendant III": { "Immortal": 116.22 },
-    "Immortal": { "Immortal_40RR": 116.22 }
+    "Immortal": { "Immortal": 116.22 }
 };
 
 const rankOrder = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal'];

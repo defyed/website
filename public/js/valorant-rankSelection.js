@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (desiredRRContainer) desiredRRContainer.style.display = (isDesiredImmortal || isAscendantToImmortal) ? '' : 'none';
        if ((isDesiredImmortal || isAscendantToImmortal) && desiredRRInput) {
-    if (!desiredRRInput.value || Number(desiredRRInput.value) < (isAscendantToImmortal ?'' : '')) {
+    if (!desiredRRInput.value || Number(desiredRRInput.value) < (isAscendantToImmortal ?'' : 40)) {
         desiredRRInput.value = isAscendantToImmortal ? '' : '';
     }
 }
