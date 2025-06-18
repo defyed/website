@@ -137,8 +137,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (desiredRRContainer) desiredRRContainer.style.display = (isDesiredImmortal || isAscendantToImmortal) ? '' : 'none';
         if ((isDesiredImmortal || isAscendantToImmortal) && desiredRRInput && !window.desiredRR) {
-            desiredRRInput.value = isAscendantToImmortal ? '0' : '40';
-            window.desiredRR = isAscendantToImmortal ? 0 : 40;
+            desiredRRInput.value = isAscendantToImmortal ;
+            window.desiredRR = isAscendantToImmortal ;
         }
 
         if (window.currentRank) {
