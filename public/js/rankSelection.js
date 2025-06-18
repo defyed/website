@@ -6,16 +6,16 @@ window.desiredRank = 'Gold';
 window.desiredDivision = 'IV';
 window.currentLP = '0-20';
 
-const rankImages = {
-    Iron: 'Images/iron.png',
-    Bronze: 'Images/bronze.png',
-    Silver: 'Images/silver.png',
-    Gold: 'Images/gold.png',
-    Platinum: 'Images/platinum.png',
-    Emerald: 'Images/emerald.png',
-    Diamond: 'Images/diamond.png',
-    Master: 'Images/master.png',
-    default: 'Images/silver.png/150?text=Select+Ranks'
+const rankimages = {
+    Iron: 'images/iron.png',
+    Bronze: 'images/bronze.png',
+    Silver: 'images/silver.png',
+    Gold: 'images/gold.png',
+    Platinum: 'images/platinum.png',
+    Emerald: 'images/emerald.png',
+    Diamond: 'images/diamond.png',
+    Master: 'images/master.png',
+    default: 'images/silver.png/150?text=Select+Ranks'
 };
 
 const currentRankButtons = document.querySelectorAll('.ls-current-rank .rank-btn');
@@ -87,11 +87,11 @@ function updateButtonStates() {
     if (window.currentRank) {
         const displayDivision = window.currentRank === 'Master' ? '' : ` ${window.currentDivision || 'I'}`;
         currentRankText.textContent = `${window.currentRank}${displayDivision}`;
-        currentRankImage.src = rankImages[window.currentRank] || rankImages.default;
+        currentRankImage.src = rankimages[window.currentRank] || rankimages.default;
         currentRankImage.alt = `Current: ${window.currentRank}`;
     } else {
         currentRankText.textContent = 'Select Rank';
-        currentRankImage.src = rankImages.default;
+        currentRankImage.src = rankimages.default;
         currentRankImage.alt = 'Select a Rank';
     }
 
@@ -155,11 +155,11 @@ function updateButtonStates() {
     if (window.desiredRank) {
         const displayDivision = window.desiredRank === 'Master' ? '' : ` ${window.desiredDivision || 'I'}`;
         targetRankText.textContent = `${window.desiredRank}${displayDivision}`;
-        targetRankImage.src = rankImages[window.desiredRank] || rankImages.default;
+        targetRankImage.src = rankimages[window.desiredRank] || rankimages.default;
         targetRankImage.alt = `Target: ${window.desiredRank}`;
     } else {
         targetRankText.textContent = 'Select Rank';
-        targetRankImage.src = rankImages.default;
+        targetRankImage.src = rankimages.default;
         targetRankImage.alt = 'Select a Rank';
     }
 
