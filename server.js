@@ -360,7 +360,15 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
 });
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+const path = require("path");
+
+app.use(express.static(path.join(__dirname, "public")));
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "league-services.html"));
+});
+
+
 
 app.get('/api/user-role', authenticate, async (req, res) => {
   try {
@@ -451,7 +459,7 @@ app.post('/api/forgot-password', async (req, res) => {
       'INSERT INTO password_reset_tokens (user_id, token, expires) VALUES (?, ?, ?)',
       [user.id, token, expires]
     );
-    const resetLink = `http://localhost:3000/league-services.html?userId=${user.id}&token=${token}`;
+    const resetLink = `https://chboosting.com/league-services.html?userId=${user.id}&token=${token}`;
     await sendResetPasswordEmail({ to: user.email, resetLink });
     res.json({ message: 'Password reset link sent' });
   } catch (error) {
@@ -609,8 +617,8 @@ app.post('/api/create-checkout-session', async (req, res) => {
         }
       ],
       mode: 'payment',
-      success_url: `http://localhost:3000/confirmation.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `http://localhost:3000/checkout.html`,
+      success_url: `https://chboosting.com/confirmation.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `https://chboosting.com/checkout.html`,
       metadata: {
         userId: parsedUserId.toString(),
         orderId,
@@ -1163,9 +1171,87 @@ app.post('/api/booster-profile', authenticate, checkRole(['booster', 'admin']), 
     console.error('Error updating booster profile:', error.message);
     res.status(500).json({ error: 'Internal server error', details: error.message });
   }
+  // Assuming existing server.js setup
+const express = require('express');
+const mysql = require('mysql2');
+const app = express();
+
+app.use(express.json());
+
+// Database connection (adjust as per your setup)
+const db = mysql.createConnection({
+    host: 'localhost',
+    user: 'your_username',
+    password: 'your_password',
+    database: 'rank_boost'
 });
 
+// Middleware to check admin role
+function checkAdmin(req, res, next) {
+    const userId = req.query.userId || req.body.userId;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    db.query('SELECT role FROM users WHERE id = ?', [userId], (err, results) => {
+        if (err || results.length === 0 || results[0].role !== 'admin') {
+            return res.status(403).json({ error: 'Admin access required' });
+        }
+        next();
+    });
+}
+
+// Get all coupons
+app.get('/api/coupons', checkAdmin, (req, res) => {
+    db.query('SELECT * FROM coupons', (err, results) => {
+        if (err) return res.status(500).json({ error: 'Database error' });
+        res.json(results);
+    });
+});
+
+// Create a new coupon
+app.post('/api/coupons', checkAdmin, (req, res) => {
+    const { code, lol_discount_percentage, valorant_discount_percentage } = req.body;
+    if (!code || lol_discount_percentage < 0 || valorant_discount_percentage < 0) {
+        return res.status(400).json({ error: 'Invalid input' });
+    }
+    db.query(
+        'INSERT INTO coupons (code, lol_discount_percentage, valorant_discount_percentage) VALUES (?, ?, ?)',
+        [code.toUpperCase(), lol_discount_percentage, valorant_discount_percentage],
+        (err) => {
+            if (err) return res.status(500).json({ error: 'Coupon code already exists or database error' });
+            res.json({ message: 'Coupon created' });
+        }
+    );
+});
+
+// Delete a coupon
+app.delete('/api/coupons/:id', checkAdmin, (req, res) => {
+    const { id } = req.params;
+    db.query('DELETE FROM coupons WHERE id = ?', [id], (err, results) => {
+        if (err || results.affectedRows === 0) {
+            return res.status(500).json({ error: 'Failed to delete coupon' });
+        }
+        res.json({ message: 'Coupon deleted' });
+    });
+});
+
+// Update coupon validation (replace hardcoded logic)
+app.post('/api/apply-coupon', (req, res) => {
+    const { code, game } = req.body;
+    db.query('SELECT * FROM coupons WHERE code = ?', [code.toUpperCase()], (err, results) => {
+        if (err || results.length === 0) {
+            return res.status(400).json({ error: 'Invalid coupon code' });
+        }
+        const coupon = results[0];
+        const discount = game === 'lol' ? coupon.lol_discount_percentage : coupon.valorant_discount_percentage;
+        if (discount <= 0) {
+            return res.status(400).json({ error: `No discount available for ${game}` });
+        }
+        res.json({ discount_percentage: discount });
+    });
+});
+});
+
+
 app.listen(3000, async () => {
-  console.log('Server running on http://localhost:3000');
+  console.log('Server running on https://chboosting.com');
   await initializeDatabase();
 });
