@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         input.placeholder = 'Enter RR';
         input.classList.add('input-lp');
         input.min = '0';
-        input.value = '0';
+        
         container.appendChild(label);
         container.appendChild(input);
         return container;
@@ -342,11 +342,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
             if (window.currentRank === 'Immortal' && currentRRInput) {
-                currentRRInput.value = '0';
-                window.currentRR = 0;
+                
+                
                 window.desiredRank = 'Immortal';
                 window.desiredDivision = '';
-                window.desiredRR = 40;
+                
                 if (desiredRRInput) desiredRRInput.value = '40';
                 desiredRankButtons.forEach(b => b.classList.toggle('selected', b.dataset.rank === 'Immortal'));
                 desiredDivisionButtons.forEach(b => b.classList.remove('selected'));
