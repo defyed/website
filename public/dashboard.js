@@ -957,21 +957,21 @@
                 const desiredDivision = divisionMap[desired.division] || '0';
                 const currentRankCapitalized = current.rank.charAt(0).toUpperCase() + current.rank.slice(1);
                 const desiredRankCapitalized = desired.rank.charAt(0).toUpperCase() + desired.rank.slice(1);
-                currentRankImgSrc = `/Images/${currentRankCapitalized}_${currentDivision}_Rank.png`;
-                desiredRankImgSrc = `/Images/${desiredRankCapitalized}_${desiredDivision}_Rank.png`;
+                currentRankImgSrc = `/images/${currentRankCapitalized}_${currentDivision}_Rank.png`;
+                desiredRankImgSrc = `/images/${desiredRankCapitalized}_${desiredDivision}_Rank.png`;
             } else {
-                currentRankImgSrc = `/Images/${current.rank}.png`;
-                desiredRankImgSrc = `/Images/${desired.rank}.png`;
+                currentRankImgSrc = `/images/${current.rank}.png`;
+                desiredRankImgSrc = `/images/${desired.rank}.png`;
             }
 
             console.log('Image paths:', { current: currentRankImgSrc, desired: desiredRankImgSrc });
 
             const currentRankImg = `
-                <img src="${currentRankImgSrc}" alt="${current.displayRank} ${current.division}" class="rank-logo" onerror="console.warn('Image failed:', '${currentRankImgSrc}'); this.src='/Images/fallback.png'">
+                <img src="${currentRankImgSrc}" alt="${current.displayRank} ${current.division}" class="rank-logo" onerror="console.warn('Image failed:', '${currentRankImgSrc}'); this.src='/images/fallback.png'">
                 ${current.division ? current.division : ''}
             `;
             const desiredRankHtml = `
-                <img src="${desiredRankImgSrc}" alt="${desired.displayRank} ${desired.division}" class="rank-logo" onerror="console.warn('Image failed:', '${desiredRankImgSrc}'); this.src='/Images/fallback.png'">
+                <img src="${desiredRankImgSrc}" alt="${desired.displayRank} ${desired.division}" class="rank-logo" onerror="console.warn('Image failed:', '${desiredRankImgSrc}'); this.src='/images/fallback.png'">
                 ${desired.division ? desired.division : ''}
             `;
             const orderIdHtml = `
