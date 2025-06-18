@@ -10,8 +10,6 @@ const { sendResetPasswordEmail } = require('./email');
 
 const app = express();
 app.use(cors());
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
 
 // Database pool configuration
 const pool = mysql.createPool({
@@ -25,29 +23,18 @@ const pool = mysql.createPool({
   queueLimit: 0
 });
 
-// Middleware to update last activity
-const updateLastActivity = async (req, res, next) => {
-  const userId = req.query.userId || (req.body ? req.body.userId : null);
-  if (userId && !isNaN(userId)) {
-    try {
-      await pool.query('UPDATE users SET last_activity = NOW() WHERE id = ?', [parseInt(userId)]);
-    } catch (error) {
-      console.error('Error updating last activity:', error.message);
-    }
-  }
-  next();
-};
-app.use(updateLastActivity);
-
 // Authentication middleware
 const authenticate = async (req, res, next) => {
-  const userId = req.query.userId || (req.body ? req.body.userId : null);
+  const userId = req.query.userId || req.body.userId;
+  console.log(`Authenticating userId: ${userId}`);
   if (!userId || isNaN(userId)) {
+    console.error('Invalid or missing userId');
     return res.status(400).json({ error: 'Invalid or missing userId' });
   }
   try {
     const [userRows] = await pool.query('SELECT id, role FROM users WHERE id = ?', [userId]);
     if (!userRows.length) {
+      console.error(`User not found for userId: ${userId}`);
       return res.status(404).json({ error: 'User not found' });
     }
     req.user = { id: parseInt(userId), role: userRows[0].role };
@@ -79,7 +66,6 @@ async function initializeDatabase() {
         password VARCHAR(255) NOT NULL,
         role ENUM('user', 'booster', 'admin') DEFAULT 'user',
         account_balance DECIMAL(10,2) DEFAULT 0.00,
-        last_activity DATETIME DEFAULT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -202,14 +188,6 @@ async function initializeDatabase() {
     if (payoutStatusColumn.length === 0) {
       await connection.query("ALTER TABLE orders ADD payout_status ENUM('Pending', 'Paid') DEFAULT 'Pending'");
     }
-    const [lastActivityColumn] = await connection.query("SHOW COLUMNS FROM users LIKE 'last_activity'");
-    if (lastActivityColumn.length === 0) {
-      await connection.query("ALTER TABLE users ADD last_activity DATETIME DEFAULT NULL");
-    }
-    const [valorantRolesColumn] = await connection.query("SHOW COLUMNS FROM booster_profiles LIKE 'valorant_preferred_roles'");
-    if (valorantRolesColumn.length === 0) {
-      await connection.query("ALTER TABLE booster_profiles ADD valorant_preferred_roles TEXT DEFAULT NULL");
-    }
     await connection.query(`
       DELETE t1 FROM order_credentials t1
       INNER JOIN order_credentials t2
@@ -238,10 +216,17 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
     const { userId, orderId } = session.metadata || {};
     let orderData = {};
     try {
-      orderData = session.client_reference_id ? JSON.parse(session.client_reference_id) : {};
+      // Prefer fullOrderData from metadata if available
+      if (session.metadata && session.metadata.fullOrderData) {
+        orderData = JSON.parse(session.metadata.fullOrderData);
+        console.log('Webhook using fullOrderData from metadata:', orderData);
+      } else if (session.client_reference_id) {
+        orderData = JSON.parse(session.client_reference_id);
+        console.log('Webhook using client_reference_id:', orderData);
+      }
     } catch (parseError) {
-      console.error('Failed to parse client_reference_id:', parseError.message);
-      return res.status(400).json({ error: 'Invalid client_reference_id format' });
+      console.error('Failed to parse order data:', parseError.message);
+      return res.status(400).json({ error: 'Invalid order data format' });
     }
 
     if (!userId || !orderId) {
@@ -272,29 +257,40 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
         console.error('Invalid gameType:', gameType);
         return res.status(400).json({ error: 'Invalid game type' });
       }
-      if (!orderData.currentRank || !validRanks.includes(orderData.currentRank)) {
-        console.error('Invalid currentRank:', orderData.currentRank);
+
+      // Normalize ranks by removing division if included
+      let normalizedCurrentRank = orderData.currentRank || '';
+      let normalizedDesiredRank = orderData.desiredRank || '';
+      if (normalizedCurrentRank.includes(' ')) {
+        normalizedCurrentRank = normalizedCurrentRank.split(' ')[0];
+      }
+      if (normalizedDesiredRank.includes(' ')) {
+        normalizedDesiredRank = normalizedDesiredRank.split(' ')[0];
+      }
+
+      if (!normalizedCurrentRank || !validRanks.includes(normalizedCurrentRank)) {
+        console.error('Invalid normalized currentRank:', normalizedCurrentRank, 'Original:', orderData.currentRank);
         return res.status(400).json({ error: 'Invalid current rank' });
       }
-      if (!orderData.desiredRank || !validRanks.includes(orderData.desiredRank)) {
-        console.error('Invalid desiredRank:', orderData.currentRank);
+      if (!normalizedDesiredRank || !validRanks.includes(normalizedDesiredRank)) {
+        console.error('Invalid normalized desiredRank:', normalizedDesiredRank, 'Original:', orderData.desiredRank);
         return res.status(400).json({ error: 'Invalid desired rank' });
       }
-      if (!['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(orderData.currentRank) && orderData.currentDivision && !validDivisions.includes(orderData.currentDivision)) {
+      if (!['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedCurrentRank) && orderData.currentDivision && !validDivisions.includes(orderData.currentDivision)) {
         console.warn('Invalid currentDivision:', orderData.currentDivision, 'Setting to default');
         orderData.currentDivision = '';
       }
-      if (!['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(orderData.desiredRank) && orderData.desiredDivision && !validDivisions.includes(orderData.desiredDivision)) {
+      if (!['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedDesiredRank) && orderData.desiredDivision && !validDivisions.includes(orderData.desiredDivision)) {
         console.warn('Invalid desiredDivision:', orderData.desiredDivision, 'Setting to default');
         orderData.desiredDivision = '';
       }
 
-      const currentRank = ['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(orderData.currentRank) 
-        ? orderData.currentRank 
-        : `${orderData.currentRank} ${orderData.currentDivision || ''}`.trim().slice(0, 50);
-      const desiredRank = ['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(orderData.desiredRank) 
-        ? orderData.desiredRank 
-        : `${orderData.desiredRank} ${orderData.desiredDivision || ''}`.trim().slice(0, 50);
+      const currentRank = ['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedCurrentRank) 
+        ? normalizedCurrentRank 
+        : `${normalizedCurrentRank} ${orderData.currentDivision || ''}`.trim().slice(0, 50);
+      const desiredRank = ['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedDesiredRank) 
+        ? normalizedDesiredRank 
+        : `${normalizedDesiredRank} ${orderData.desiredDivision || ''}`.trim().slice(0, 50);
 
       const cashback = (orderData.finalPrice || 0) * 0.03;
       const extras = Array.isArray(orderData.extras) ? orderData.extras : [];
@@ -347,8 +343,10 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
           [cashback, parseInt(userId)]
         );
         await connection.commit();
+        console.log(`Transaction committed for orderId: ${orderId}`);
       } catch (err) {
         await connection.rollback();
+        console.error('Transaction error:', err.message);
         throw err;
       } finally {
         connection.release();
@@ -360,6 +358,9 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
   }
   res.json({ received: true });
 });
+
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/api/user-role', authenticate, async (req, res) => {
   try {
@@ -423,7 +424,6 @@ app.post('/api/login', async (req, res) => {
     const user = results[0];
     const isMatch = await bcrypt.compare(password, user.password);
     if (isMatch) {
-      await pool.query('UPDATE users SET last_activity = NOW() WHERE id = ?', [user.id]);
       res.json({ userId: user.id, username: user.username, role: user.role });
     } else {
       res.status(401).json({ message: 'Invalid username or password' });
@@ -440,7 +440,7 @@ app.post('/api/forgot-password', async (req, res) => {
     return res.status(400).json({ message: 'Email is required' });
   }
   try {
-    const [rows] = await pool.query('SELECT id, username, email FROM users WHERE email = ?', [email]);
+    const [rows] = await pool.query('SELECT id, email FROM users WHERE email = ?', [email]);
     if (rows.length === 0) {
       return res.status(404).json({ message: 'No user found with this email' });
     }
@@ -452,7 +452,7 @@ app.post('/api/forgot-password', async (req, res) => {
       [user.id, token, expires]
     );
     const resetLink = `http://localhost:3000/league-services.html?userId=${user.id}&token=${token}`;
-    await sendResetPasswordEmail({ to: user.email, resetLink, username: user.username });
+    await sendResetPasswordEmail({ to: user.email, resetLink });
     res.json({ message: 'Password reset link sent' });
   } catch (error) {
     console.error('Forgot password error:', error.message);
@@ -486,6 +486,7 @@ app.post('/api/reset-password', async (req, res) => {
 app.post('/api/create-checkout-session', async (req, res) => {
   try {
     const { orderData, userId, metadata } = req.body;
+    console.log('Checkout request received:', { orderData, userId, metadata });
     if (!orderData || !userId || isNaN(userId)) {
       console.error('Invalid checkout request:', { orderData, userId });
       return res.status(400).json({ error: 'Missing or invalid orderData or userId' });
@@ -500,42 +501,109 @@ app.post('/api/create-checkout-session', async (req, res) => {
       console.error('User not found:', parsedUserId);
       return res.status(400).json({ error: 'User not found' });
     }
-    const extrasShort = Array.isArray(orderData.extras) 
-      ? orderData.extras.map(e => e.label.slice(0, 10)).slice(0, 3)
-      : [];
-    const clientReference = {
-      currentRank: orderData.currentRank.slice(0, 15),
-      desiredRank: orderData.desiredRank.slice(0, 15),
-      finalPrice: parseFloat(orderData.finalPrice) || 0,
-      currentDivision: (orderData.currentDivision || '').slice(0, 3),
-      desiredDivision: (orderData.desiredDivision || '').slice(0, 3),
-      currentLP: parseInt(orderData.currentLP) || 0,
-      desiredLP: parseInt(orderData.desiredLP) || 0,
-      extras: extrasShort,
-      game: orderData.game || 'League of Legends'
-    };
-    let clientReferenceString = JSON.stringify(clientReference);
-    if (clientReferenceString.length > 200) {
-      clientReference.extras = clientReference.extras.slice(0, 1);
-      clientReferenceString = JSON.stringify(clientReference);
-      if (clientReferenceString.length > 200) {
-        console.error('client_reference_id still too long after truncation:', clientReferenceString.length);
-        return res.status(400).json({ error: 'Order data too long even after truncation' });
-      }
+
+    // Define rank and division lists
+    const leagueRanks = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Emerald', 'Diamond', 'Master', 'Grandmaster', 'Challenger'];
+    const valorantRanks = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal', 'Radiant'];
+    const leagueDivisions = ['I', 'II', 'III', 'IV'];
+    const valorantDivisions = ['I', 'II', 'III'];
+
+    // Normalize ranks to exclude division
+    const gameType = orderData.game || 'League of Legends';
+    if (!['League of Legends', 'Valorant'].includes(gameType)) {
+      console.error('Invalid gameType:', gameType);
+      return res.status(400).json({ error: 'Invalid game type' });
     }
+    const validRanks = gameType === 'Valorant' ? valorantRanks : leagueRanks;
+    const validDivisions = gameType === 'Valorant' ? valorantDivisions : leagueDivisions;
+
+    let normalizedCurrentRank = orderData.currentRank.includes(' ') ? orderData.currentRank.split(' ')[0] : orderData.currentRank;
+    let normalizedDesiredRank = orderData.desiredRank.includes(' ') ? orderData.desiredRank.split(' ')[0] : orderData.desiredRank;
+    if (!validRanks.includes(normalizedCurrentRank) || !validRanks.includes(normalizedDesiredRank)) {
+      console.error('Invalid ranks:', { currentRank: normalizedCurrentRank, desiredRank: normalizedDesiredRank, gameType });
+      return res.status(400).json({ error: 'Invalid rank' });
+    }
+
+    // Validate divisions
+    if (!['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedCurrentRank) && orderData.currentDivision && !validDivisions.includes(orderData.currentDivision)) {
+      console.warn('Invalid currentDivision:', orderData.currentDivision, 'Setting to default');
+      orderData.currentDivision = '';
+    }
+    if (!['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedDesiredRank) && orderData.desiredDivision && !validDivisions.includes(orderData.desiredDivision)) {
+      console.warn('Invalid desiredDivision:', orderData.desiredDivision, 'Setting to default');
+      orderData.desiredDivision = '';
+    }
+
+    // Validate finalPrice
+    const finalPrice = parseFloat(orderData.finalPrice);
+    if (isNaN(finalPrice) || finalPrice <= 0) {
+      console.error('Invalid finalPrice:', orderData.finalPrice);
+      return res.status(400).json({ error: 'Invalid final price' });
+    }
+
+    // Ensure no division for Master+ ranks
+    if (['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedCurrentRank)) {
+      orderData.currentDivision = '';
+    }
+    if (['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedDesiredRank)) {
+      orderData.desiredDivision = '';
+    }
+
+    // Function to abbreviate rank names if needed
+    const abbreviateRank = (rank) => {
+      const abbreviations = {
+        'Ascendant': 'Asc',
+        'Immortal': 'Imm',
+        'Radiant': 'Rad',
+        'Challenger': 'Chal',
+        'Grandmaster': 'GM',
+        'Platinum': 'Plat',
+        'Diamond': 'Dia',
+        'Emerald': 'Em'
+      };
+      return abbreviations[rank] || rank.slice(0, 4);
+    };
+
+    // Build minimal client_reference_id
+    let clientReference = {
+      currentRank: normalizedCurrentRank.slice(0, 10),
+      desiredRank: normalizedDesiredRank.slice(0, 10),
+      finalPrice: finalPrice,
+      game: gameType, // Use full game name
+      currentDiv: (orderData.currentDivision || '').slice(0, 3),
+      desiredDiv: (orderData.desiredDivision || '').slice(0, 3)
+    };
+
+    let clientReferenceString = JSON.stringify(clientReference);
+    console.log('Initial client_reference_id:', { length: clientReferenceString.length, value: clientReferenceString });
+
+    // If too long, abbreviate ranks
+    if (clientReferenceString.length > 190) {
+      clientReference.currentRank = abbreviateRank(normalizedCurrentRank);
+      clientReference.desiredRank = abbreviateRank(normalizedDesiredRank);
+      clientReferenceString = JSON.stringify(clientReference);
+      console.log('Abbreviated client_reference_id:', { length: clientReferenceString.length, value: clientReferenceString });
+    }
+
+    // Final check
+    if (clientReferenceString.length > 200) {
+      console.error('client_reference_id too long after all truncations:', clientReferenceString.length);
+      return res.status(400).json({ error: 'Order data too long' });
+    }
+
     const orderId = uuidv4();
-    const extrasMetadata = Array.isArray(orderData.extras) ? orderData.extras.map(e => e.label).join(', ') : '';
-    const session = await stripe.checkout.sessions.create({
+    const extrasMetadata = Array.isArray(orderData.extras) ? orderData.extras.map(e => e.label || '').join(', ') : '';
+    const sessionParams = {
       payment_method_types: ['card'],
       line_items: [
         {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: `Rank Boost: ${orderData.currentRank} ${orderData.currentDivision || ''} to ${orderData.desiredRank} ${orderData.desiredDivision || ''}`,
+              name: `Rank Boost: ${normalizedCurrentRank} ${orderData.currentDivision || ''} to ${normalizedDesiredRank} ${orderData.desiredDivision || ''}`,
               description: extrasMetadata || undefined
             },
-            unit_amount: Math.round(parseFloat(orderData.finalPrice) * 100)
+            unit_amount: Math.round(finalPrice * 100)
           },
           quantity: 1
         }
@@ -546,10 +614,14 @@ app.post('/api/create-checkout-session', async (req, res) => {
       metadata: {
         userId: parsedUserId.toString(),
         orderId,
-        extras: extrasMetadata
+        extras: extrasMetadata,
+        fullOrderData: JSON.stringify(orderData) // Store full data in metadata
       },
       client_reference_id: clientReferenceString
-    });
+    };
+    console.log('Creating Stripe Checkout session with params:', sessionParams);
+    const session = await stripe.checkout.sessions.create(sessionParams);
+    console.log('Checkout session created:', { sessionId: session.id, userId: parsedUserId, orderId });
     res.json({ id: session.id });
   } catch (error) {
     console.error('Checkout session error:', error.message);
@@ -559,10 +631,12 @@ app.post('/api/create-checkout-session', async (req, res) => {
 
 app.get('/api/user-orders', authenticate, async (req, res) => {
   try {
+    console.log(`Fetching orders for userId: ${req.user.id}`);
     const [rows] = await pool.query(
-      'SELECT order_id, current_rank, desired_rank, current_lp, desired_lp, price, status, cashback, created_at, extras, game_type FROM orders WHERE user_id = ?',
+      'SELECT order_id, current_rank, desired_rank, current_lp, desired_lp, price, status, cashback, DATE_FORMAT(created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at, extras, game_type FROM orders WHERE user_id = ?',
       [req.user.id]
     );
+    console.log(`Orders found for userId ${req.user.id}: ${rows.length}`, rows);
     res.json(rows);
   } catch (error) {
     console.error('Error fetching user orders:', error.message);
@@ -573,12 +647,13 @@ app.get('/api/user-orders', authenticate, async (req, res) => {
 app.get('/api/available-orders', authenticate, checkRole(['booster', 'admin']), async (req, res) => {
   try {
     const [rows] = await pool.query(
-      'SELECT order_id, current_rank, desired_rank, current_lp, desired_lp, price, game_type FROM orders WHERE status = "Pending"'
+      'SELECT order_id, current_rank, desired_rank, current_lp, desired_lp, price, game_type, DATE_FORMAT(created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at FROM orders WHERE status = "Pending"'
     );
     const data = rows.map(row => ({
       ...row,
       price: parseFloat(row.price).toFixed(2)
     }));
+    console.log('Available orders:', data);
     res.json(data);
   } catch (error) {
     console.error('Error fetching available orders:', error.message);
@@ -649,7 +724,7 @@ app.get('/api/working-orders', authenticate, checkRole(['booster', 'admin']), as
     let query, params;
     if (req.user.role === 'admin') {
       query = `
-        SELECT o.order_id, o.current_rank, o.desired_rank, o.current_lp, o.desired_lp, o.price, o.status, o.created_at, o.game_type
+        SELECT o.order_id, o.current_rank, o.desired_rank, o.current_lp, o.desired_lp, o.price, o.status, DATE_FORMAT(o.created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at, o.game_type
         FROM orders o
         LEFT JOIN booster_orders bo ON o.order_id = bo.order_id
         WHERE o.status IN ('Claimed', 'In Progress', 'Completed')
@@ -657,7 +732,7 @@ app.get('/api/working-orders', authenticate, checkRole(['booster', 'admin']), as
       params = [];
     } else {
       query = `
-        SELECT o.order_id, o.current_rank, o.desired_rank, o.current_lp, o.desired_lp, o.price, o.status, o.created_at, o.game_type
+        SELECT o.order_id, o.current_rank, o.desired_rank, o.current_lp, o.desired_lp, o.price, o.status, DATE_FORMAT(o.created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at, o.game_type
         FROM orders o
         JOIN booster_orders bo ON o.order_id = bo.order_id
         WHERE bo.booster_id = ? AND o.status IN ('Claimed', 'In Progress', 'Completed')
@@ -667,8 +742,10 @@ app.get('/api/working-orders', authenticate, checkRole(['booster', 'admin']), as
     const [rows] = await pool.query(query, params);
     const orders = rows.map(order => ({
       ...order,
+      price: parseFloat(order.price).toFixed(2),
       booster_payout: (parseFloat(order.price) * 0.85).toFixed(2)
     }));
+    console.log('Working orders:', orders);
     res.json(orders);
   } catch (error) {
     console.error('Error fetching working orders:', error.message);
@@ -679,7 +756,7 @@ app.get('/api/working-orders', authenticate, checkRole(['booster', 'admin']), as
 app.get('/api/all-orders', authenticate, checkRole(['admin']), async (req, res) => {
   try {
     const [rows] = await pool.query(`
-      SELECT o.order_id, o.user_id, o.current_rank, o.desired_rank, o.price, o.status, o.cashback, o.created_at, o.extras, bo.booster_id
+      SELECT o.order_id, o.user_id, o.current_rank, o.desired_rank, o.price, o.status, o.cashback, DATE_FORMAT(o.created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at, o.extras, bo.booster_id
       FROM orders o
       LEFT JOIN booster_orders bo ON o.order_id = bo.order_id
     `);
@@ -778,7 +855,7 @@ app.post('/api/approve-payout', authenticate, checkRole(['admin']), async (req, 
 app.get('/api/completed-orders', authenticate, checkRole(['admin']), async (req, res) => {
   try {
     const [rows] = await pool.query(`
-      SELECT o.order_id, o.user_id, u.username AS customer_username, o.current_rank, o.desired_rank, o.current_lp, o.desired_lp, o.price, o.status, o.cashback, o.created_at, o.extras, o.payout_status, bo.booster_id, ub.username AS booster_username
+      SELECT o.order_id, o.user_id, u.username AS customer_username, o.current_rank, o.desired_rank, o.current_lp, o.desired_lp, o.price, o.status, o.cashback, DATE_FORMAT(o.created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at, o.extras, o.payout_status, bo.booster_id, ub.username AS booster_username
       FROM orders o
       LEFT JOIN booster_orders bo ON o.order_id = bo.order_id
       LEFT JOIN users u ON o.user_id = u.id
