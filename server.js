@@ -360,7 +360,19 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
 });
 
 app.use(express.json());
+
+const path = require("path");
+
+app.use(express.static(path.join(__dirname, "public")));
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "league-services.html"));
+});
+
+
+
 app.use(express.static(path.join(__dirname, 'public')));
+
 
 app.get('/api/user-role', authenticate, async (req, res) => {
   try {
@@ -1243,7 +1255,8 @@ app.post('/api/apply-coupon', (req, res) => {
 });
 
 
-app.listen(3000, async () => {
-  console.log('Server running on https://chboosting.com');
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, async () => {
+  console.log(`Server running on port ${PORT}`);
   await initializeDatabase();
 });
