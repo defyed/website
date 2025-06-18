@@ -9,6 +9,15 @@ const bcrypt = require('bcrypt');
 const { sendResetPasswordEmail } = require('./email');
 
 const app = express();
+// Only parse JSON for non-webhook routes
+app.use((req, res, next) => {
+  if (req.originalUrl === '/api/webhook') {
+    next(); // Skip JSON parsing for Stripe webhook
+  } else {
+    express.json()(req, res, next); // Use normal JSON for other routes
+  }
+});
+
 app.use(cors());
 
 // Database pool configuration
@@ -359,7 +368,7 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
   res.json({ received: true });
 });
 
-app.use(express.json());
+//app.use(express.json());
 
 const path = require("path");
 
@@ -1180,7 +1189,7 @@ const express = require('express');
 const mysql = require('mysql2');
 const app = express();
 
-app.use(express.json());
+//app.use(express.json());
 
 // Database connection (adjust as per your setup)
 const db = mysql.createConnection({
