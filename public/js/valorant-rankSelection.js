@@ -346,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.currentRR = 0;
                 window.desiredRank = 'Immortal';
                 window.desiredDivision = '';
-                window.desiredRR = 40;
+                window.desiredRR = '';
                 if (desiredRRInput) desiredRRInput.value = '40';
                 desiredRankButtons.forEach(b => b.classList.toggle('selected', b.dataset.rank === 'Immortal'));
                 desiredDivisionButtons.forEach(b => b.classList.remove('selected'));
