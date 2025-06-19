@@ -169,6 +169,15 @@ async function initializeDatabase() {
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       )
     `);
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS coupons (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        code VARCHAR(50) UNIQUE NOT NULL,
+        lol_discount_percentage DECIMAL(5,2) NOT NULL,
+        valorant_discount_percentage DECIMAL(5,2) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
     const [languageColumn] = await connection.query("SHOW COLUMNS FROM booster_profiles LIKE 'language'");
     if (languageColumn.length === 0) {
       await connection.query("ALTER TABLE booster_profiles ADD language TEXT DEFAULT NULL");
@@ -368,20 +377,11 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
   res.json({ received: true });
 });
 
-//app.use(express.json());
-
-const path = require("path");
-
-app.use(express.static(path.join(__dirname, "public")));
-
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "league-services.html"));
-});
-
-
-
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'league-services.html'));
+});
 
 app.get('/api/user-role', authenticate, async (req, res) => {
   try {
@@ -1184,85 +1184,99 @@ app.post('/api/booster-profile', authenticate, checkRole(['booster', 'admin']), 
     console.error('Error updating booster profile:', error.message);
     res.status(500).json({ error: 'Internal server error', details: error.message });
   }
-  // Assuming existing server.js setup
-const express = require('express');
-const mysql = require('mysql2');
-const app = express();
-
-//app.use(express.json());
-
-// Database connection (adjust as per your setup)
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'your_username',
-    password: 'your_password',
-    database: 'rank_boost'
 });
 
-// Middleware to check admin role
-function checkAdmin(req, res, next) {
-    const userId = req.query.userId || req.body.userId;
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
-    db.query('SELECT role FROM users WHERE id = ?', [userId], (err, results) => {
-        if (err || results.length === 0 || results[0].role !== 'admin') {
-            return res.status(403).json({ error: 'Admin access required' });
-        }
-        next();
-    });
-}
-
-// Get all coupons
-app.get('/api/coupons', checkAdmin, (req, res) => {
-    db.query('SELECT * FROM coupons', (err, results) => {
-        if (err) return res.status(500).json({ error: 'Database error' });
-        res.json(results);
-    });
-});
-
-// Create a new coupon
-app.post('/api/coupons', checkAdmin, (req, res) => {
-    const { code, lol_discount_percentage, valorant_discount_percentage } = req.body;
-    if (!code || lol_discount_percentage < 0 || valorant_discount_percentage < 0) {
-        return res.status(400).json({ error: 'Invalid input' });
+app.post('/admin/update-role', authenticate, checkRole(['admin']), async (req, res) => {
+  const { userId, newRole } = req.body;
+  try {
+    if (!userId || isNaN(userId) || !['user', 'booster', 'admin'].includes(newRole)) {
+      return res.status(400).json({ error: 'Invalid userId or role' });
     }
-    db.query(
-        'INSERT INTO coupons (code, lol_discount_percentage, valorant_discount_percentage) VALUES (?, ?, ?)',
-        [code.toUpperCase(), lol_discount_percentage, valorant_discount_percentage],
-        (err) => {
-            if (err) return res.status(500).json({ error: 'Coupon code already exists or database error' });
-            res.json({ message: 'Coupon created' });
-        }
+    const [userRows] = await pool.query('SELECT id FROM users WHERE id = ?', [userId]);
+    if (!userRows.length) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    await pool.query('UPDATE users SET role = ? WHERE id = ?', [newRole, userId]);
+    res.json({ success: true, message: 'Role updated successfully' });
+  } catch (error) {
+    console.error('Error updating user role:', error.message);
+    res.status(500).json({ error: 'Internal server error', details: error.message });
+  }
+});
+
+app.get('/admin/users', authenticate, checkRole(['admin']), async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT id, username, email, role FROM users');
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching users:', error.message);
+    res.status(500).json({ error: 'Internal server error', details: error.message });
+  }
+});
+
+app.get('/api/coupons', authenticate, checkRole(['admin']), async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM coupons');
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching coupons:', error.message);
+    res.status(500).json({ error: 'Database error', details: error.message });
+  }
+});
+
+app.post('/api/coupons', authenticate, checkRole(['admin']), async (req, res) => {
+  const { code, lol_discount_percentage, valorant_discount_percentage } = req.body;
+  try {
+    if (!code || lol_discount_percentage < 0 || valorant_discount_percentage < 0) {
+      return res.status(400).json({ error: 'Invalid input' });
+    }
+    const [existing] = await pool.query('SELECT id FROM coupons WHERE code = ?', [code.toUpperCase()]);
+    if (existing.length > 0) {
+      return res.status(400).json({ error: 'Coupon code already exists' });
+    }
+    await pool.query(
+      'INSERT INTO coupons (code, lol_discount_percentage, valorant_discount_percentage) VALUES (?, ?, ?)',
+      [code.toUpperCase(), lol_discount_percentage, valorant_discount_percentage]
     );
+    res.json({ message: 'Coupon created' });
+  } catch (error) {
+    console.error('Error creating coupon:', error.message);
+    res.status(500).json({ error: 'Database error', details: error.message });
+  }
 });
 
-// Delete a coupon
-app.delete('/api/coupons/:id', checkAdmin, (req, res) => {
-    const { id } = req.params;
-    db.query('DELETE FROM coupons WHERE id = ?', [id], (err, results) => {
-        if (err || results.affectedRows === 0) {
-            return res.status(500).json({ error: 'Failed to delete coupon' });
-        }
-        res.json({ message: 'Coupon deleted' });
-    });
+app.delete('/api/coupons/:id', authenticate, checkRole(['admin']), async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [result] = await pool.query('DELETE FROM coupons WHERE id = ?', [id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Coupon not found' });
+    }
+    res.json({ message: 'Coupon deleted' });
+  } catch (error) {
+    console.error('Error deleting coupon:', error.message);
+    res.status(500).json({ error: 'Failed to delete coupon', details: error.message });
+  }
 });
 
-// Update coupon validation (replace hardcoded logic)
-app.post('/api/apply-coupon', (req, res) => {
-    const { code, game } = req.body;
-    db.query('SELECT * FROM coupons WHERE code = ?', [code.toUpperCase()], (err, results) => {
-        if (err || results.length === 0) {
-            return res.status(400).json({ error: 'Invalid coupon code' });
-        }
-        const coupon = results[0];
-        const discount = game === 'lol' ? coupon.lol_discount_percentage : coupon.valorant_discount_percentage;
-        if (discount <= 0) {
-            return res.status(400).json({ error: `No discount available for ${game}` });
-        }
-        res.json({ discount_percentage: discount });
-    });
+app.post('/api/apply-coupon', async (req, res) => {
+  const { code, game } = req.body;
+  try {
+    const [rows] = await pool.query('SELECT * FROM coupons WHERE code = ?', [code.toUpperCase()]);
+    if (rows.length === 0) {
+      return res.status(400).json({ error: 'Invalid coupon code' });
+    }
+    const coupon = rows[0];
+    const discount = game === 'lol' ? coupon.lol_discount_percentage : coupon.valorant_discount_percentage;
+    if (discount <= 0) {
+      return res.status(400).json({ error: `No discount available for ${game}` });
+    }
+    res.json({ discount_percentage: discount });
+  } catch (error) {
+    console.error('Error applying coupon:', error.message);
+    res.status(500).json({ error: 'Internal server error', details: error.message });
+  }
 });
-});
-
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {

@@ -60,12 +60,14 @@
             const completedOrdersLink = document.getElementById('completed-orders-link');
             const payoutHistoryLink = document.getElementById('payout-history-link');
             const payoutManagementLink = document.getElementById('payout-management-link');
+            const adminPanelLink = document.getElementById('admin-panel-link');
             if (ordersLink) ordersLink.style.display = 'none';
             if (availableOrdersLink) availableOrdersLink.style.display = 'none';
             if (workingOrdersLink) workingOrdersLink.style.display = 'none';
             if (completedOrdersLink) completedOrdersLink.style.display = 'none';
             if (payoutHistoryLink) payoutHistoryLink.style.display = 'none';
             if (payoutManagementLink) payoutManagementLink.style.display = 'none';
+            if (adminPanelLink) adminPanelLink.style.display = role === 'admin' ? 'block' : 'none';
 
             if (role === 'booster') {
                 console.log('Showing booster buttons');
@@ -82,6 +84,7 @@
                 if (completedOrdersLink) completedOrdersLink.style.display = 'block';
                 if (payoutHistoryLink) payoutHistoryLink.style.display = 'block';
                 if (payoutManagementLink) payoutManagementLink.style.display = 'block';
+                if (adminPanelLink) adminPanelLink.style.display = 'block';
                 console.log('All buttons set to display: block for admin');
             } else {
                 // Customer role (default)
@@ -205,6 +208,86 @@
         } catch (error) {
             console.error('Error fetching payout requests:', error.message);
             document.getElementById('payout-requests').innerHTML = '<p>Error loading payout requests. Please try again later.</p>';
+        }
+    }
+
+    async function loadAdminPanel() {
+        const userId = localStorage.getItem('userId');
+        const role = localStorage.getItem('role');
+        if (role !== 'admin') {
+            console.log('User is not admin, skipping admin panel load');
+            return;
+        }
+
+        try {
+            console.log('Fetching users for admin panel with userId:', userId);
+            const res = await fetch(`/admin/users?userId=${userId}`);
+            if (!res.ok) throw new Error('Not authorized or error fetching users');
+            const users = await res.json();
+
+            const container = document.getElementById('admin-panel');
+            if (!container) {
+                console.error('Admin panel container (#admin-panel) not found');
+                return;
+            }
+
+            container.innerHTML = `
+                <h2>Admin Panel – User Manager</h2>
+                <table border="1" id="user-table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Balance</th>
+                            <th>Role</th>
+                            <th>Update Role</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            `;
+
+            const tbody = container.querySelector('tbody');
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.username}</td>
+                    <td>${user.email}</td>
+                    <td>$${parseFloat(user.account_balance || 0).toFixed(2)}</td>
+                    <td>${user.role}</td>
+                    <td>
+                        <select onchange="updateUserRole(${user.id}, this.value)">
+                            <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
+                            <option value="booster" ${user.role === 'booster' ? 'selected' : ''}>Booster</option>
+                            <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                        </select>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        } catch (err) {
+            console.error('Failed to load admin panel:', err.message);
+            const container = document.getElementById('admin-panel');
+            if (container) {
+                container.innerHTML = '<p>Error loading admin panel. Please try again later.</p>';
+            }
+        }
+    }
+
+    async function updateUserRole(targetUserId, newRole) {
+        try {
+            const adminUserId = localStorage.getItem('userId');
+            const res = await fetch('/admin/update-role', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: targetUserId, newRole, adminUserId })
+            });
+            if (!res.ok) throw new Error('Failed to update role');
+            alert('Role updated successfully!');
+            loadAdminPanel();
+        } catch (err) {
+            console.error('Error updating role:', err.message);
+            alert('Error updating role: ' + err.message);
         }
     }
 
@@ -630,7 +713,7 @@
         }, { once: true });
     }
 
-    function showOrderIdModal(orderId) {
+    async function showOrderIdModal(orderId) {
         const modal = document.createElement('div');
         modal.className = 'modal';
         modal.innerHTML = `
@@ -809,7 +892,7 @@
         } else {
             modal.querySelector('#toggle-password').addEventListener('click', () => {
                 const passwordField = modal.querySelector('#password-field');
-                const toggleButton = document.querySelector('#toggle-password');
+                const toggleButton = modal.querySelector('#toggle-password');
                 if (passwordField.textContent === '********') {
                     passwordField.textContent = passwordField.dataset.password;
                     toggleButton.textContent = 'Hide Password';
@@ -848,7 +931,7 @@
                         messageEl.className = `chat-message ${msg.sender_id === parseInt(userId) ? 'sent' : 'received'}`;
                         messageEl.innerHTML = `
                             <p><strong>${msg.sender_username}</strong> (${new Date(msg.created_at).toLocaleTimeString()}): ${msg.message}</p>`;
-                        chatMessages.appendChild(messageEl);
+                        chatMessages.appendChild(msgEl);
                     });
                     chatMessages.scrollTop = chatMessages.scrollHeight;
                 }
@@ -1219,7 +1302,8 @@
             'settings-panel',
             'completed-orders-panel',
             'payout-history-panel',
-            'payout-management-panel'
+            'payout-management-panel',
+            'admin-panel'
         ];
         allPanels.forEach(id => {
             const panel = document.getElementById(id);
@@ -1230,6 +1314,11 @@
         document.querySelectorAll('.sidebar li a').forEach(link => {
             link.classList.toggle('active', link.id === panelId.replace('-panel', '-link'));
         });
+
+        // Load data for specific panels
+        if (panelId === 'admin-panel') {
+            loadAdminPanel();
+        }
     }
 
     function showDefaultPanels() {
@@ -1240,7 +1329,8 @@
             'working-orders-panel',
             'completed-orders-panel',
             'payout-history-panel',
-            'payout-management-panel'
+            'payout-management-panel',
+            'admin-panel'
         ];
         const defaultPanels = ['account-balance-panel', 'order-boost-panel', 'discord-panel', 'settings-panel'];
         orderPanels.forEach(id => {
@@ -1256,6 +1346,8 @@
 
     function logout() {
         localStorage.removeItem('userId');
+        localStorage.removeItem('loggedInUser');
+        localStorage.removeItem('role');
         window.location.href = '/league-services.html';
     }
 
@@ -1329,96 +1421,21 @@
             });
         }
 
+        const adminPanelLink = document.getElementById('admin-panel-link');
+        if (adminPanelLink) {
+            adminPanelLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                showPanel('admin-panel');
+                loadAdminPanel();
+            });
+        }
+
         const orderBoostLink = document.getElementById('order-boost-link');
         if (orderBoostLink) {
             orderBoostLink.addEventListener('click', (e) => {
                 e.preventDefault();
                 showPanel('order-boost-panel');
             });
-        }
-
-        const discordLink = document.getElementById('discord-link');
-        if (discordLink) {
-            discordLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                showPanel('discord-panel');
-            });
-        }
-
-        const logoutLink = document.getElementById('logout-link');
-        if (logoutLink) {
-            logoutLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                console.log('Logout link clicked');
-                logout();
-            });
-        }
-
-        const closeOrdersButton = document.getElementById('close-orders');
-        if (closeOrdersButton) {
-            closeOrdersButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                console.log('Close orders button clicked');
-                showDefaultPanels();
-            });
-        }
-
-        const closeAvailableOrdersButton = document.getElementById('close-available-orders');
-        if (closeAvailableOrdersButton) {
-            closeAvailableOrdersButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                console.log('Close available orders button clicked');
-                showDefaultPanels();
-            });
-        }
-
-        const closeWorkingOrdersButton = document.getElementById('close-working-orders');
-        if (closeWorkingOrdersButton) {
-            closeWorkingOrdersButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                console.log('Close working orders button clicked');
-                showDefaultPanels();
-            });
-        }
-
-        const closeCompletedOrdersButton = document.getElementById('close-completed-orders');
-        if (closeCompletedOrdersButton) {
-            closeCompletedOrdersButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                console.log('Close completed orders button clicked');
-                showDefaultPanels();
-            });
-        }
-
-        const closePayoutHistoryButton = document.getElementById('close-payout-history');
-        if (closePayoutHistoryButton) {
-            closePayoutHistoryButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                console.log('Close payout history button clicked');
-                showDefaultPanels();
-            });
-        }
-
-        const closePayoutManagementButton = document.getElementById('close-payout-management');
-        if (closePayoutManagementButton) {
-            closePayoutManagementButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                console.log('Close payout management button clicked');
-                showDefaultPanels();
-            });
-        }
-
-        // Add navigation for panel buttons
-        const orderNowButton = document.querySelector('#order-boost-panel button');
-        if (orderNowButton) {
-            console.log('Order Now button found:', orderNowButton);
-            orderNowButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                console.log('Order Now button clicked');
-                window.location.href = '/league-services.html';
-            });
-        } else {
-            console.error('Order Now button not found in #order-boost-panel');
         }
 
         const joinDiscordButton = document.querySelector('#discord-panel button');

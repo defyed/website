@@ -9,7 +9,6 @@
     <script src="/dashboard.js" defer></script>
     <script src="/utils.js" defer></script>
 </head>
-
 <body>
     <div class="dashboard-container">
         <div class="sidebar">
@@ -24,8 +23,9 @@
                 <li><a href="#" id="completed-orders-link">✅Completed Orders</a></li>
                 <li><a href="#" id="payout-history-link">💸Payout History</a></li>
                 <li><a href="#" id="payout-management-link">🛠️Payout Management</a></li>
+                <li><a href="#" id="admin-panel-link" style="display: none;">🔧Admin Panel</a></li>
                 <li><a href="/league-services.html" class="sidebar-link">🚀Order Boost</a></li>
-                 <li><a href="https://discord.gg/XCS94bnaRc" class="sidebar-link" target="_blank">💬Discord Server</a></li> 
+                <li><a href="https://discord.gg/XCS94bnaRc" class="sidebar-link" target="_blank">💬Discord Server</a></li> 
                 <li><a href="#" id="logout-link">🚪Logout</a></li>
             </ul>
         </div>
@@ -56,63 +56,69 @@
 
             <div class="panels">
                 <div id="account-balance-panel" class="panel">
-    <h2>Account Balance</h2>
-    <p id="balance-display">Loading balance...</p>
-    <button id="request-payout-button">Request Payout</button>
-</div>
-
+                    <h2>Account Balance</h2>
+                    <p id="balance-display">Loading balance...</p>
+                    <button id="request-payout-button">Request Payout</button>
+                </div>
                 <div id="orders-panel" class="panel">
                     <h2>My Orders</h2>
                     <div id="my-orders">Loading orders...</div>
                     <button id="close-orders">Close</button>
                 </div>
-
                 <div id="available-orders-panel" class="panel">
                     <h2>Available Orders</h2>
                     <div id="available-orders">Loading available orders...</div>
                     <button id="close-available-orders">Close</button>
                 </div>
-
                 <div id="working-orders-panel" class="panel">
                     <h2>My Working Orders</h2>
                     <div id="working-orders">Loading working orders...</div>
                     <button id="close-working-orders">Close</button>
                 </div>
-
                 <div id="completed-orders-panel" class="panel">
                     <h2>Completed Orders</h2>
                     <div id="completed-orders">Loading completed orders...</div>
                     <button id="close-completed-orders">Close</button>
                 </div>
-
                 <div id="payout-history-panel" class="panel">
                     <h2>Payout History</h2>
                     <div id="payout-history">Loading payout history...</div>
                     <button id="close-payout-history">Close</button>
                 </div>
-
                 <div id="payout-management-panel" class="panel">
                     <h2>Payout Management</h2>
                     <div id="payout-requests">Loading payout requests...</div>
                     <button id="close-payout-management">Close</button>
                 </div>
-
                 <div id="order-boost-panel" class="panel">
                     <h2>Order Booster</h2>
                     <p>Start a new boosting order.</p>
                     <button>Order Now</button>
                 </div>
-
                 <div id="discord-panel" class="panel">
                     <h2>Discord Server</h2>
                     <p>Join our community for updates.</p>
                     <button>Join Discord</button>
                 </div>
-
                 <div id="settings-panel" class="panel">
                     <h2>Account Settings</h2>
                     <p>Manage your account details.</p>
                     <button>Settings</button>
+                </div>
+                <div id="admin-panel" class="panel">
+                    <h2>Admin Panel – Manage Users</h2>
+                    <table border="1" id="user-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Balance</th>
+                                <th>Role</th>
+                                <th>Update Role</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
                 </div>
             </div>
         </div>

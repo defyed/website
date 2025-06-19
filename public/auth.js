@@ -9,8 +9,17 @@ function loadUserSession() {
         localStorage.removeItem('userId');
         localStorage.removeItem('role');
         updateUserInterface(null);
-        checkUserRole(userId);
+        // Only call checkUserRole if userId exists and is valid
+        if (userId && !isNaN(userId)) {
+            checkUserRole(userId);
+        }
     }
+}
+
+// Helper to check if user is admin (for UI purposes only)
+function isAdmin() {
+    const role = localStorage.getItem('role');
+    return role === 'admin';
 }
 
 async function checkUserRole(userId) {
@@ -28,6 +37,7 @@ async function checkUserRole(userId) {
     }
 }
 
+// ... (rest of the auth.js code remains unchanged, including openForm, closeForm, handleLogin, etc.)
 function openForm() {
     const popup = document.getElementById("loginPopup");
     if (popup) {
