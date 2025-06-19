@@ -43,7 +43,8 @@
     }
 
     function updateOrderData() {
-        const game = 'League of Legends';
+        const game = window.location.pathname.includes('valorant') ? 'Valorant' : 'League of Legends';
+
         const currentRank = window.currentRank || document.querySelector('select[name="current-rank"]')?.value || 'Silver';
         const currentDivision = window.currentDivision || document.querySelector('select[name="current-division"]')?.value || (['Master', 'Grandmaster', 'Challenger'].includes(currentRank) ? '' : 'I');
         const desiredRank = window.desiredRank || document.querySelector('select[name="desired-rank"]')?.value || 'Gold';
@@ -142,7 +143,8 @@
         proceedButton.addEventListener('click', () => {
             console.log('Proceed to Payment button clicked at:', new Date().toISOString());
             const orderData = JSON.parse(sessionStorage.getItem('orderData')) || {};
-            orderData.game = 'League of Legends'; // Force game type
+           orderData.game = window.location.pathname.includes('valorant') ? 'Valorant' : 'League of Legends';
+
             if (!orderData.currentRank || !orderData.desiredRank || !orderData.finalPrice) {
                 showErrorPopup('Please select ranks and options before proceeding.');
                 console.log('Incomplete orderData:', orderData);
@@ -214,3 +216,5 @@
     `;
     document.head.appendChild(script);
 })();
+
+
