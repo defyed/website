@@ -221,12 +221,15 @@ document.addEventListener("DOMContentLoaded", () => {
             window.desiredDivision = 'IV';
         }
     });
+    
     if (lpSelect) {
         lpSelect.value = '0-20';
         window.currentLP = '0-20';
     }
     updateButtonStates();
+    
 });
+setTimeout(() => window.updateOrderData && window.updateOrderData(), 100);
 
 currentRankButtons.forEach(btn => {
     btn.addEventListener('click', () => {

@@ -43,28 +43,37 @@
         // Define rank lists
         const valorantRanks = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal', 'Radiant'];
         const leagueRanks = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Emerald', 'Diamond', 'Master', 'Grandmaster', 'Challenger'];
+        const uniqueValorantRanks = ['Ascendant', 'Immortal', 'Radiant'];
+        const uniqueLeagueRanks = ['Emerald', 'Master', 'Grandmaster', 'Challenger'];
         const normalizedCurrentRank = orderData.currentRank ? orderData.currentRank.split(' ')[0] : '';
         const normalizedDesiredRank = orderData.desiredRank ? orderData.desiredRank.split(' ')[0] : '';
 
-        // Respect game type from orderData if valid, otherwise infer
+        // Set game type
         if (orderData.game && ['League of Legends', 'Valorant'].includes(orderData.game)) {
             console.log(`Game type set to ${orderData.game} based on orderData.game`);
         } else {
-            if (valorantRanks.includes(normalizedCurrentRank) && valorantRanks.includes(normalizedDesiredRank)) {
+            // Infer game type based on unique ranks
+            if (uniqueValorantRanks.includes(normalizedCurrentRank) || uniqueValorantRanks.includes(normalizedDesiredRank)) {
                 orderData.game = 'Valorant';
-                console.log(`Inferred game type as Valorant based on ranks: ${normalizedCurrentRank}, ${normalizedDesiredRank}`);
-            } else if (leagueRanks.includes(normalizedCurrentRank) && leagueRanks.includes(normalizedDesiredRank)) {
+                console.log(`Inferred game type as Valorant based on unique ranks: ${normalizedCurrentRank}, ${normalizedDesiredRank}`);
+            } else if (uniqueLeagueRanks.includes(normalizedCurrentRank) || uniqueLeagueRanks.includes(normalizedDesiredRank)) {
                 orderData.game = 'League of Legends';
-                console.log(`Inferred game type as League of Legends based on ranks: ${normalizedCurrentRank}, ${normalizedDesiredRank}`);
+                console.log(`Inferred game type as League of Legends based on unique ranks: ${normalizedCurrentRank}, ${normalizedDesiredRank}`);
             } else {
-                orderData.game = 'League of Legends'; // Default to League
-                console.warn(`Could not infer game type from ranks (${normalizedCurrentRank}, ${normalizedDesiredRank}). Defaulting to League of Legends.`);
+                // Default to League of Legends for shared ranks (Iron, Bronze, Silver, Gold, Platinum, Diamond)
+                orderData.game = 'League of Legends';
+                console.log(`Defaulted game type to League of Legends for shared ranks: ${normalizedCurrentRank}, ${normalizedDesiredRank}`);
             }
+        }
+
+        // Force League of Legends for league-services.html orders
+        if (document.referrer.includes('league-services.html')) {
+            orderData.game = 'League of Legends';
+            console.log('Forced game type to League of Legends based on referrer: league-services.html');
         }
 
         const updateSummary = () => {
             try {
-                // Helper function to avoid duplicating division and handle Master/Immortal ranks
                 const formatRank = (rank, division, masterLP, rr) => {
                     if (!rank || rank === 'N/A') return 'N/A';
                     if (['Master', 'Immortal'].includes(rank.split(' ')[0])) {
@@ -106,7 +115,6 @@
                     currentLPElement.textContent = `Current ${orderData.game === 'Valorant' ? 'RR' : 'LP'}: ${orderData.currentLP || 'N/A'}`;
                 }
 
-                // Conditionally display Master LP/RR and hide for Master-to-Master or Immortal-to-Immortal
                 if (masterLpElement && masterLpSpan && lpDetailsElement) {
                     const isMasterOrImmortal = (rank) => ['Master', 'Immortal'].includes((rank || '').split(' ')[0]);
                     if (isMasterOrImmortal(orderData.currentRank) && isMasterOrImmortal(orderData.desiredRank)) {
@@ -174,7 +182,6 @@
             }
 
             try {
-                // Handle LP/RR for Master/Immortal ranks
                 const isMasterOrImmortal = (rank) => ['Master', 'Immortal'].includes((rank || '').split(' ')[0]);
                 const currentLP = isMasterOrImmortal(orderData.currentRank) 
                     ? (parseInt(orderData.currentMasterLP) || parseInt(orderData.currentRR) || 0)
@@ -204,7 +211,6 @@
                 const clientReferenceString = JSON.stringify(clientReference);
                 console.log('client_reference_id:', { length: clientReferenceString.length, value: clientReferenceString });
 
-                // Update orderData for server request
                 const updatedOrderData = {
                     ...orderData,
                     currentLP: currentLP,

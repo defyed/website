@@ -1,7 +1,12 @@
 (function () {
     document.addEventListener('DOMContentLoaded', () => {
+        // Clear sessionStorage to prevent stale data
+        sessionStorage.removeItem('orderData');
+        console.log('Cleared sessionStorage.orderData on load');
         initializeFormListeners();
         initializeProceedButton();
+        // Force update on load
+        updateOrderData();
     });
 
     function initializeFormListeners() {
@@ -35,15 +40,15 @@
         document.querySelectorAll('.rank-btn, .division-btn, #current-lp-select').forEach(el => {
             el.addEventListener('click', () => setTimeout(updateOrderData, 100));
         });
-
-        updateOrderData();
     }
 
     function updateOrderData() {
+        const game = 'League of Legends';
         const currentRank = window.currentRank || document.querySelector('select[name="current-rank"]')?.value || 'Silver';
-        const currentDivision = window.currentDivision || document.querySelector('select[name="current-division"]')?.value || (currentRank === 'Master' ? '' : 'I');
+        const currentDivision = window.currentDivision || document.querySelector('select[name="current-division"]')?.value || (['Master', 'Grandmaster', 'Challenger'].includes(currentRank) ? '' : 'I');
         const desiredRank = window.desiredRank || document.querySelector('select[name="desired-rank"]')?.value || 'Gold';
-        const desiredDivision = window.desiredDivision || document.querySelector('select[name="desired-division"]')?.value || (desiredRank === 'Master' ? '' : 'IV');
+        const desiredDivision = window.desiredDivision || document.querySelector('select[name="desired-division"]')?.value || (['Master', 'Grandmaster', 'Challenger'].includes(desiredRank) ? '' : 'IV');
+
         const currentLP = window.currentLP || document.querySelector('select[name="current-lp"]')?.value || '0-20';
         const currentMasterLP = parseInt(document.querySelector('input[name="current-master-lp"]')?.value) || 0;
         const desiredMasterLP = parseInt(document.querySelector('input[name="desired-master-lp"]')?.value) || 0;
@@ -95,8 +100,8 @@
         const cashback = finalPrice * 0.03;
 
         const orderData = {
-            currentRank: currentRank + (currentDivision && currentRank !== 'Master' ? ' ' + currentDivision : ''),
-            desiredRank: desiredRank + (desiredDivision && desiredRank !== 'Master' ? '' : ''),
+            currentRank: currentRank + (currentDivision && !['Master', 'Grandmaster', 'Challenger'].includes(currentRank) ? ' ' + currentDivision : ''),
+            desiredRank: desiredRank + (desiredDivision && !['Master', 'Grandmaster', 'Challenger'].includes(desiredRank) ? ' ' + desiredDivision : ''),
             currentDivision: currentDivision || '',
             desiredDivision: desiredDivision || '',
             currentLP,
@@ -109,33 +114,14 @@
             totalPrice: totalPrice.toFixed(2),
             finalPrice: finalPrice.toFixed(2),
             cashback: cashback.toFixed(2),
-            game: 'League of Legends' // Explicitly set game type
+            game,
+            desiredLP: 0,
+            currentRR: 0,
+            desiredRR: 0
         };
 
-        const originalPriceEl = document.querySelector('.original-price');
-        const discountedPriceEl = document.querySelector('.discounted-price');
-        const discountRateEl = document.querySelector('.discount-rate');
-        const cashbackOffer = document.querySelector('.cashback-offer p');
-        if (originalPriceEl && discountedPriceEl && discountRateEl && cashbackOffer) {
-            if (couponApplied) {
-                originalPriceEl.textContent = `$${totalPrice.toFixed(2)}`;
-                originalPriceEl.classList.add('strikethrough');
-                discountedPriceEl.textContent = `$${finalPrice.toFixed(2)}`;
-                discountedPriceEl.style.display = 'block';
-                discountRateEl.textContent = `Discount active -${discount * 100}%`;
-                discountRateEl.className = 'discount-rate coupon-active';
-            } else {
-                originalPriceEl.textContent = `$${finalPrice.toFixed(2)}`;
-                originalPriceEl.classList.remove('strikethrough');
-                discountedPriceEl.style.display = 'none';
-                discountRateEl.textContent = 'Enter a valid coupon code';
-                discountRateEl.className = 'discount-rate';
-            }
-            cashbackOffer.textContent = `Get $${cashback.toFixed(2)} cashback on your purchase`;
-        }
-
-        sessionStorage.setItem('orderData', JSON.stringify(orderData));
         console.log('orderData saved:', JSON.stringify(orderData, null, 2));
+        sessionStorage.setItem('orderData', JSON.stringify(orderData));
     }
 
     function initializeProceedButton() {
@@ -156,6 +142,7 @@
         proceedButton.addEventListener('click', () => {
             console.log('Proceed to Payment button clicked at:', new Date().toISOString());
             const orderData = JSON.parse(sessionStorage.getItem('orderData')) || {};
+            orderData.game = 'League of Legends'; // Force game type
             if (!orderData.currentRank || !orderData.desiredRank || !orderData.finalPrice) {
                 showErrorPopup('Please select ranks and options before proceeding.');
                 console.log('Incomplete orderData:', orderData);
@@ -163,7 +150,7 @@
             }
 
             const currentMasterLP = parseInt(orderData.currentMasterLP) || 0;
-            const desiredMasterLP = parseInt(orderData.desiredMasterLP) || 0;
+            const desiredMasterLP = parseInt(orderData.currentMasterLP) || 0;
             if (orderData.currentRank.startsWith('Master') && orderData.desiredRank.startsWith('Master')) {
                 if (desiredMasterLP <= currentMasterLP || (desiredMasterLP - currentMasterLP) < 40) {
                     showErrorPopup('Target Master LP must be at least 40 LP higher than Current Master LP.');
@@ -171,10 +158,8 @@
                 }
             }
 
-            // Check if user is logged in
             const userId = localStorage.getItem('userId');
             if (!userId) {
-                // Trigger login popup
                 const loginPopup = document.getElementById('loginPopup');
                 if (loginPopup) {
                     loginPopup.style.display = 'flex';
@@ -186,10 +171,10 @@
             }
 
             sessionStorage.setItem('orderData', JSON.stringify(orderData));
+            console.log('orderData before redirect:', JSON.stringify(orderData, null, 2));
             window.location.href = '/checkout.html';
         });
 
-        // Check URL for reset password params
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('userId') && urlParams.has('token')) {
             const resetPasswordPopup = document.getElementById('reset-password-popup');
@@ -200,7 +185,6 @@
         }
     }
 
-    // Helper to show error popup (reusing your existing error-popup)
     function showErrorPopup(message) {
         const errorPopup = document.createElement('div');
         errorPopup.className = 'error-popup active';
