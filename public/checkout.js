@@ -48,29 +48,22 @@
         const normalizedCurrentRank = orderData.currentRank ? orderData.currentRank.split(' ')[0] : '';
         const normalizedDesiredRank = orderData.desiredRank ? orderData.desiredRank.split(' ')[0] : '';
 
-        // Set game type
-        if (orderData.game && ['League of Legends', 'Valorant'].includes(orderData.game)) {
-            console.log(`Game type set to ${orderData.game} based on orderData.game`);
-        } else {
-            // Infer game type based on unique ranks
-            if (uniqueValorantRanks.includes(normalizedCurrentRank) || uniqueValorantRanks.includes(normalizedDesiredRank)) {
-                orderData.game = 'Valorant';
-                console.log(`Inferred game type as Valorant based on unique ranks: ${normalizedCurrentRank}, ${normalizedDesiredRank}`);
-            } else if (uniqueLeagueRanks.includes(normalizedCurrentRank) || uniqueLeagueRanks.includes(normalizedDesiredRank)) {
-                orderData.game = 'League of Legends';
-                console.log(`Inferred game type as League of Legends based on unique ranks: ${normalizedCurrentRank}, ${normalizedDesiredRank}`);
-            } else {
-                // Default to League of Legends for shared ranks (Iron, Bronze, Silver, Gold, Platinum, Diamond)
-                orderData.game = 'League of Legends';
-                console.log(`Defaulted game type to League of Legends for shared ranks: ${normalizedCurrentRank}, ${normalizedDesiredRank}`);
-            }
-        }
+      // Set game type based on page user came from, not rank
+if (document.referrer.includes('league-services.html')) {
+    orderData.game = 'League of Legends';
+    console.log('Forced game type to League of Legends based on referrer: league-services.html');
+} else if (document.referrer.includes('valorant-services.html')) {
+    orderData.game = 'Valorant';
+    console.log('Forced game type to Valorant based on referrer: valorant-services.html');
+} else if (orderData.game && ['League of Legends', 'Valorant'].includes(orderData.game)) {
+    console.log(`Game type set to ${orderData.game} based on orderData.game`);
+} else {
+    orderData.game = 'League of Legends'; // Fallback
+    console.log('Defaulted game type to League of Legends');
+}
 
-        // Force League of Legends for league-services.html orders
-        if (document.referrer.includes('league-services.html')) {
-            orderData.game = 'League of Legends';
-            console.log('Forced game type to League of Legends based on referrer: league-services.html');
-        }
+
+       
 
         const updateSummary = () => {
             try {
