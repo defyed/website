@@ -425,12 +425,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    logoutLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        localStorage.removeItem('userId');
-        localStorage.removeItem('role');
-        window.location.href = 'index.html';
-    });
+  logoutLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (typeof logout === 'function') {
+        logout(); // Use your shared logout logic
+    } else {
+        console.error('logout() is not defined. Make sure utils.js or login.js is loaded.');
+    }
+});
+
 
     setupLaneButtons();
     setupRoleButtons();
