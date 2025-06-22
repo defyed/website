@@ -1281,6 +1281,37 @@ app.post('/api/apply-coupon', async (req, res) => {
   }
 });
 
+app.get('/api/validate-coupon', async (req, res) => {
+  const { code, game } = req.query;
+  if (!code || !game) {
+    return res.status(400).json({ valid: false, message: 'Missing code or game' });
+  }
+
+  try {
+    const [rows] = await pool.query('SELECT * FROM coupons WHERE code = ?', [code.toUpperCase()]);
+    if (!rows.length) {
+      return res.status(404).json({ valid: false, message: 'Coupon not found' });
+    }
+
+    const coupon = rows[0];
+    let discount = 0;
+    if (game.toLowerCase() === 'league') {
+      discount = parseFloat(coupon.lol_discount_percentage);
+    } else if (game.toLowerCase() === 'valorant') {
+      discount = parseFloat(coupon.valorant_discount_percentage);
+    }
+
+    if (isNaN(discount) || discount <= 0) {
+      return res.status(400).json({ valid: false, message: `No discount available for ${game}` });
+    }
+
+    res.json({ valid: true, discount });
+  } catch (error) {
+    console.error('Coupon validation error:', error.message);
+    res.status(500).json({ valid: false, message: 'Server error', details: error.message });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
