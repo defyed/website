@@ -1105,7 +1105,7 @@ app.get('/api/boosters', async (req, res) => {
              bp.language, bp.bio
       FROM users u
       LEFT JOIN booster_profiles bp ON u.id = bp.user_id
-      WHERE u.role = ('booster', 'admin')
+      WHERE u.role IN ('booster', 'admin')
     `);
     res.json(rows);
   } catch (error) {
@@ -1113,6 +1113,7 @@ app.get('/api/boosters', async (req, res) => {
     res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 });
+
 
 app.get('/api/booster-profile', authenticate, checkRole(['booster', 'admin']), async (req, res) => {
   try {
