@@ -1187,22 +1187,22 @@ app.post('/api/booster-profile', authenticate, checkRole(['booster', 'admin']), 
   }
 });
 
-app.post('/admin/update-role', authenticate, checkRole(['admin']), async (req, res) => {
-  const { userId, newRole } = req.body;
-  try {
-    if (!userId || isNaN(userId) || !['user', 'booster', 'admin'].includes(newRole)) {
-      return res.status(400).json({ error: 'Invalid userId or role' });
+app.post('/admin/update-role', async (req, res) => {
+    const { userId, newRole, adminUserId } = req.body;
+
+    try {
+        const [adminRows] = await pool.query('SELECT role FROM users WHERE id = ?', [adminUserId]);
+        if (!adminRows.length || adminRows[0].role !== 'admin') {
+            return res.status(403).json({ error: 'Unauthorized: Only admins can update roles' });
+        }
+
+        await pool.query('UPDATE users SET role = ? WHERE id = ?', [newRole, userId]);
+        console.log(`Updated user ${userId} to role ${newRole} by admin ${adminUserId}`);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Error updating user role:', err.message);
+        res.status(500).json({ error: 'Database error', details: err.message });
     }
-    const [userRows] = await pool.query('SELECT id FROM users WHERE id = ?', [userId]);
-    if (!userRows.length) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    await pool.query('UPDATE users SET role = ? WHERE id = ?', [newRole, userId]);
-    res.json({ success: true, message: 'Role updated successfully' });
-  } catch (error) {
-    console.error('Error updating user role:', error.message);
-    res.status(500).json({ error: 'Internal server error', details: error.message });
-  }
 });
 
 app.get('/admin/users', authenticate, checkRole(['admin']), async (req, res) => {
