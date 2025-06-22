@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    const boostersContainer = document.getElementById('boosters-container');
+   const boostersContainer = document.getElementById('boosters-container');
     const editProfileModal = document.getElementById('edit-profile-modal');
     const editProfileForm = document.getElementById('edit-profile-form');
     const logoutLink = document.getElementById('logout-link');
@@ -21,6 +21,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 const boosters = await response.json();
                 renderBoosters(boosters);
+
+                // Check if current user has a profile
+                const hasProfile = boosters.some(b => b.id == userId);
+                if (!hasProfile && ['admin', 'booster'].includes(role)) {
+                    const createProfileBtn = document.createElement('button');
+                    createProfileBtn.textContent = 'Create Your Booster Profile';
+                    createProfileBtn.className = 'create-profile-btn';
+                    createProfileBtn.addEventListener('click', () => {
+                        showEditProfileModal({}); // Show modal with empty fields
+                    });
+                    boostersContainer.appendChild(createProfileBtn);
+                }
+
                 return;
             } catch (error) {
                 console.error('Error fetching boosters:', error);
