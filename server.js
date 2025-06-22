@@ -1105,7 +1105,7 @@ app.get('/api/boosters', async (req, res) => {
              bp.language, bp.bio
       FROM users u
       LEFT JOIN booster_profiles bp ON u.id = bp.user_id
-      WHERE u.role = 'booster'
+      WHERE u.role = ('booster', 'admin')
     `);
     res.json(rows);
   } catch (error) {
