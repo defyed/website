@@ -1462,5 +1462,17 @@ window.updateUserRole = updateUserRole;
         } else {
             console.error('Settings button not found in #settings-panel');
         }
+                const logoutLink = document.getElementById('logout-link');
+        if (logoutLink) {
+            logoutLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (typeof logout === 'function') {
+                    logout();
+                } else {
+                    console.error('logout() is not defined.');
+                }
+            });
+        }
+
     });
 })();
