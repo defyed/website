@@ -290,6 +290,7 @@
             alert('Error updating role: ' + err.message);
         }
     }
+window.updateUserRole = updateUserRole;
 
     function renderPayoutHistory(requests, containerId) {
         const container = document.getElementById(containerId);
