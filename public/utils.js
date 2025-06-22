@@ -87,3 +87,4 @@ if (typeof module !== 'undefined' && module.exports) {
     window.checkLoginAndNavigate = checkLoginAndNavigate;
     window.logout = logout;
 }
+window.logout = logout;
