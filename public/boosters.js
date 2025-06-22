@@ -21,6 +21,28 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 const boosters = await response.json();
                 renderBoosters(boosters);
+
+                // Check if the current user (admin or booster) has a profile
+                if (['admin', 'booster'].includes(role)) {
+                    const hasProfile = boosters.some(booster => booster.id == userId);
+                    const createProfileBtn = document.getElementById('create-profile-btn');
+                    if (!hasProfile && createProfileBtn) {
+                        createProfileBtn.style.display = 'block';
+                        createProfileBtn.addEventListener('click', () => {
+                            // Clear modal fields for new profile
+                            document.getElementById('lol-highest-rank').value = '';
+                            document.getElementById('valorant-highest-rank').value = '';
+                            document.getElementById('language').value = '';
+                            document.getElementById('bio').value = '';
+                            document.getElementById('lol-preferred-lanes').value = '';
+                            document.getElementById('valorant-preferred-roles').value = '';
+                            $('#lol-preferred-champions').val(null).trigger('change');
+                            $('#valorant-preferred-agents').val(null).trigger('change');
+                            editProfileModal.style.display = 'block';
+                        });
+                    }
+                }
+
                 return;
             } catch (error) {
                 console.error('Error fetching boosters:', error);
@@ -35,168 +57,168 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function renderBoosters(boosters) {
-    boostersContainer.innerHTML = '';
-    boosters.forEach(booster => {
-        const boosterCard = document.createElement('div');
-        boosterCard.className = 'booster-card';
+        boostersContainer.innerHTML = '';
+        boosters.forEach(booster => {
+            const boosterCard = document.createElement('div');
+            boosterCard.className = 'booster-card';
 
-        const header = document.createElement('div');
-        header.className = 'card-header';
-        const languageWrapper = document.createElement('div');
-        languageWrapper.className = 'language-wrapper';
-        if (booster.language) {
-            const languageSpan = document.createElement('span');
-            languageSpan.textContent = 'Speaks: ';
-            const languageIcon = document.createElement('img');
-            languageIcon.src = `/images/languages/${booster.language.toLowerCase()}.png`;
-            languageIcon.alt = booster.language;
-            languageIcon.className = 'language-icon';
-            languageWrapper.appendChild(languageSpan);
-            languageWrapper.appendChild(languageIcon);
-        }
-        const usernameWrapper = document.createElement('div');
-        usernameWrapper.className = 'username-wrapper';
-        const username = document.createElement('h3');
-        username.textContent = booster.username;
-        const gameIcon = document.createElement('img');
-        gameIcon.src = '/images/league-of-legends.png';
-        gameIcon.alt = 'League of Legends';
-        gameIcon.className = 'game-icon';
-        usernameWrapper.appendChild(username);
-        usernameWrapper.appendChild(gameIcon);
-        const statusDot = document.createElement('span');
-        statusDot.className = 'status-dot online'; // Always green and pulsing
-        statusDot.title = 'Online';
-        header.appendChild(languageWrapper);
-        header.appendChild(usernameWrapper);
-        header.appendChild(statusDot);
-        boosterCard.appendChild(header);
+            const header = document.createElement('div');
+            header.className = 'card-header';
+            const languageWrapper = document.createElement('div');
+            languageWrapper.className = 'language-wrapper';
+            if (booster.language) {
+                const languageSpan = document.createElement('span');
+                languageSpan.textContent = 'Speaks: ';
+                const languageIcon = document.createElement('img');
+                languageIcon.src = `/images/languages/${booster.language.toLowerCase()}.png`;
+                languageIcon.alt = booster.language;
+                languageIcon.className = 'language-icon';
+                languageWrapper.appendChild(languageSpan);
+                languageWrapper.appendChild(languageIcon);
+            }
+            const usernameWrapper = document.createElement('div');
+            usernameWrapper.className = 'username-wrapper';
+            const username = document.createElement('h3');
+            username.textContent = booster.username;
+            const gameIcon = document.createElement('img');
+            gameIcon.src = '/images/league-of-legends.png';
+            gameIcon.alt = 'League of Legends';
+            gameIcon.className = 'game-icon';
+            usernameWrapper.appendChild(username);
+            usernameWrapper.appendChild(gameIcon);
+            const statusDot = document.createElement('span');
+            statusDot.className = 'status-dot online';
+            statusDot.title = 'Online';
+            header.appendChild(languageWrapper);
+            header.appendChild(usernameWrapper);
+            header.appendChild(statusDot);
+            boosterCard.appendChild(header);
 
-        const content = document.createElement('div');
-        content.className = 'card-content';
-        if (booster.lol_highest_rank) {
-            const lolRankPanel = document.createElement('div');
-            lolRankPanel.className = 'rank-panel';
-            const lolRank = document.createElement('div');
-            lolRank.className = 'rank-section';
-            lolRank.innerHTML = `<span class="rank-label">LoL Rank:</span><span class="rank-value">${booster.lol_highest_rank}</span>`;
-            lolRankPanel.appendChild(lolRank);
-            content.appendChild(lolRankPanel);
-        }
-        if (booster.valorant_highest_rank) {
-            const valorantRankPanel = document.createElement('div');
-            valorantRankPanel.className = 'rank-panel';
-            const valorantRank = document.createElement('div');
-            valorantRank.className = 'rank-section';
-            valorantRank.innerHTML = `<span class="rank-label">Valorant Rank:</span><span class="rank-value">${booster.valorant_highest_rank}</span>`;
-            valorantRankPanel.appendChild(valorantRank);
-            content.appendChild(valorantRankPanel);
-        }
-        if (booster.bio) {
-            const bioDiv = document.createElement('div');
-            bioDiv.className = 'bio-section';
-            bioDiv.textContent = booster.bio;
-            content.appendChild(bioDiv);
-        }
-        boosterCard.appendChild(content);
+            const content = document.createElement('div');
+            content.className = 'card-content';
+            if (booster.lol_highest_rank) {
+                const lolRankPanel = document.createElement('div');
+                lolRankPanel.className = 'rank-panel';
+                const lolRank = document.createElement('div');
+                lolRank.className = 'rank-section';
+                lolRank.innerHTML = `<span class="rank-label">LoL Rank:</span><span class="rank-value">${booster.lol_highest_rank}</span>`;
+                lolRankPanel.appendChild(lolRank);
+                content.appendChild(lolRankPanel);
+            }
+            if (booster.valorant_highest_rank) {
+                const valorantRankPanel = document.createElement('div');
+                valorantRankPanel.className = 'rank-panel';
+                const valorantRank = document.createElement('div');
+                valorantRank.className = 'rank-section';
+                valorantRank.innerHTML = `<span class="rank-label">Valorant Rank:</span><span class="rank-value">${booster.valorant_highest_rank}</span>`;
+                valorantRankPanel.appendChild(valorantRank);
+                content.appendChild(valorantRankPanel);
+            }
+            if (booster.bio) {
+                const bioDiv = document.createElement('div');
+                bioDiv.className = 'bio-section';
+                bioDiv.textContent = booster.bio;
+                content.appendChild(bioDiv);
+            }
+            boosterCard.appendChild(content);
 
-        const footer = document.createElement('div');
-        footer.className = 'card-footer';
-        const lolSection = document.createElement('div');
-        lolSection.className = 'game-section lol-section';
-        if (booster.lol_preferred_lanes) {
-            const lanesDiv = document.createElement('div');
-            lanesDiv.className = 'lanes';
-            lanesDiv.innerHTML = '<span class="section-title">Lanes</span>';
-            const lanesImages = document.createElement('div');
-            lanesImages.className = 'images';
-            booster.lol_preferred_lanes.split(',').forEach(lane => {
-                const img = document.createElement('img');
-                img.src = `/images/lanes/${lane.toLowerCase().replace(/\s+/g, '-')}.png`;
-                img.alt = lane;
-                img.className = 'profile-image';
-                lanesImages.appendChild(img);
-            });
-            lanesDiv.appendChild(lanesImages);
-            lolSection.appendChild(lanesDiv);
-        }
-        if (booster.lol_preferred_champions) {
-            const champsDiv = document.createElement('div');
-            champsDiv.className = 'champions';
-            champsDiv.innerHTML = '<span class="section-title">Champions</span>';
-            const champsImages = document.createElement('div');
-            champsImages.className = 'images';
-            const championNameToFile = {
-                "Bel'Veth": "bel-veth",
-                "Cho'Gath": "cho-gath",
-                "Kai'Sa": "kai-sa",
-                "Kha'Zix": "kha-zix",
-                "LeBlanc": "leblanc",
-                "Nunu & Willump": "nunu-&-willump",
-                "Renata Glasc": "renata-glasc",
-                "Vel'Koz": "vel-koz",
-                "Wukong": "wukong"
-            };
-            booster.lol_preferred_champions.split(',').forEach(champion => {
-                const img = document.createElement('img');
-                img.src = `/images/champions/${championNameToFile[champion] || champion.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`;
-                img.alt = champion;
-                img.className = 'profile-image champion-image';
-                champsImages.appendChild(img);
-            });
-            champsDiv.appendChild(champsImages);
-            lolSection.appendChild(champsDiv);
-        }
-        footer.appendChild(lolSection);
+            const footer = document.createElement('div');
+            footer.className = 'card-footer';
+            const lolSection = document.createElement('div');
+            lolSection.className = 'game-section lol-section';
+            if (booster.lol_preferred_lanes) {
+                const lanesDiv = document.createElement('div');
+                lanesDiv.className = 'lanes';
+                lanesDiv.innerHTML = '<span class="section-title">Lanes</span>';
+                const lanesImages = document.createElement('div');
+                lanesImages.className = 'images';
+                booster.lol_preferred_lanes.split(',').forEach(lane => {
+                    const img = document.createElement('img');
+                    img.src = `/images/lanes/${lane.toLowerCase().replace(/\s+/g, '-')}.png`;
+                    img.alt = lane;
+                    img.className = 'profile-image';
+                    lanesImages.appendChild(img);
+                });
+                lanesDiv.appendChild(lanesImages);
+                lolSection.appendChild(lanesDiv);
+            }
+            if (booster.lol_preferred_champions) {
+                const champsDiv = document.createElement('div');
+                champsDiv.className = 'champions';
+                champsDiv.innerHTML = '<span class="section-title">Champions</span>';
+                const champsImages = document.createElement('div');
+                champsImages.className = 'images';
+                const championNameToFile = {
+                    "Bel'Veth": "bel-veth",
+                    "Cho'Gath": "cho-gath",
+                    "Kai'Sa": "kai-sa",
+                    "Kha'Zix": "kha-zix",
+                    "LeBlanc": "leblanc",
+                    "Nunu & Willump": "nunu-&-willump",
+                    "Renata Glasc": "renata-glasc",
+                    "Vel'Koz": "vel-koz",
+                    "Wukong": "wukong"
+                };
+                booster.lol_preferred_champions.split(',').forEach(champion => {
+                    const img = document.createElement('img');
+                    img.src = `/images/champions/${championNameToFile[champion] || champion.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`;
+                    img.alt = champion;
+                    img.className = 'profile-image champion-image';
+                    champsImages.appendChild(img);
+                });
+                champsDiv.appendChild(champsImages);
+                lolSection.appendChild(champsDiv);
+            }
+            footer.appendChild(lolSection);
 
-        const valorantSection = document.createElement('div');
-        valorantSection.className = 'game-section valorant-section';
-        if (booster.valorant_preferred_roles) {
-            const rolesDiv = document.createElement('div');
-            rolesDiv.className = 'roles';
-            rolesDiv.innerHTML = '<span class="section-title">Roles</span>';
-            const rolesImages = document.createElement('div');
-            rolesImages.className = 'images';
-            booster.valorant_preferred_roles.split(',').forEach(role => {
-                const img = document.createElement('img');
-                img.src = `/images/roles/${role.toLowerCase().replace(/\s+/g, '-')}.png`;
-                img.alt = role;
-                img.className = 'profile-image';
-                rolesImages.appendChild(img);
-            });
-            rolesDiv.appendChild(rolesImages);
-            valorantSection.appendChild(rolesDiv);
-        }
-        if (booster.valorant_preferred_agents) {
-            const agentsDiv = document.createElement('div');
-            agentsDiv.className = 'agents';
-            agentsDiv.innerHTML = '<span class="section-title">Agents</span>';
-            const agentsImages = document.createElement('div');
-            agentsImages.className = 'images';
-            booster.valorant_preferred_agents.split(',').forEach(agent => {
-                const img = document.createElement('img');
-                img.src = `/images/agents/${agent.toLowerCase().replace(/\s+/g, '-')}.png`;
-                img.alt = agent;
-                img.className = 'profile-image agent-image';
-                agentsImages.appendChild(img);
-            });
-            agentsDiv.appendChild(agentsImages);
-            valorantSection.appendChild(agentsDiv);
-        }
-        footer.appendChild(valorantSection);
-        boosterCard.appendChild(footer);
+            const valorantSection = document.createElement('div');
+            valorantSection.className = 'game-section valorant-section';
+            if (booster.valorant_preferred_roles) {
+                const rolesDiv = document.createElement('div');
+                rolesDiv.className = 'roles';
+                rolesDiv.innerHTML = '<span class="section-title">Roles</span>';
+                const rolesImages = document.createElement('div');
+                rolesImages.className = 'images';
+                booster.valorant_preferred_roles.split(',').forEach(role => {
+                    const img = document.createElement('img');
+                    img.src = `/images/roles/${role.toLowerCase().replace(/\s+/g, '-')}.png`;
+                    img.alt = role;
+                    img.className = 'profile-image';
+                    rolesImages.appendChild(img);
+                });
+                rolesDiv.appendChild(rolesImages);
+                valorantSection.appendChild(rolesDiv);
+            }
+            if (booster.valorant_preferred_agents) {
+                const agentsDiv = document.createElement('div');
+                agentsDiv.className = 'agents';
+                agentsDiv.innerHTML = '<span class="section-title">Agents</span>';
+                const agentsImages = document.createElement('div');
+                agentsImages.className = 'images';
+                booster.valorant_preferred_agents.split(',').forEach(agent => {
+                    const img = document.createElement('img');
+                    img.src = `/images/agents/${agent.toLowerCase().replace(/\s+/g, '-')}.png`;
+                    img.alt = agent;
+                    img.className = 'profile-image agent-image';
+                    agentsImages.appendChild(img);
+                });
+                agentsDiv.appendChild(agentsImages);
+                valorantSection.appendChild(agentsDiv);
+            }
+            footer.appendChild(valorantSection);
+            boosterCard.appendChild(footer);
 
-        if (booster.id == userId && ['booster', 'admin'].includes(role)) {
-            const editBtn = document.createElement('button');
-            editBtn.className = 'edit-profile-btn';
-            editBtn.textContent = 'Edit Profile';
-            editBtn.addEventListener('click', () => showEditProfileModal(booster));
-            boosterCard.appendChild(editBtn);
-        }
+            if (booster.id == userId && ['booster', 'admin'].includes(role)) {
+                const editBtn = document.createElement('button');
+                editBtn.className = 'edit-profile-btn';
+                editBtn.textContent = 'Edit Profile';
+                editBtn.addEventListener('click', () => showEditProfileModal(booster));
+                boosterCard.appendChild(editBtn);
+            }
 
-        boostersContainer.appendChild(boosterCard);
-    });
-}
+            boostersContainer.appendChild(boosterCard);
+        });
+    }
 
     async function showEditProfileModal(booster) {
         try {
@@ -415,12 +437,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                     throw new Error(responseData.error || `HTTP ${response.status}: ${await response.text()}`);
                 }
 
-                alert('Profile updated successfully');
+                alert('Profile saved successfully');
                 editProfileModal.style.display = 'none';
                 fetchBoosters();
             } catch (error) {
-                console.error('Error updating profile:', error);
-                alert(`Failed to update profile: ${error.message}`);
+                console.error('Error saving profile:', error);
+                alert(`Failed to save profile: ${error.message}`);
             }
         });
     }
