@@ -34,7 +34,8 @@ const pool = mysql.createPool({
 
 // Authentication middleware
 const authenticate = async (req, res, next) => {
-  const userId = req.query.userId || req.body.userId;
+  const userId = req.query.userId || req.body.userId || req.body.adminUserId;
+
   console.log(`Authenticating userId: ${userId}`);
   if (!userId || isNaN(userId)) {
     console.error('Invalid or missing userId');
