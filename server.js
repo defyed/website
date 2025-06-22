@@ -1207,13 +1207,14 @@ app.post('/admin/update-role', async (req, res) => {
 
 app.get('/admin/users', authenticate, checkRole(['admin']), async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT id, username, email, role FROM users');
-    res.json(rows);
+    const [users] = await pool.query('SELECT id, username, email, role, account_balance FROM users');
+    res.json(users);
   } catch (error) {
     console.error('Error fetching users:', error.message);
     res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 });
+
 
 app.get('/api/coupons', authenticate, checkRole(['admin']), async (req, res) => {
   try {
