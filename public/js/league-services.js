@@ -32,10 +32,59 @@
             checkbox.addEventListener('change', updateOrderData);
         });
 
-        const couponInput = document.querySelector('#coupon-input');
-        if (couponInput) {
-            couponInput.addEventListener('input', updateOrderData);
+       document.addEventListener('DOMContentLoaded', async () => {
+    const couponField = document.getElementById('coupon-code');
+    const applyCouponButton = document.getElementById('apply-coupon');
+    const discountDisplay = document.getElementById('discount-display');
+
+    let currentDiscount = 0;
+    let validCouponCode = null;
+
+    applyCouponButton.addEventListener('click', async () => {
+        const code = couponField.value.trim();
+        if (!code) {
+            alert('Please enter a coupon code.');
+            return;
         }
+
+        try {
+            const response = await fetch(`/api/validate-coupon?code=${encodeURIComponent(code)}&game=league`);
+            const result = await response.json();
+
+            if (response.ok && result.valid) {
+                currentDiscount = result.discount;
+                validCouponCode = code;
+                discountDisplay.textContent = `Coupon Applied: ${currentDiscount}% off`;
+                updateTotalPrice();
+            } else {
+                currentDiscount = 0;
+                validCouponCode = null;
+                discountDisplay.textContent = `Invalid or expired coupon`;
+                alert(result.message || 'Invalid coupon');
+                updateTotalPrice();
+            }
+        } catch (error) {
+            console.error('Error validating coupon:', error);
+            alert('Failed to validate coupon.');
+        }
+    });
+
+    function updateTotalPrice() {
+        const priceElement = document.getElementById('total-price');
+        const originalPrice = parseFloat(priceElement.getAttribute('data-original-price'));
+
+        if (isNaN(originalPrice)) return;
+
+        const discountedPrice = originalPrice * (1 - currentDiscount / 100);
+        priceElement.textContent = `$${discountedPrice.toFixed(2)}`;
+    }
+
+    window.setOriginalPrice = function (price) {
+        const priceElement = document.getElementById('total-price');
+        priceElement.setAttribute('data-original-price', price);
+        updateTotalPrice();
+    }
+});
 
         document.querySelectorAll('.rank-btn, .division-btn, #current-lp-select').forEach(el => {
             el.addEventListener('click', () => setTimeout(updateOrderData, 100));
