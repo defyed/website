@@ -22,9 +22,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const boosters = await response.json();
                 renderBoosters(boosters);
 
-                // Check if the current user (admin or booster) has a profile
+                // Check if current user (admin or booster) has a profile
                 if (['admin', 'booster'].includes(role)) {
-                    const hasProfile = boosters.some(booster => booster.id == userId);
+                    const hasProfile = boosters.some(booster => booster.id == userId && hasMeaningfulProfile(booster)); // Updated to check meaningful data
                     const createProfileBtn = document.getElementById('create-profile-btn');
                     if (!hasProfile && createProfileBtn) {
                         createProfileBtn.style.display = 'block';
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             $('#lol-preferred-champions').val(null).trigger('change');
                             $('#valorant-preferred-agents').val(null).trigger('change');
                             editProfileModal.style.display = 'block';
-                        });
+                        }, { once: true }); // Ensure listener is added only once
                     }
                 }
 
@@ -56,9 +56,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    // Helper function to check if a profile has meaningful data
+    function hasMeaningfulProfile(booster) {
+        return booster.lol_highest_rank ||
+               booster.valorant_highest_rank ||
+               booster.lol_preferred_lanes ||
+               booster.lol_preferred_champions ||
+               booster.valorant_preferred_roles ||
+               booster.valorant_preferred_agents ||
+               booster.language ||
+               booster.bio;
+    }
+
     function renderBoosters(boosters) {
         boostersContainer.innerHTML = '';
         boosters.forEach(booster => {
+            // Skip empty profiles unless it's the current user
+            if (!hasMeaningfulProfile(booster) && booster.id != userId) return;
+
             const boosterCard = document.createElement('div');
             boosterCard.className = 'booster-card';
 
@@ -416,14 +431,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             e.preventDefault();
             try {
                 const profileData = {
-                    lolHighestRank: document.getElementById('lol-highest-rank').value,
-                    valorantHighestRank: document.getElementById('valorant-highest-rank').value,
-                    lolPreferredLanes: getSelectedValues('lol-preferred-lanes'),
-                    lolPreferredChampions: getSelectedValues('lol-preferred-champions'),
-                    valorantPreferredRoles: getSelectedValues('valorant-preferred-roles'),
-                    valorantPreferredAgents: getSelectedValues('valorant-preferred-agents'),
-                    language: document.getElementById('language').value,
-                    bio: document.getElementById('bio').value
+                    lol_highest_rank: document.getElementById('lol-highest-rank').value || null,
+                    valorant_highest_rank: document.getElementById('valorant-highest-rank').value || null,
+                    lol_preferred_lanes: getSelectedValues('lol-preferred-lanes') || null,
+                    lol_preferred_champions: getSelectedValues('lol-preferred-champions') || null,
+                    valorant_preferred_roles: getSelectedValues('valorant-preferred-roles') || null,
+                    valorant_preferred_agents: getSelectedValues('valorant-preferred-agents') || null,
+                    language: document.getElementById('language').value || null,
+                    bio: document.getElementById('bio').value || null
                 };
 
                 const response = await fetch(`/api/booster-profile?userId=${userId}`, {
@@ -451,7 +466,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.preventDefault();
         localStorage.removeItem('userId');
         localStorage.removeItem('role');
-        window.location.href = 'index.html';
+        window.location.href = 'league-services.html';
     });
 
     setupLaneButtons();
