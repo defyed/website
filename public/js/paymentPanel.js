@@ -448,27 +448,6 @@ function updateTotalPrice() {
 
 const debouncedUpdateTotalPrice = debounce(updateTotalPrice, 100);
 
-
-let defaultCouponCode = 'BOOST15';
-let defaultDiscount = 15;
-
-    // Fetch latest League coupon
-    const couponInput = document.querySelector('#coupon-input');
-    try {
-        const res = await fetch('/api/latest-coupon?game=League');
-        if (res.ok) {
-            const data = await res.json();
-            if (data.code) {
-                couponInput.value = data.code;
-                defaultCouponCode = data.code;
-                defaultDiscount = data.discount || 0;
-                console.log('Auto-filled League coupon:', defaultCouponCode, defaultDiscount);
-            }
-        }
-    } catch (err) {
-        console.warn('Could not fetch latest coupon:', err.message);
-    }
-
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM fully loaded, setting up event listeners');
 
