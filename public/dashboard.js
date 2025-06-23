@@ -52,11 +52,9 @@
             }
             const { role } = await response.json();
             console.log('User role:', role);
-    if (role !== 'admin') {
-        const couponSection = document.getElementById('coupon-management');
-        if (couponSection) {
-            couponSection.style.display = 'none';
-        }
+    const couponSection = document.getElementById('coupon-management');
+    if (couponSection) {
+        couponSection.style.display = (role === 'admin') ? 'block' : 'none';
     }
 
 
