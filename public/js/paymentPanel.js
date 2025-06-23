@@ -11,43 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.code) {
                 latestCode = data.code;
                 latestDiscount = parseFloat(data.discount);
-                console.log('Coupon loaded:', latestCode, latestDiscount);
-            }
-        })
-        .catch(() => {
-            console.warn('Using fallback coupon.');
-        })
-        .finally(() => {
-            if (couponInput) {
-                couponInput.value = latestCode;
-                console.log('Coupon input auto-filled with:', latestCode);
-            }
-
-            window.getLeagueDiscount = (inputCode) => {
-                return inputCode?.toUpperCase() === latestCode.toUpperCase()
-                    ? latestDiscount / 100
-                    : 0;
-            };
-
-            if (typeof updatePrice === 'function') {
-                updatePrice();
-            }
-        });
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-    const couponInput = document.querySelector('#coupon-input');
-    let fallbackCode = 'BOOST15';
-    let fallbackDiscount = 15;
-    let latestCode = fallbackCode;
-    let latestDiscount = fallbackDiscount;
-
-    fetch('/api/coupons/latest?game=league')
-        .then(res => res.json())
-        .then(data => {
-            if (data.code) {
-                latestCode = data.code;
-                latestDiscount = parseFloat(data.discount);
                 console.log('League coupon loaded from server:', latestCode, latestDiscount);
             } else {
                 console.warn('No league coupon found in DB, using fallback');
@@ -485,17 +448,19 @@ function updateTotalPrice() {
 
     // Check coupon code
     const couponInput = document.querySelector('#coupon-input');
-    const validCouponCode = 'BOOST15';
-    if (couponInput && couponInput.value.trim().toUpperCase() === validCouponCode) {
-        discountRate = 15; // Apply 15% discount for valid code
-        couponMessage = `Discount active -${discountRate}%`;
-        isCouponActive = true;
-    } else {
-        couponMessage = 'Enter a valid coupon code';
-        isCouponActive = false;
-    }
+const inputCode = couponInput?.value.trim().toUpperCase();
+const expectedCode = window.leagueCouponCode?.toUpperCase();
+if (inputCode && expectedCode && inputCode === expectedCode) {
+    discountRate = window.leagueCouponDiscount || 0;
+    couponMessage = `Discount active -${discountRate}%`;
+    isCouponActive = true;
+} else {
+    couponMessage = 'Enter a valid coupon code';
+    isCouponActive = false;
+}
 
-    finalPrice = totalPrice * (1 - discountRate / 100);
+finalPrice = totalPrice * (1 - discountRate / 100);
+
 
     const cashback = finalPrice * 0.03;
 
