@@ -283,8 +283,8 @@
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${coupon.code}</td>
-                <td>${coupon.lol_discount_percentage.toFixed(2)}</td>
-                <td>${coupon.valorant_discount_percentage.toFixed(2)}</td>
+                <td>${Number(coupon.lol_discount_percentage || 0).toFixed(2)}</td>
+                <td>${Number(coupon.valorant_discount_percentage || 0).toFixed(2)}</td>
                 <td>${new Date(coupon.created_at).toLocaleDateString()}</td>
                 <td>
                     <button class="edit-coupon-btn" data-id="${coupon.id}">Edit</button>
