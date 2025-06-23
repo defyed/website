@@ -52,6 +52,13 @@
             }
             const { role } = await response.json();
             console.log('User role:', role);
+    if (role !== 'admin') {
+        const couponSection = document.getElementById('coupon-management');
+        if (couponSection) {
+            couponSection.style.display = 'none';
+        }
+    }
+
 
             // Hide all role-specific buttons by default
             const ordersLink = document.getElementById('orders-link');
