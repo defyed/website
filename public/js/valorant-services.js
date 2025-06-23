@@ -20,7 +20,7 @@
             '61-80': 0.03,
             '81-100': 0.00
         },
-       
+        couponDiscount: 0.15
     };
 
     function calculatePrice() {
@@ -98,7 +98,9 @@
         let totalPrice = basePrice + extraCost;
 
         const couponInput = document.querySelector('#coupon-input');
+        const couponApplied = couponInput?.value.trim().toUpperCase() === 'SAVE15';
         if (couponApplied) {
+            totalPrice *= (1 - pricingConfig.couponDiscount);
         }
 
         totalPrice = Math.max(totalPrice, 0);
@@ -111,6 +113,7 @@
             cashback: cashback.toFixed(2),
             activeExtras,
             couponApplied,
+            discount: couponApplied ? pricingConfig.couponDiscount : 0
         };
     }
 
@@ -160,23 +163,18 @@
         if (cashbackElement) {
             cashbackElement.textContent = `Get $${priceData.cashback} cashback on your purchase`;
         }
-       if (couponElement) {
-    if (priceData.couponApplied && priceData.discount > 0) {
-        const percent = Math.round(priceData.discount * 100);
-        couponElement.textContent = `Coupon applied -${percent}%`;
-        couponElement.classList.add('coupon-active');
-    } else {
-        couponElement.textContent = "Coupon isn't active";
-        couponElement.classList.remove('coupon-active');
-    }
-}
-
+        if (couponElement) {
+            couponElement.textContent = priceData.couponApplied ? 'Coupon active -15%' : 'Coupon isn\'t active';
+            couponElement.classList.toggle('coupon-active', priceData.couponApplied);
+        }
     }
 
     document.addEventListener('DOMContentLoaded', () => {
         console.log('Valorant services initialized');
         const couponInput = document.querySelector('#coupon-input');
         if (couponInput) {
+            couponInput.value = 'SAVE15';
+            console.log('Coupon auto-filled: SAVE15');
         }
 
         document.querySelectorAll('select[name="current-rank"], select[name="desired-rank"], select[name="current-division"], select[name="desired-division"], select[name="current-rr"], input[name="current-immortal-rr"], input[name="desired-immortal-rr"], .extra-option input[data-price], #coupon-input').forEach(element => {
@@ -191,63 +189,3 @@
         updatePriceDisplay();
     });
 })();
-
-// 🟢 Auto-fill latest coupon if input is empty
-document.addEventListener('DOMContentLoaded', async () => {
-    const couponInput = document.getElementById('coupon-input');
-    if (!couponInput || couponInput.value.trim()) return;
-
-    try {
-        const game = window.location.href.includes('valorant') ? 'valorant' : 'league';
-        const response = await fetch(`/api/coupons/latest?game=${game}`);
-        if (!response.ok) throw new Error("No coupon found");
-        const data = await response.json();
-        couponInput.value = data.code;
-        couponInput.dispatchEvent(new Event('input'));
-        console.log(`Auto-applied latest ${game} coupon:`, data.code);
-    } catch (e) {
-        console.warn("No valid saved coupon found:", e.message);
-    }
-});
-
-
-document.addEventListener('DOMContentLoaded', async () => {
-    const couponInput = document.querySelector('#coupon-input');
-    if (!couponInput) return;
-
-    try {
-        const res = await fetch('/api/latest-coupon?game=valorant');
-        const data = await res.json();
-        if (data && data.code) {
-            couponInput.value = data.code;
-            await applyCouponDiscount(data.code);
-        }
-    } catch (err) {
-        console.error("Error fetching latest coupon:", err);
-    }
-
-    couponInput.addEventListener('input', async (e) => {
-        await applyCouponDiscount(e.target.value.trim());
-    });
-});
-
-async function applyCouponDiscount(code) {
-    if (!code) return;
-
-    try {
-        const res = await fetch(`/api/apply-coupon?code=${code}&game=valorant`);
-        const data = await res.json();
-        if (data.valid) {
-            priceData.discount = data.discount;
-            priceData.couponApplied = true;
-            priceData.finalPrice = priceData.totalPrice * (1 - data.discount);
-        } else {
-            priceData.couponApplied = false;
-            priceData.discount = 0;
-            priceData.finalPrice = priceData.totalPrice;
-        }
-        updatePriceDisplay();
-    } catch (err) {
-        console.error("Error validating coupon:", err);
-    }
-}

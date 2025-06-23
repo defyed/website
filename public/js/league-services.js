@@ -32,59 +32,10 @@
             checkbox.addEventListener('change', updateOrderData);
         });
 
-       document.addEventListener('DOMContentLoaded', async () => {
-    const couponField = document.getElementById('coupon-code');
-    const applyCouponButton = document.getElementById('apply-coupon');
-    const discountDisplay = document.getElementById('discount-display');
-
-    let currentDiscount = 0;
-    let validCouponCode = null;
-
-    applyCouponButton.addEventListener('click', async () => {
-        const code = couponField.value.trim();
-        if (!code) {
-            alert('Please enter a coupon code.');
-            return;
+        const couponInput = document.querySelector('#coupon-input');
+        if (couponInput) {
+            couponInput.addEventListener('input', updateOrderData);
         }
-
-        try {
-            const response = await fetch(`/api/validate-coupon?code=${encodeURIComponent(code)}&game=league`);
-            const result = await response.json();
-
-            if (response.ok && result.valid) {
-                currentDiscount = result.discount;
-                validCouponCode = code;
-                discountDisplay.textContent = `Coupon Applied: ${currentDiscount}% off`;
-                updateTotalPrice();
-            } else {
-                currentDiscount = 0;
-                validCouponCode = null;
-                discountDisplay.textContent = `Invalid or expired coupon`;
-                alert(result.message || 'Invalid coupon');
-                updateTotalPrice();
-            }
-        } catch (error) {
-            console.error('Error validating coupon:', error);
-            alert('Failed to validate coupon.');
-        }
-    });
-
-    function updateTotalPrice() {
-        const priceElement = document.getElementById('total-price');
-        const originalPrice = parseFloat(priceElement.getAttribute('data-original-price'));
-
-        if (isNaN(originalPrice)) return;
-
-        const discountedPrice = originalPrice * (1 - currentDiscount / 100);
-        priceElement.textContent = `$${discountedPrice.toFixed(2)}`;
-    }
-
-    window.setOriginalPrice = function (price) {
-        const priceElement = document.getElementById('total-price');
-        priceElement.setAttribute('data-original-price', price);
-        updateTotalPrice();
-    }
-});
 
         document.querySelectorAll('.rank-btn, .division-btn, #current-lp-select').forEach(el => {
             el.addEventListener('click', () => setTimeout(updateOrderData, 100));
@@ -111,6 +62,8 @@
         });
 
         const couponInput = document.querySelector('#coupon-input');
+        const validCouponCode = 'BOOST15';
+        const couponApplied = couponInput?.value.trim().toUpperCase() === validCouponCode;
         const discount = couponApplied ? 0.15 : 0;
 
         let basePrice = calculateBasePrice();
@@ -265,64 +218,3 @@
 })();
 
 
-
-
-// 🟢 Auto-fill latest coupon if input is empty
-document.addEventListener('DOMContentLoaded', async () => {
-    const couponInput = document.getElementById('coupon-input');
-    if (!couponInput || couponInput.value.trim()) return;
-
-    try {
-        const game = window.location.href.includes('valorant') ? 'valorant' : 'league';
-        const response = await fetch(`/api/coupons/latest?game=${game}`);
-        if (!response.ok) throw new Error("No coupon found");
-        const data = await response.json();
-        couponInput.value = data.code;
-        couponInput.dispatchEvent(new Event('input'));
-        console.log(`Auto-applied latest ${game} coupon:`, data.code);
-    } catch (e) {
-        console.warn("No valid saved coupon found:", e.message);
-    }
-});
-
-
-document.addEventListener('DOMContentLoaded', async () => {
-    const couponInput = document.querySelector('#coupon-input');
-    if (!couponInput) return;
-
-    try {
-        const res = await fetch('/api/latest-coupon?game=league');
-        const data = await res.json();
-        if (data && data.code) {
-            couponInput.value = data.code;
-            await applyCouponDiscount(data.code);
-        }
-    } catch (err) {
-        console.error("Error fetching latest coupon:", err);
-    }
-
-    couponInput.addEventListener('input', async (e) => {
-        await applyCouponDiscount(e.target.value.trim());
-    });
-});
-
-async function applyCouponDiscount(code) {
-    if (!code) return;
-
-    try {
-        const res = await fetch(`/api/apply-coupon?code=${code}&game=league`);
-        const data = await res.json();
-        if (data.valid) {
-            priceData.discount = data.discount;
-            priceData.couponApplied = true;
-            priceData.finalPrice = priceData.totalPrice * (1 - data.discount);
-        } else {
-            priceData.couponApplied = false;
-            priceData.discount = 0;
-            priceData.finalPrice = priceData.totalPrice;
-        }
-        updatePriceDisplay();
-    } catch (err) {
-        console.error("Error validating coupon:", err);
-    }
-}
