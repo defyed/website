@@ -1,114 +1,111 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CH Boosting - Home</title>
-  <link rel="stylesheet" href="styles.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>League of Legends Boosting</title>
+    <link rel="stylesheet" href="styles.css">
+   <!--<script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.js"></script> --> 
+    
+ 
+    
 </head>
-<body class="homepage">
-  <div class="content-wrapper">
-    <canvas id="particle-canvas"></canvas>
-    <header>
-      <div class="logo">
-        <a href="/index.html"><img src="/images/logo.png" alt="CH Boost Logo"></a>
-      </div>
-      <nav>
-        <span class="nav-toggle">☰</span>
-        <ul>
-          <li><a href="/index.html">Home</a></li>
-          <li><a href="#" onclick="checkLoginAndNavigate('boosters.html')">Boosters</a></li>
-          <li><a href="/coaching.html">Coaching</a></li>
-          <li><a href="#" id="sign-in-btn" class="sign-in-btn">Sign In</a></li>
-        </ul>
-      </nav>
-    </header>
-
-    <main>
-      <!-- Hero -->
-      <section class="homepage-hero">
-        <div class="hero-content">
-          <h1>Climb Ranks. Stay Ahead.</h1>
-          <p>Elite boosters in League & Valorant. Secure, fast, professional.</p>
-          <a href="/league-services.html" class="cta-button">Start Your Boost</a>
-        </div>
-        <img src="/images/hero-banner.jpg" alt="Boosting Banner" />
-      </section>
-
-      <!-- Panels -->
-      <section class="homepage-panels">
-        <div class="panel">
-          <img src="/images/speed.png" alt="Speed Boosting" />
-          <div class="text">
-            <h3>Lightning-Fast Delivery</h3>
-            <p>Your order starts within minutes. No waiting, no delays.</p>
-          </div>
-        </div>
-        <div class="panel">
-          <img src="/images/safety.png" alt="Account Safety" />
-          <div class="text">
-            <h3>100% Account Safety</h3>
-            <p>All boosts via VPN and with top-tier security protocols.</p>
-          </div>
-        </div>
-        <div class="panel">
-          <img src="/images/track.png" alt="Track Progress" />
-          <div class="text">
-            <h3>Live Order Tracking</h3>
-            <p>Use our dashboard to monitor your boost in real time.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Game Selector -->
-      <section class="ls-new-section-top">
-        <h2>Choose Your Game</h2>
-        <div class="game-selection">
-          <a href="league-services.html" class="game-card">
-            <img src="/images/league-of-legends.png" alt="League of Legends" />
+<body class="league-services">
+    <div class="content-wrapper">
+        <canvas id="particle-canvas"></canvas>
+        <header>
+            <div class="logo">
+                <a href="/home.html"></a>
+            </div>
+            <nav>
+                <span class="nav-toggle">☰</span>
+                <ul>
+                    <li><a href="/home.html"></a></li>
+                    <li><a href="#" onclick="checkLoginAndNavigate('boosters.html')">Boosters</a></li>
+                    
+                    <li><a href="/coaching.html">Coaching</a></li>
+                   <a href="#" id="sign-in-btn" class="sign-in-btn">Sign In</a>
+                </ul>
+            </nav>
+        </header>
+        <div id="loginPopup" class="popup" style="display: none;"></div>
+        <main>
+            <section class="hero">
+                <h1>League of Legends Elo Boost</h1>
+                <h2>Reach Your Desired Rank with Expert Boosters</h2>
+               
+            </section>
+            <section class="ls-pricing-process">
+                <h3>Pricing & Process</h3>
+                <div class="ls-process-steps">
+                    <div class="ls-step">
+                        <h4>Step 1: Place Order</h4>
+                        <p>Select your current and target ranks, then proceed to payment.</p>
+                    </div>
+                    <div class="ls-step">
+                        <h4>Step 2: Booster Assigned</h4>
+                        <p>A Challenger-level booster is matched to your account within minutes.</p>
+                    </div>
+                    <div class="ls-step">
+                        <h4>Step 3: Track Progress</h4>
+                        <p>Monitor your boost in real-time with our dashboard.</p>
+                    </div>
+                </div>
+                <div class="ls-pricing-table">
+                    <p>Time varies by rank (1-5 days).</p>
+                </div>
+            </section>
+            <section class="ls-new-section-top">
+    <h2>Choose Your Game</h2>
+    <div class="game-selection">
+        <a href="league-services.html" class="game-card">
+            <img src="/images/league-of-legends.png" alt="League of Legends">
             <h3>League of Legends</h3>
-          </a>
-          <a href="valorant-services.html" class="game-card">
-            <img src="/images/valorant.png" alt="Valorant" />
+        </a>
+        <a href="valorant-services.html" class="game-card">
+            <img src="/images/valorant.png" alt="Valorant">
             <h3>Valorant</h3>
-          </a>
-          <a href="#tft-boost" class="game-card">
-            <img src="/images/teamfight-tactics.png" alt="Teamfight Tactics" />
+        </a>
+        <a href="#tft-boost" class="game-card">
+            <img src="/images/teamfight-tactics.png" alt="Teamfight Tactics">
             <h3>Teamfight Tactics</h3>
-          </a>
-        </div>
-      </section>
+        </a>
+    </div>
+</section>
+            
+        
+            <section class="service-panels">
+                <div class="service-card">
+                    <img src="https://via.placeholder.com/60?text=Strategy" alt="Strategic Advancement Icon">
+                    <h3>Strategic Advancement</h3>
+                    <p>Tailored training to dominate the competition.</p>
+                </div>
+                <div class="service-card">
+                    <img src="https://via.placeholder.com/60?text=Edge" alt="Competitive Edge Icon">
+                    <h3>Competitive Edge</h3>
+                    <p>Overcome slow climbs and low LP gains.</p>
+                </div>
+            </section>
+        </main>
+        <footer>
+            <p>© 2025 CH|Boost. All rights reserved.</p>
+        </footer>
+        <script src="utils.js"></script>
+        
+<script src="/login.js" defer></script>
+<script src="/auth.js" defer></script>
+        <script src="/js/rankSelection.js"></script>
+        <script src="/js/paymentPanel.js"></script>
+        <script src="/js/league-services.js" defer></script>
+        <script src="/js/particles.js" defer></script>
 
-      <!-- Testimonials + Guarantee -->
-      <section class="ls-testimonials">
-        <h3>What Our Customers Say</h3>
-        <div class="ls-testimonial-card">
-          <p>"Fast and secure boost to Platinum! Highly recommend."</p>
-          <span>- John D., Gold I</span>
-        </div>
-        <div class="ls-testimonial-card">
-          <p>"Great experience, booster was professional and quick."</p>
-          <span>- Sarah K., Silver III</span>
-        </div>
 
-        <section class="ls-guarantees">
-          <h3>Why Choose Us?</h3>
-          <ul>
-            <li>100% Account Safety with VPN</li>
-            <li>24/7 Customer Support</li>
-          </ul>
-        </section>
-      </section>
-    </main>
 
-    <footer>
-      <p>© 2025 CH|Boost. All rights reserved.</p>
-    </footer>
 
-    <script src="/utils.js"></script>
-    <script src="/login.js" defer></script>
-    <script src="/auth.js" defer></script>
-    <script src="/js/particles.js" defer></script>
-  </div>
+    
+    
+    </div>
+    <div id="loginPopup" class="popup" style="display: none;"></div>
+
 </body>
 </html>
