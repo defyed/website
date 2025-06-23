@@ -295,7 +295,7 @@ function updateTotalPrice() {
     let isCouponApplied = false;
 
     const couponInput = document.querySelector('#coupon-input');
-    if (couponInput && couponInput.value.trim().toUpperCase() === '') {
+    if (couponInput && couponInput.value.trim().toUpperCase() === 'SAVE44') {
         discountRate = 44;
         couponMessage = `Coupon applied -${discountRate}%`;
         isCouponApplied = true;
@@ -358,8 +358,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const couponInput = document.querySelector('#coupon-input');
     if (couponInput) {
-        couponInput.value = '';
-        console.log('Coupon auto-filled: ');
+        couponInput.value = 'SAVE44';
+        console.log('Coupon auto-filled: SAVE44');
     }
 
     document.querySelectorAll('.option-toggle').forEach(checkbox => {
