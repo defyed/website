@@ -565,6 +565,59 @@ body {
 .reject-payout-btn:hover {
     background-color: #c82333;
 }
+#coupon-management {
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: left;
+}
+
+#coupon-management h4 {
+    color: #28a745;
+    margin-bottom: 15px;
+}
+
+#coupon-management form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+#coupon-management form label {
+    flex-basis: 100%;
+    font-weight: bold;
+    color: #cccccc;
+}
+
+#coupon-management form input {
+    flex-basis: 45%;
+    padding: 8px;
+    border-radius: 5px;
+    background-color: #33333f;
+    border: 1px solid #444444;
+    color: white;
+}
+
+#coupon-management button[type="submit"] {
+    flex-basis: 100%;
+    margin-top: 10px;
+    background-color: #28a745;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#coupon-management button[type="submit"]:hover {
+    background-color: #218838;
+}
+
 
 /* Media queries */
 @media (max-width: 767px) {
