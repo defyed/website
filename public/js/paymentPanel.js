@@ -1,3 +1,37 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const couponInput = document.querySelector('#coupon-input');
+    let fallbackCode = 'BOOST15';
+    let fallbackDiscount = 15;
+    let latestCode = fallbackCode;
+    let latestDiscount = fallbackDiscount;
+
+    fetch('/api/coupons/latest?game=league')
+        .then(res => res.json())
+        .then(data => {
+            if (data.code) {
+                latestCode = data.code;
+                latestDiscount = parseFloat(data.discount);
+                console.log('League coupon loaded from server:', latestCode, latestDiscount);
+            } else {
+                console.warn('No league coupon found in DB, using fallback');
+            }
+        })
+        .catch(() => console.warn('Error loading league coupon. Using fallback.'))
+        .finally(() => {
+            if (couponInput) couponInput.value = latestCode;
+
+            window.getLeagueDiscount = (inputCode) => {
+                return inputCode?.toUpperCase() === latestCode.toUpperCase()
+                    ? latestDiscount / 100
+                    : 0;
+            };
+
+            if (typeof updatePrice === 'function') {
+                updatePrice(); // Only call after coupon is loaded
+            }
+        });
+});
+
 document.addEventListener('DOMContentLoaded', async () => {
     const couponInput = document.querySelector('#coupon-input');
     let fallbackCode = 'BOOST15';
