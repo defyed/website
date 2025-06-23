@@ -353,6 +353,27 @@ function updateTotalPrice() {
 
 const debouncedUpdateTotalPrice = debounce(updateTotalPrice, 100);
 
+
+let defaultCouponCode = 'SAVE44';
+let defaultDiscount = 44;
+
+    // Fetch latest Valorant coupon
+    const couponInput = document.querySelector('#coupon-input');
+    try {
+        const res = await fetch('/api/latest-coupon?game=Valorant');
+        if (res.ok) {
+            const data = await res.json();
+            if (data.code) {
+                couponInput.value = data.code;
+                defaultCouponCode = data.code;
+                defaultDiscount = data.discount || 0;
+                console.log('Auto-filled Valorant coupon:', defaultCouponCode, defaultDiscount);
+            }
+        }
+    } catch (err) {
+        console.warn('Could not fetch latest coupon:', err.message);
+    }
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, setting up listeners');
 

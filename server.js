@@ -1310,6 +1310,31 @@ app.get('/api/coupons/latest', async (req, res) => {
 
 
 const PORT = process.env.PORT || 3000;
+
+// GET latest coupon for League or Valorant
+app.get('/api/latest-coupon', async (req, res) => {
+  const game = req.query.game;
+  if (!['League', 'Valorant'].includes(game)) {
+    return res.status(400).json({ error: 'Invalid game type' });
+  }
+
+  try {
+    const [rows] = await pool.query(`
+      SELECT code, lol_discount_percentage, valorant_discount_percentage
+      FROM coupons ORDER BY created_at DESC LIMIT 1
+    `);
+    if (!rows.length) return res.json({ code: '', discount: 0 });
+
+    const latest = rows[0];
+    const discount = game === 'League' ? latest.lol_discount_percentage : latest.valorant_discount_percentage;
+    res.json({ code: latest.code, discount });
+  } catch (err) {
+    console.error('Error fetching latest coupon:', err.message);
+    res.status(500).json({ error: 'Failed to fetch latest coupon' });
+  }
+});
+
+
 app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
   await initializeDatabase();

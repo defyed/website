@@ -62,9 +62,10 @@
         });
 
         const couponInput = document.querySelector('#coupon-input');
-        const validCouponCode = 'BOOST15';
-        const couponApplied = couponInput?.value.trim().toUpperCase() === validCouponCode;
-        const discount = couponApplied ? 0.15 : 0;
+        
+        const coupon = getActiveCoupon('League of Legends', couponInput?.value);
+        const discount = coupon.discount;
+const couponApplied = coupon.applied;
 
         let basePrice = calculateBasePrice();
         if (!basePrice || isNaN(basePrice)) {
