@@ -381,7 +381,7 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'home.html'));
+  res.sendFile(path.join(__dirname, 'public', 'league-services.html'));
 });
 
 app.get('/api/user-role', authenticate, async (req, res) => {
@@ -1333,53 +1333,7 @@ app.get('/api/latest-coupon', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch latest coupon' });
   }
 });
-// Clean URLs for other pages
-app.get('/league', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'league-services.html'));
-});
-app.get('/valorant', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'valorant-services.html'));
-});
-app.get('/checkout', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'checkout.html'));
-});
-app.get('/boosters', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'boosters.html'));
-});
-app.get('/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
-});
-app.get('/confirmation', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'confirmation.html'));
-});
 
-// Redirect .html to clean URLs
-app.get('/home.html', (req, res) => {
-    res.redirect(301, '/');
-});
-app.get('/league-services.html', (req, res) => {
-    res.redirect(301, '/league');
-});
-app.get('/valorant-services.html', (req, res) => {
-    res.redirect(301, '/valorant');
-});
-app.get('/checkout.html', (req, res) => {
-    res.redirect(301, '/checkout');
-});
-app.get('/boosters.html', (req, res) => {
-    res.redirect(301, '/boosters');
-});
-app.get('/dashboard.html', (req, res) => {
-    res.redirect(301, '/dashboard');
-});
-app.get('/confirmation.html', (req, res) => {
-    res.redirect(301, '/confirmation');
-});
-
-// 404 for unknown routes
-app.get('*', (req, res) => {
-    res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
-});
 
 app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
