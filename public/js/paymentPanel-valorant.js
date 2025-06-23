@@ -288,61 +288,13 @@ function updateTotalPrice() {
         }
     });
 
-   
-document.addEventListener('DOMContentLoaded', async () => {
-    const couponInput = document.querySelector('#coupon-input');
-    const couponElement = document.querySelector('.coupon-message');
-    let discountRate = 0;
-    let validCouponCode = '';
-    let validDiscount = 0;
-    let isCouponApplied = false;
-    let couponMessage = '';
-
-    const totalPrice = calculateBasePrice();
+    let originalPrice = totalPrice;
     let finalPrice = totalPrice;
+    let discountRate = 0;
+    let couponMessage = '';
+    let isCouponApplied = false;
 
-    if (couponInput) {
-        try {
-            const response = await fetch('/api/coupons/latest?game=valorant');
-            const data = await response.json();
-            if (data?.code && data?.discount !== undefined) {
-                validCouponCode = data.code.toUpperCase();
-                validDiscount = parseFloat(data.discount);
-
-                const enteredCode = couponInput.value.trim().toUpperCase();
-                if (!enteredCode || enteredCode === validCouponCode) {
-                    couponInput.value = validCouponCode;
-                    discountRate = validDiscount;
-                    isCouponApplied = true;
-                }
-            }
-        } catch (err) {
-            console.warn('Could not fetch latest valorant coupon:', err.message);
-        }
-
-        if (couponInput.value.trim().toUpperCase() === validCouponCode) {
-            discountRate = validDiscount;
-            isCouponApplied = true;
-        }
-
-        if (isCouponApplied) {
-            finalPrice = totalPrice * (1 - discountRate / 100);
-            couponMessage = `Discount active -${discountRate}%`;
-        } else {
-            couponMessage = 'Enter a valid coupon code';
-        }
-
-        if (couponElement) {
-            couponElement.textContent = couponMessage;
-            couponElement.classList.toggle('coupon-active', isCouponApplied);
-        }
-    }
-
-    const cashback = finalPrice * 0.025;
-    updatePriceUI(finalPrice, cashback);
-});
-
-    let validCouponCode = ''; let validDiscount = 0;
+    const couponInput = document.querySelector('#coupon-input');
     if (couponInput && couponInput.value.trim().toUpperCase() === 'SAVE44') {
         discountRate = 44;
         couponMessage = `Coupon applied -${discountRate}%`;
@@ -405,7 +357,6 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, setting up listeners');
 
     const couponInput = document.querySelector('#coupon-input');
-    let validCouponCode = ''; let validDiscount = 0;
     if (couponInput) {
         couponInput.value = 'SAVE44';
         console.log('Coupon auto-filled: SAVE44');
