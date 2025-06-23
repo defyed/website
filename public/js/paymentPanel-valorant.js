@@ -479,3 +479,19 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.updateTotalPrice = debouncedUpdateTotalPrice;
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const couponInput = document.getElementById('coupon-input');
+    if (!couponInput || couponInput.value.trim()) return;
+
+    try {
+        const response = await fetch('/api/coupons/latest?game=valorant');
+        const data = await response.json();
+        if (data?.code) {
+            couponInput.value = data.code;
+            couponInput.dispatchEvent(new Event('input'));
+        }
+    } catch (err) {
+        console.warn('Valorant coupon auto-fill failed:', err.message);
+    }
+});
