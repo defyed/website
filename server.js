@@ -381,7 +381,7 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'home.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.get('/api/user-role', authenticate, async (req, res) => {
@@ -1354,7 +1354,7 @@ app.get('/confirmation', (req, res) => {
 });
 
 // Redirect .html to clean URLs
-app.get('/home.html', (req, res) => {
+app.get('/index.html', (req, res) => {
     res.redirect(301, '/');
 });
 app.get('/league-services.html', (req, res) => {
