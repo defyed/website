@@ -1283,27 +1283,31 @@ app.post('/api/apply-coupon', async (req, res) => {
 
 app.get('/api/coupons/latest', async (req, res) => {
   const { game } = req.query;
-  if (!game) {
-    return res.status(400).json({ success: false, message: 'Missing game type' });
+  if (!game || !['league', 'valorant'].includes(game.toLowerCase())) {
+    return res.status(400).json({ error: 'Missing or invalid game parameter' });
   }
 
   try {
-    const [rows] = await pool.query(
-      'SELECT * FROM coupons WHERE ?? > 0 ORDER BY created DESC LIMIT 1',
-      [`${game}_discount_percentage`]
-    );
-
+    const field = game === 'league' ? 'lol_discount_percentage' : 'valorant_discount_percentage';
+    const [rows] = await pool.query(`
+      SELECT code, ${field} AS discount
+      FROM coupons
+      WHERE ${field} > 0
+      ORDER BY created_at DESC
+      LIMIT 1
+    `);
+    
     if (rows.length === 0) {
-      return res.status(404).json({ success: false, message: 'No coupon found' });
+      return res.status(404).json({ error: 'No coupons found' });
     }
 
-    const coupon = rows[0];
-    res.json({ success: true, code: coupon.code });
-  } catch (error) {
-    console.error('Error fetching latest coupon:', error.message);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('Error fetching latest coupon:', err);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {

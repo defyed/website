@@ -111,7 +111,7 @@
         });
 
         const couponInput = document.querySelector('#coupon-input');
-        const validCouponCode = '';
+        const validCouponCode = 'BOOST15';
         const couponApplied = couponInput?.value.trim().toUpperCase() === validCouponCode;
         const discount = couponApplied ? 0.15 : 0;
 
@@ -269,20 +269,20 @@
 
 
 
-
+// 🟢 Auto-fill latest coupon if input is empty
 document.addEventListener('DOMContentLoaded', async () => {
-    const couponInput = document.getElementById('coupon-code');
-    if (!couponInput) return;
+    const couponInput = document.getElementById('coupon-input');
+    if (!couponInput || couponInput.value.trim()) return;
+
     try {
-        const response = await fetch('/api/coupons/latest?game=league');
-        if (!response.ok) throw new Error('No coupon found');
-        const coupon = await response.json();
-        if (coupon && coupon.code) {
-            couponInput.value = coupon.code;
-            const event = new Event('input');
-            couponInput.dispatchEvent(event);  // Trigger any bound listeners
-        }
+        const game = window.location.href.includes('valorant') ? 'valorant' : 'league';
+        const response = await fetch(`/api/coupons/latest?game=${game}`);
+        if (!response.ok) throw new Error("No coupon found");
+        const data = await response.json();
+        couponInput.value = data.code;
+        couponInput.dispatchEvent(new Event('input'));
+        console.log(`Auto-applied latest ${game} coupon:`, data.code);
     } catch (e) {
-        console.warn('No active coupon to prefill:', e.message);
+        console.warn("No valid saved coupon found:", e.message);
     }
 });
