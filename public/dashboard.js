@@ -220,19 +220,34 @@
         }
 
         try {
-            // Fetch users
             console.log('Fetching users for admin panel with userId:', userId);
             const res = await fetch(`/admin/users?userId=${userId}`);
             if (!res.ok) throw new Error('Not authorized or error fetching users');
             const users = await res.json();
 
-            const userTableBody = document.querySelector('#user-table tbody');
-            if (!userTableBody) {
-                console.error('User table body not found');
+            const container = document.getElementById('admin-panel');
+            if (!container) {
+                console.error('Admin panel container (#admin-panel) not found');
                 return;
             }
 
-            userTableBody.innerHTML = '';
+            container.innerHTML = `
+                <h2>Admin Panel – User Manager</h2>
+                <table border="1" id="user-table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Balance</th>
+                            <th>Role</th>
+                            <th>Update Role</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            `;
+
+            const tbody = container.querySelector('tbody');
             users.forEach(user => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -248,15 +263,8 @@
                         </select>
                     </td>
                 `;
-                userTableBody.appendChild(row);
+                tbody.appendChild(row);
             });
-
-            // Fetch coupons
-            console.log('Fetching coupons for admin panel with userId:', userId);
-            const couponRes = await fetch(`/api/coupons?userId=${userId}`);
-            if (!couponRes.ok) throw new Error('Failed to fetch coupons');
-            const coupons = await couponRes.json();
-            renderCoupons(coupons);
         } catch (err) {
             console.error('Failed to load admin panel:', err.message);
             const container = document.getElementById('admin-panel');
@@ -264,112 +272,6 @@
                 container.innerHTML = '<p>Error loading admin panel. Please try again later.</p>';
             }
         }
-    }
-
-    function renderCoupons(coupons) {
-        const couponsTableBody = document.querySelector('#coupons-table tbody');
-        if (!couponsTableBody) {
-            console.error('Coupons table body not found');
-            return;
-        }
-
-        couponsTableBody.innerHTML = '';
-        coupons.forEach(coupon => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${coupon.code}</td>
-                <td>${coupon.lol_discount_percentage.toFixed(2)}</td>
-                <td>${coupon.valorant_discount_percentage.toFixed(2)}</td>
-                <td>${new Date(coupon.created_at).toLocaleDateString()}</td>
-                <td>
-                    <button class="edit-coupon-btn" data-id="${coupon.id}">Edit</button>
-                    <button class="delete-coupon-btn" data-id="${coupon.id}">Delete</button>
-                </td>
-            `;
-            couponsTableBody.appendChild(row);
-        });
-
-        // Add event listeners for edit buttons
-        document.querySelectorAll('.edit-coupon-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const couponId = btn.dataset.id;
-                const coupon = coupons.find(c => String(c.id) === String(couponId));
-                if (coupon) {
-                    document.getElementById('coupon-id').value = coupon.id;
-                    document.getElementById('coupon-code').value = coupon.code;
-                    document.getElementById('lol-discount').value = coupon.lol_discount_percentage;
-                    document.getElementById('valorant-discount').value = coupon.valorant_discount_percentage;
-                    console.log('Editing coupon:', coupon);
-                }
-            });
-        });
-
-        // Add event listeners for delete buttons
-        document.querySelectorAll('.delete-coupon-btn').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const couponId = btn.dataset.id;
-                if (confirm(`Are you sure you want to delete coupon ${couponId}?`)) {
-                    try {
-                        console.log('Deleting couponId:', couponId, 'with userId:', userId);
-                        const response = await fetch(`/api/coupons/${couponId}?userId=${userId}`, {
-                            method: 'DELETE'
-                        });
-                        if (!response.ok) {
-                            const errorData = await response.json();
-                            throw new Error(errorData.error || 'Failed to delete coupon');
-                        }
-                        alert('Coupon deleted successfully');
-                        loadAdminPanel();
-                    } catch (error) {
-                        console.error('Error deleting coupon:', error.message);
-                        alert(`Failed to delete coupon: ${error.message}`);
-                    }
-                }
-            });
-        });
-    }
-
-    async function setupCouponForm() {
-        const couponForm = document.getElementById('coupon-form');
-        if (!couponForm) {
-            console.warn('Coupon form (#coupon-form) not found');
-            return;
-        }
-
-        couponForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const couponData = {
-                id: document.getElementById('coupon-id').value || null,
-                code: document.getElementById('coupon-code').value.toUpperCase().trim(),
-                lol_discount_percentage: parseFloat(document.getElementById('lol-discount').value),
-                valorant_discount_percentage: parseFloat(document.getElementById('valorant-discount').value)
-            };
-
-            if (!couponData.code || isNaN(couponData.lol_discount_percentage) || isNaN(couponData.valorant_discount_percentage)) {
-                alert('Please fill in all fields with valid values.');
-                return;
-            }
-
-            try {
-                console.log('Saving coupon:', couponData, 'with userId:', userId);
-                const response = await fetch(`/api/coupons?userId=${userId}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(couponData)
-                });
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to save coupon');
-                }
-                alert('Coupon saved successfully');
-                couponForm.reset();
-                document.getElementById('coupon-id').value = '';
-                loadAdminPanel();
-            } catch (error) {
-                console.error('Error saving coupon:', error.message);
-                alert(`Failed to save coupon: ${error.message}`);
-            }
-        });
     }
 
     async function updateUserRole(targetUserId, newRole) {
@@ -388,7 +290,7 @@
             alert('Error updating role: ' + err.message);
         }
     }
-    window.updateUserRole = updateUserRole;
+window.updateUserRole = updateUserRole;
 
     function renderPayoutHistory(requests, containerId) {
         const container = document.getElementById(containerId);
@@ -1456,7 +1358,6 @@
         fetchUserBalance();
         showDefaultPanels();
         setupPayoutRequestForm();
-        setupCouponForm(); // Initialize coupon form
 
         const accountBalanceLink = document.getElementById('account-balance-link');
         if (accountBalanceLink) {
@@ -1561,47 +1462,17 @@
         } else {
             console.error('Settings button not found in #settings-panel');
         }
-
-        const orderNowButton = document.querySelector('#order-boost-panel button');
-        if (orderNowButton) {
-            console.log('Order Now button found:', orderNowButton);
-            orderNowButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                console.log('Order Now button clicked');
-                window.location.href = '/league-services.html';
-            });
-        } else {
-            console.error('Order Now button not found in #order-boost-panel');
-        }
-
-        const logoutLink = document.getElementById('logout-link');
+                const logoutLink = document.getElementById('logout-link');
         if (logoutLink) {
             logoutLink.addEventListener('click', (e) => {
                 e.preventDefault();
-                logout();
+                if (typeof logout === 'function') {
+                    logout();
+                } else {
+                    console.error('logout() is not defined.');
+                }
             });
         }
 
-        const closeButtons = [
-            { id: 'close-orders', panel: 'orders-panel' },
-            { id: 'close-available-orders', panel: 'available-orders-panel' },
-            { id: 'close-working-orders', panel: 'working-orders-panel' },
-            { id: 'close-completed-orders', panel: 'completed-orders-panel' },
-            { id: 'close-payout-history', panel: 'payout-history-panel' },
-            { id: 'close-payout-management', panel: 'payout-management-panel' }
-        ];
-
-        closeButtons.forEach(button => {
-            const btn = document.getElementById(button.id);
-            if (btn) {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    console.log(`Close button clicked: ${button.id}`);
-                    showDefaultPanels();
-                });
-            } else {
-                console.warn(`Close button not found: ${button.id}`);
-            }
-        });
     });
 })();
