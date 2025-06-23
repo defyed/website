@@ -1,5 +1,7 @@
 (function () {
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+        await prefillLatestCoupon();
+
         sessionStorage.removeItem('orderData');
         console.log('Cleared sessionStorage.orderData on load');
         initializeFormListeners();
@@ -88,7 +90,22 @@
         console.log('orderData saved:', orderData);
     }
 
-    function initializeProceedButton() {
+    async function prefillLatestCoupon() {
+        try {
+            const res = await fetch('/api/coupons/latest?game=league');
+            const data = await res.json();
+            if (data.success && data.code) {
+                const couponInput = document.getElementById('coupon-input');
+                if (couponInput) {
+                    couponInput.value = data.code;
+                }
+            }
+        } catch (err) {
+            console.warn('Failed to prefill coupon:', err.message);
+        }
+    }
+
+function initializeProceedButton() {
         const button = document.querySelector('.proceed-payment');
         if (!button || button.dataset.initialized) return;
 

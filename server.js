@@ -1281,34 +1281,27 @@ app.post('/api/apply-coupon', async (req, res) => {
   }
 });
 
-app.get('/api/validate-coupon', async (req, res) => {
-  const { code, game } = req.query;
-  if (!code || !game) {
-    return res.status(400).json({ valid: false, message: 'Missing code or game' });
+app.get('/api/coupons/latest', async (req, res) => {
+  const { game } = req.query;
+  if (!game) {
+    return res.status(400).json({ success: false, message: 'Missing game type' });
   }
 
   try {
-    const [rows] = await pool.query('SELECT * FROM coupons WHERE code = ?', [code.toUpperCase()]);
-    if (!rows.length) {
-      return res.status(404).json({ valid: false, message: 'Coupon not found' });
+    const [rows] = await pool.query(
+      'SELECT * FROM coupons WHERE ?? > 0 ORDER BY created DESC LIMIT 1',
+      [`${game}_discount_percentage`]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'No coupon found' });
     }
 
     const coupon = rows[0];
-    let discount = 0;
-    if (game.toLowerCase() === 'league') {
-      discount = parseFloat(coupon.lol_discount_percentage);
-    } else if (game.toLowerCase() === 'valorant') {
-      discount = parseFloat(coupon.valorant_discount_percentage);
-    }
-
-    if (isNaN(discount) || discount <= 0) {
-      return res.status(400).json({ valid: false, message: `No discount available for ${game}` });
-    }
-
-    res.json({ valid: true, discount });
+    res.json({ success: true, code: coupon.code });
   } catch (error) {
-    console.error('Coupon validation error:', error.message);
-    res.status(500).json({ valid: false, message: 'Server error', details: error.message });
+    console.error('Error fetching latest coupon:', error.message);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
