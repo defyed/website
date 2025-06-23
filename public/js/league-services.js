@@ -62,10 +62,9 @@
         });
 
         const couponInput = document.querySelector('#coupon-input');
-const inputCode = couponInput?.value.trim().toUpperCase();
-const couponApplied = inputCode === window.leagueCouponCode?.toUpperCase();
-const discount = couponApplied ? window.leagueCouponDiscount / 100 : 0;
-
+        const validCouponCode = 'BOOST15';
+        const couponApplied = couponInput?.value.trim().toUpperCase() === validCouponCode;
+        const discount = couponApplied ? 0.15 : 0;
 
         let basePrice = calculateBasePrice();
         if (!basePrice || isNaN(basePrice)) {

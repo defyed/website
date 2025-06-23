@@ -1,66 +1,3 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const couponInput = document.querySelector('#coupon-input');
-    let fallbackCode = 'BOOST15';
-    let fallbackDiscount = 15;
-    let latestCode = fallbackCode;
-    let latestDiscount = fallbackDiscount;
-
-    fetch('/api/coupons/latest?game=league')
-        .then(res => res.json())
-        .then(data => {
-            if (data.code) {
-                latestCode = data.code;
-                latestDiscount = parseFloat(data.discount);
-                console.log('League coupon loaded from server:', latestCode, latestDiscount);
-            } else {
-                console.warn('No league coupon found in DB, using fallback');
-            }
-        })
-        .catch(() => console.warn('Error loading league coupon. Using fallback.'))
-        .finally(() => {
-            if (couponInput) couponInput.value = latestCode;
-
-            window.getLeagueDiscount = (inputCode) => {
-                return inputCode?.toUpperCase() === latestCode.toUpperCase()
-                    ? latestDiscount / 100
-                    : 0;
-            };
-
-            if (typeof updatePrice === 'function') {
-                updatePrice(); // Only call after coupon is loaded
-            }
-        });
-});
-
-document.addEventListener('DOMContentLoaded', async () => {
-    const couponInput = document.querySelector('#coupon-input');
-    let fallbackCode = 'BOOST15';
-    let fallbackDiscount = 15;
-    let defaultCouponCode = fallbackCode;
-    let defaultDiscount = fallbackDiscount;
-
-    try {
-        const res = await fetch('/api/coupons/latest?game=league');
-        if (res.ok) {
-            const data = await res.json();
-            defaultCouponCode = data.code;
-            defaultDiscount = parseFloat(data.discount);
-            console.log('League coupon loaded:', defaultCouponCode, defaultDiscount);
-        }
-    } catch (err) {
-        console.warn('Using fallback League coupon');
-    }
-
-    if (couponInput) couponInput.value = defaultCouponCode;
-
-    // Hook into price calculation logic
-    window.getLeagueDiscount = (inputCode) => {
-        return inputCode?.toUpperCase() === defaultCouponCode.toUpperCase()
-            ? defaultDiscount / 100
-            : 0;
-    };
-});
-
 const priceData = {
     "Iron IV": { "Iron III": 3.50 },
     "Iron III": { "Iron II": 3.50 },
@@ -446,23 +383,19 @@ function updateTotalPrice() {
     let couponMessage = '';
     let isCouponActive = false;
 
-    
-// Check coupon code
-const couponInput = document.querySelector('#coupon-input');
-const inputCode = couponInput?.value.trim().toUpperCase();
-const expectedCode = window.leagueCouponCode?.toUpperCase();
-if (inputCode && expectedCode && inputCode === expectedCode) {
-    discountRate = window.leagueCouponDiscount || 0;
-    couponMessage = `Discount active -${discountRate}%`;
-    isCouponActive = true;
-} else {
-    couponMessage = 'Enter a valid coupon code';
-    isCouponActive = false;
-}
+    // Check coupon code
+    const couponInput = document.querySelector('#coupon-input');
+    const validCouponCode = 'BOOST15';
+    if (couponInput && couponInput.value.trim().toUpperCase() === validCouponCode) {
+        discountRate = 15; // Apply 15% discount for valid code
+        couponMessage = `Discount active -${discountRate}%`;
+        isCouponActive = true;
+    } else {
+        couponMessage = 'Enter a valid coupon code';
+        isCouponActive = false;
+    }
 
-
-finalPrice = totalPrice * (1 - discountRate / 100);
-
+    finalPrice = totalPrice * (1 - discountRate / 100);
 
     const cashback = finalPrice * 0.03;
 
