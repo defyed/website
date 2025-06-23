@@ -1475,4 +1475,58 @@ window.updateUserRole = updateUserRole;
         }
 
     });
-})();
+})()
+    // Setup League/Valorant coupon form inside admin panel
+    const couponForm = document.getElementById("coupon-form");
+    if (couponForm) {
+        couponForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const userId = localStorage.getItem("userId");
+            if (!userId) {
+                alert("No user ID found.");
+                return;
+            }
+
+            const leagueCode = document.getElementById("league-code").value.trim().toUpperCase();
+            const leagueDiscount = parseFloat(document.getElementById("league-discount").value);
+
+            const valorantCode = document.getElementById("valorant-code").value.trim().toUpperCase();
+            const valorantDiscount = parseFloat(document.getElementById("valorant-discount").value);
+
+            const leagueCoupon = {
+                id: null,
+                code: leagueCode,
+                lol_discount_percentage: leagueDiscount,
+                valorant_discount_percentage: 0
+            };
+
+            const valorantCoupon = {
+                id: null,
+                code: valorantCode,
+                lol_discount_percentage: 0,
+                valorant_discount_percentage: valorantDiscount
+            };
+
+            try {
+                await fetch(`/api/coupons?userId=${userId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(leagueCoupon)
+                });
+
+                await fetch(`/api/coupons?userId=${userId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(valorantCoupon)
+                });
+
+                alert("Coupons saved successfully.");
+                couponForm.reset();
+                loadAdminPanel(); // refresh coupon table
+            } catch (err) {
+                console.error("Failed to save coupons:", err.message);
+                alert("Failed to save coupons. Check console for details.");
+            }
+        });
+    }
+    ;
