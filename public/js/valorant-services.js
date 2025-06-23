@@ -212,11 +212,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 document.addEventListener('DOMContentLoaded', async () => {
     const couponInput = document.getElementById('coupon-input');
     if (!couponInput || couponInput.value.trim()) return;
+
     try {
         const response = await fetch('/api/coupons/latest?game=valorant');
         const data = await response.json();
         if (data?.code) {
             couponInput.value = data.code;
+            couponInput.dispatchEvent(new Event('input'));
             if (typeof updateOrderData === 'function') updateOrderData();
         }
     } catch (err) {
