@@ -1,17 +1,3 @@
-let leagueCoupon = { code: 'BOOST15', discount: 15 };
-
-document.addEventListener('DOMContentLoaded', () => {
-    fetch('/api/latest-coupon?game=League')
-        .then(res => res.json())
-        .then(data => {
-            if (data.code) {
-                leagueCoupon = { code: data.code, discount: data.discount || 15 };
-                console.log('Loaded League coupon from server:', leagueCoupon);
-            }
-        })
-        .catch(() => console.warn('Failed to fetch League coupon. Using fallback.'));
-});
-
 (function () {
     document.addEventListener('DOMContentLoaded', () => {
         // Clear sessionStorage to prevent stale data

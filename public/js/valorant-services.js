@@ -1,17 +1,3 @@
-let valorantCoupon = { code: 'SAVE44', discount: 44 };
-
-document.addEventListener('DOMContentLoaded', () => {
-    fetch('/api/latest-coupon?game=Valorant')
-        .then(res => res.json())
-        .then(data => {
-            if (data.code) {
-                valorantCoupon = { code: data.code, discount: data.discount || 44 };
-                console.log('Loaded Valorant coupon from server:', valorantCoupon);
-            }
-        })
-        .catch(() => console.warn('Failed to fetch Valorant coupon. Using fallback.'));
-});
-
 (function () {
     const ranks = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal'];
     const divisions = ['I', 'II', 'III'];
@@ -112,9 +98,9 @@ document.addEventListener('DOMContentLoaded', () => {
         let totalPrice = basePrice + extraCost;
 
         const couponInput = document.querySelector('#coupon-input');
-        const couponApplied = couponInput?.value.trim().toUpperCase() === valorantCoupon.code.toUpperCase();
+        const couponApplied = couponInput?.value.trim().toUpperCase() === 'SAVE15';
         if (couponApplied) {
-            totalPrice *= (1 - (couponApplied ? valorantCoupon.discount / 100 : 0));
+            totalPrice *= (1 - pricingConfig.couponDiscount);
         }
 
         totalPrice = Math.max(totalPrice, 0);
@@ -178,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cashbackElement.textContent = `Get $${priceData.cashback} cashback on your purchase`;
         }
         if (couponElement) {
-            couponElement.textContent = priceData.couponApplied ? `Coupon active -${valorantCoupon.discount}%` : 'Coupon isn\'t active';
+            couponElement.textContent = priceData.couponApplied ? 'Coupon active -15%' : 'Coupon isn\'t active';
             couponElement.classList.toggle('coupon-active', priceData.couponApplied);
         }
     }
