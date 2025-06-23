@@ -1,3 +1,32 @@
+document.addEventListener('DOMContentLoaded', async () => {
+    const couponInput = document.querySelector('#coupon-input');
+    let fallbackCode = 'BOOST15';
+    let fallbackDiscount = 15;
+    let defaultCouponCode = fallbackCode;
+    let defaultDiscount = fallbackDiscount;
+
+    try {
+        const res = await fetch('/api/coupons/latest?game=league');
+        if (res.ok) {
+            const data = await res.json();
+            defaultCouponCode = data.code;
+            defaultDiscount = parseFloat(data.discount);
+            console.log('League coupon loaded:', defaultCouponCode, defaultDiscount);
+        }
+    } catch (err) {
+        console.warn('Using fallback League coupon');
+    }
+
+    if (couponInput) couponInput.value = defaultCouponCode;
+
+    // Hook into price calculation logic
+    window.getLeagueDiscount = (inputCode) => {
+        return inputCode?.toUpperCase() === defaultCouponCode.toUpperCase()
+            ? defaultDiscount / 100
+            : 0;
+    };
+});
+
 const priceData = {
     "Iron IV": { "Iron III": 3.50 },
     "Iron III": { "Iron II": 3.50 },

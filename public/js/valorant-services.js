@@ -98,9 +98,11 @@
         let totalPrice = basePrice + extraCost;
 
         const couponInput = document.querySelector('#coupon-input');
-        const couponApplied = couponInput?.value.trim().toUpperCase() === 'SAVE15';
+        
+const discount = getValorantDiscount(couponInput?.value);
+const couponApplied = discount > 0;
         if (couponApplied) {
-            totalPrice *= (1 - pricingConfig.couponDiscount);
+            totalPrice *= (1 - discount);
         }
 
         totalPrice = Math.max(totalPrice, 0);
@@ -164,7 +166,7 @@
             cashbackElement.textContent = `Get $${priceData.cashback} cashback on your purchase`;
         }
         if (couponElement) {
-            couponElement.textContent = priceData.couponApplied ? 'Coupon active -15%' : 'Coupon isn\'t active';
+            couponElement.textContent = priceData.couponApplied ? `Coupon active -${(discount * 100).toFixed(0)}%` : 'Coupon isn\'t active';
             couponElement.classList.toggle('coupon-active', priceData.couponApplied);
         }
     }
