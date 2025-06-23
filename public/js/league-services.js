@@ -286,3 +286,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.warn("No valid saved coupon found:", e.message);
     }
 });
+
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const couponInput = document.getElementById('coupon-input');
+    if (!couponInput || couponInput.value.trim()) return;
+    try {
+        const response = await fetch('/api/coupons/latest?game=league');
+        const data = await response.json();
+        if (data?.code) {
+            couponInput.value = data.code;
+            if (typeof updateOrderData === 'function') updateOrderData();
+        }
+    } catch (err) {
+        console.warn('League coupon auto-fill failed:', err.message);
+    }
+});
