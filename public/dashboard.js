@@ -343,12 +343,32 @@
 
         couponForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            const leagueCode = document.getElementById('league-code').value.trim().toUpperCase();
+            const leagueDiscount = parseFloat(document.getElementById('league-discount').value);
+            const valorantCode = document.getElementById('valorant-code').value.trim().toUpperCase();
+            const valorantDiscount = parseFloat(document.getElementById('valorant-discount').value);
+
+            if (!leagueCode && !valorantCode) {
+                alert('Please enter at least one coupon code.');
+                return;
+            }
+            if ((!isFinite(leagueDiscount) || leagueDiscount <= 0) && leagueCode) {
+                alert('Please enter a valid League discount percentage.');
+                return;
+            }
+            if ((!isFinite(valorantDiscount) || valorantDiscount <= 0) && valorantCode) {
+                alert('Please enter a valid Valorant discount percentage.');
+                return;
+            }
+
             const couponData = {
                 id: document.getElementById('coupon-id').value || null,
-                code: document.getElementById('coupon-code').value.toUpperCase().trim(),
-                lol_discount_percentage: parseFloat(document.getElementById('lol-discount').value),
-                valorant_discount_percentage: parseFloat(document.getElementById('valorant-discount').value)
+                code: leagueCode || valorantCode,
+                lol_discount_percentage: isFinite(leagueDiscount) ? leagueDiscount : 0,
+                valorant_discount_percentage: isFinite(valorantDiscount) ? valorantDiscount : 0
             };
+
 
             if (!couponData.code || isNaN(couponData.lol_discount_percentage) || isNaN(couponData.valorant_discount_percentage)) {
                 alert('Please fill in all fields with valid values.');
