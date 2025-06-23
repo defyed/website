@@ -385,7 +385,7 @@ function updateTotalPrice() {
 
     // Check coupon code
     const couponInput = document.querySelector('#coupon-input');
-    const validCouponCode = 'BOOST15';
+    const validCouponCode = '';
     if (couponInput && couponInput.value.trim().toUpperCase() === validCouponCode) {
         discountRate = 15; // Apply 15% discount for valid code
         couponMessage = `Discount active -${discountRate}%`;
@@ -461,8 +461,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Auto-fill coupon input
     const couponInput = document.querySelector('#coupon-input');
     if (couponInput) {
-        couponInput.value = 'BOOST15'; // Auto-fill with valid coupon code
-        console.log('Coupon input auto-filled with BOOST15');
+        couponInput.value = ''; // Auto-fill with valid coupon code
+        console.log('Coupon input auto-filled with ');
     } else {
         console.warn('Coupon input element not found (#coupon-input)');
     }
