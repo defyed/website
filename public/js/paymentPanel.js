@@ -377,27 +377,60 @@ function updateTotalPrice() {
         console.log(`No Master fee (end rank is ${endRank})`);
     }
 
-    let originalPrice = totalPrice;
-    let finalPrice = totalPrice;
-    let discountRate = 0; // Default to no discount
-    let couponMessage = '';
-    let isCouponActive = false;
-
-    // Check coupon code
+    
+document.addEventListener('DOMContentLoaded', async () => {
     const couponInput = document.querySelector('#coupon-input');
-    const validCouponCode = 'BOOST15';
-    if (couponInput && couponInput.value.trim().toUpperCase() === validCouponCode) {
-        discountRate = 15; // Apply 15% discount for valid code
-        couponMessage = `Discount active -${discountRate}%`;
-        isCouponActive = true;
-    } else {
-        couponMessage = 'Enter a valid coupon code';
-        isCouponActive = false;
+    const couponElement = document.querySelector('.coupon-message');
+    let discountRate = 0;
+    let validCouponCode = '';
+    let validDiscount = 0;
+    let isCouponApplied = false;
+    let couponMessage = '';
+
+    const totalPrice = calculateBasePrice();
+    let finalPrice = totalPrice;
+
+    if (couponInput) {
+        try {
+            const response = await fetch('/api/coupons/latest?game=league');
+            const data = await response.json();
+            if (data?.code && data?.discount !== undefined) {
+                validCouponCode = data.code.toUpperCase();
+                validDiscount = parseFloat(data.discount);
+
+                const enteredCode = couponInput.value.trim().toUpperCase();
+                if (!enteredCode || enteredCode === validCouponCode) {
+                    couponInput.value = validCouponCode;
+                    discountRate = validDiscount;
+                    isCouponApplied = true;
+                }
+            }
+        } catch (err) {
+            console.warn('Could not fetch latest league coupon:', err.message);
+        }
+
+        if (couponInput.value.trim().toUpperCase() === validCouponCode) {
+            discountRate = validDiscount;
+            isCouponApplied = true;
+        }
+
+        if (isCouponApplied) {
+            finalPrice = totalPrice * (1 - discountRate / 100);
+            couponMessage = `Discount active -${discountRate}%`;
+        } else {
+            couponMessage = 'Enter a valid coupon code';
+        }
+
+        if (couponElement) {
+            couponElement.textContent = couponMessage;
+            couponElement.classList.toggle('coupon-active', isCouponApplied);
+        }
     }
 
-    finalPrice = totalPrice * (1 - discountRate / 100);
-
     const cashback = finalPrice * 0.03;
+    updatePriceUI(finalPrice, cashback);
+});
+
 
     console.log(`Price Update: Base: $${basePrice.toFixed(2)}, Toggles: [${toggleMultipliers.join(', ')}], Time Tax: ${timeTaxPercentage}%, Master Fee: $${masterFee.toFixed(2)}, Total: $${totalPrice.toFixed(2)}, Discount: ${discountRate}%, Final: $${finalPrice.toFixed(2)}, Cashback: $${cashback.toFixed(2)}, Coupon: ${couponMessage}, Extras:`, extras);
 
@@ -460,6 +493,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Auto-fill coupon input
     const couponInput = document.querySelector('#coupon-input');
+    let validCouponCode = ''; let validDiscount = 0;
     if (couponInput) {
         couponInput.value = 'BOOST15'; // Auto-fill with valid coupon code
         console.log('Coupon input auto-filled with BOOST15');
