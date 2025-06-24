@@ -196,3 +196,80 @@ body {
 .step strong {
     color: #ffd700;
 }
+
+/* Hero text polish */
+.hero-content h1 {
+    font-size: 42px;
+    font-weight: 700;
+    color: #ffffff;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+}
+.hero-content h2 {
+    font-size: 28px;
+    font-weight: 500;
+    margin-top: 10px;
+    color: #ffcc33;
+}
+.hero-content h3 {
+    font-size: 18px;
+    margin-top: 10px;
+    line-height: 1.5;
+    color: #ddd;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Panel adjustments */
+.panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(25, 25, 34, 0.9);
+    border-radius: 12px;
+    margin: 30px auto;
+    max-width: 1100px;
+    padding: 20px;
+    gap: 25px;
+    min-height: 280px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+/* Ensure second panel image is on right */
+.panel:nth-child(2) {
+    flex-direction: row-reverse;
+}
+
+.panel img {
+    width: 300px;
+    border-radius: 12px;
+    object-fit: cover;
+    filter: brightness(0.9) contrast(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+    opacity: 0.8;
+    transition: transform 0.3s ease;
+}
+
+.panel-text {
+    background-color: rgba(40, 40, 55, 0.85);
+    padding: 20px 25px;
+    border-radius: 10px;
+    box-shadow: inset 0 0 12px rgba(0,0,0,0.4);
+    flex: 1;
+    transition: transform 0.2s ease;
+}
+
+.panel-text:hover {
+    transform: scale(1.015);
+}
+.panel-text h3 {
+    margin-top: 0;
+    font-size: 26px;
+    color: #ffcc33;
+    font-weight: 600;
+}
+.panel-text p {
+    font-size: 17px;
+    line-height: 1.7;
+    color: #ddd;
+}
