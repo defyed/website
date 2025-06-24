@@ -124,11 +124,14 @@ body.league-services .ls-new-section-top .game-selection {
         margin: 5px auto;
         padding: 0 10px;
     }
+    .game-selection
+    {
+margin: 160px;
+    }
 
     body.league-services .ls-new-section-top .game-selection {
         gap: 15px;
-        margin-top: -150px;
-        
+        margin-top: 5px;
     }
 }
 
