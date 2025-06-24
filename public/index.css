@@ -1,4 +1,3 @@
-
 /* General Reset */
 body {
     margin: 0;
@@ -35,6 +34,7 @@ body {
 /* Panels */
 .panel {
     display: flex;
+    justify-content: space-between;
     align-items: center;
     background-color: rgba(25, 25, 34, 0.9);
     border-radius: 12px;
@@ -49,10 +49,30 @@ body {
     width: 300px;
     border-radius: 10px;
     object-fit: cover;
+    filter: brightness(0.95) contrast(1.05);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    transition: transform 0.3s ease;
+}
+
+.panel img:hover {
+    transform: scale(1.03);
+}
+
+/* Make image appear on right */
+.panel.row-reverse {
+    flex-direction: row-reverse;
 }
 
 .panel-content {
     flex: 1;
+}
+
+/* New: translucent box inside panel */
+.panel-text-box {
+    background-color: rgba(40, 40, 55, 0.8);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
 }
 
 .panel-content h2 {
