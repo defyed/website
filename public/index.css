@@ -3,7 +3,7 @@ body {
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #13171F; /* Solid background color */
+    background-color: #13171F!important; /* Solid background color */
     color: #f5f5f5;
 }
 
@@ -11,39 +11,39 @@ body {
 .hero-section {
     position: relative;
     width: 100%;
-    min-height: 500px;
+    min-height: 500px; /* Increased to fit image without cropping */
     background-image: 
         linear-gradient(to bottom, rgba(19, 23, 31, 0.7) 0%, rgba(19, 23, 31, 0.3) 70%, rgba(19, 23, 31, 0) 100%), 
         url('images/pageArt/bgimage.png');
-    background-size: contain;
+    background-size: contain; /* Show full image without cropping */
     background-position: center top;
     background-repeat: no-repeat;
-    z-index: 0;
+    z-index: 0; /* Ensure below header */
 }
 
 /* Content inside Hero Section */
-body.league-services .hero-content {
+.hero-content {
     position: relative;
     z-index: 1;
     text-align: center;
-    padding: 20px 20px; /* Reduced padding-top to move text higher */
+    padding: 60px 20px; /* Adjusted for better spacing */
     color: white;
 }
 
-body.league-services .hero-content h1 {
+.hero-content h1 {
     font-size: 36px;
     margin: 0;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-body.league-services .hero-content h2 {
+.hero-content p {
     font-size: 18px;
     margin: 10px 0 20px;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 /* Button Row (overriding styles.css) */
-body.league-services .hero-content .button-row {
+.button-row {
     display: flex;
     flex-direction: row;
     justify-content: center;
@@ -54,82 +54,67 @@ body.league-services .hero-content .button-row {
 }
 
 /* Override Background Colors for Buttons */
-body.league-services .hero-content .button-row .button1 {
+.button-row .button1 {
     background-color: #2a2a3a;
 }
 
-body.league-services .hero-content .button-row .button1:hover {
+.button-row .button1:hover {
     background-color: #3a3a4a;
     opacity: 0.8;
     transform: scale(1.05);
 }
 
-body.league-services .hero-content .button-row .button2 {
+.button-row .button2 {
     background-color: #3a1c1c;
 }
 
-body.league-services .hero-content .button-row .button2:hover {
+.button-row .button2:hover {
     background-color: #4a2c2c;
     opacity: 0.8;
     transform: scale(1.05);
 }
 
-body.league-services .hero-content .button-row .button3 {
+.button-row .button3 {
     background-color: #1c2525;
 }
 
-body.league-services .hero-content .button-row .button3:hover {
+.button-row .button3:hover {
     background-color: #2c3535;
     opacity: 0.8;
     transform: scale(1.05);
 }
 
-/* Move Game Selection Buttons Higher */
-body.league-services .ls-new-section-top {
-    margin: 10px auto;
-    padding: 0 20px;
-    text-align: center;
-}
-
-body.league-services .ls-new-section-top .game-selection {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    flex-wrap: wrap;
-    margin-top: 10px;
-}
-
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .hero-section {
-        min-height: 300px;
+        min-height: 300px; /* Smaller for mobile */
         background-size: contain;
     }
 
-    body.league-services .hero-content h1 {
+    .hero-content h1 {
         font-size: 28px;
     }
 
-    body.league-services .hero-content h2 {
+    .hero-content p {
         font-size: 16px;
     }
 
-    body.league-services .hero-content .button-row {
+    .button-row {
         flex-direction: column;
         gap: 15px;
     }
-
-    body.league-services .ls-new-section-top {
-        margin: 5px auto;
-        padding: 0 10px;
-    }
-
-    body.league-services .ls-new-section-top .game-selection {
-        gap: 15px;
-        margin-top: 5px;
-    }
 }
-
+.game-selection {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+  
+}
+.ls-new-section-top{
+     margin-top: -450px!important;
+}
 /* Panels */
 .panel {
     display: flex;
@@ -209,33 +194,4 @@ body.league-services .ls-new-section-top .game-selection {
 
 .step strong {
     color: #ffd700;
-}
-
-/* Override styles.css for panel-row */
-.panel-row {
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-    margin: 30px auto;
-    max-width: 1100px;
-}
-
-/* Override content-wrapper padding */
-.content-wrapper {
-    padding: 0;
-    margin: 0 auto;
-    max-width: 1200px;
-}
-
-/* Override ls-pricing-process */
-.ls-pricing-process {
-    margin: 60px auto;
-    padding: 30px;
-    max-width: 1000px;
-}
-
-.ls-process-steps {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
 }
