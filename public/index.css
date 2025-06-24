@@ -213,19 +213,29 @@ body {
     object-fit: contain;
     margin-bottom: 10px;
 }
-.service-card .ls-guarantees {
-    height: 100%;
+.service-panels {
+    flex-wrap: nowrap; /* Prevent wrapping so all 3 stay on one row */
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.service-card {
+    flex: 1 1 30%; /* Let them shrink if needed */
+    max-width: 33%;
+    box-sizing: border-box;
+}
+
+/* Let the text section behave like a card */
+.service-card.text-panel {
     display: flex;
-    flex-direction: column;
     justify-content: center;
+    align-items: center;
+    padding: 15px;
 }
 
-.service-card .ls-guarantees h3 {
-    margin-top: 0;
-}
-
-.service-card .ls-guarantees ul {
-    padding-left: 0;
+/* This makes the text vertically centered inside the text-panel */
+.service-card.text-panel .ls-guarantees {
+    text-align: center;
 }
 
 
