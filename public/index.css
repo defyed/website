@@ -3,7 +3,7 @@ body {
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #13171F!important; /* Solid background color */
+    background-color: #13171F; /* Solid background color */
     color: #f5f5f5;
 }
 
@@ -11,28 +11,29 @@ body {
 .hero-section {
     position: relative;
     width: 100%;
-    height: 400px; /* Adjust height to fit top area, like odinboost.com */
+    min-height: 500px; /* Increased to fit image without cropping */
     background-image: 
-        linear-gradient(to bottom, rgba(19, 23, 31, 0.9), rgba(19, 23, 31, 0)), 
-        url('images/pageArt/bgimage.png'); /* Image path */
-    background-size: 100% auto; /* Scale image width to avoid being "massive" */
-    background-position: center top; /* Center at top */
+        linear-gradient(to bottom, rgba(19, 23, 31, 0.7) 0%, rgba(19, 23, 31, 0.3) 70%, rgba(19, 23, 31, 0) 100%), 
+        url('images/pageArt/bgimage.png');
+    background-size: contain; /* Show full image without cropping */
+    background-position: center top;
     background-repeat: no-repeat;
+    z-index: 0; /* Ensure below header */
 }
 
 /* Content inside Hero Section */
 .hero-content {
     position: relative;
-    z-index: 1; /* Ensures content is above the image */
+    z-index: 1;
     text-align: center;
-    padding: 50px 20px;
+    padding: 60px 20px; /* Adjusted for better spacing */
     color: white;
 }
 
 .hero-content h1 {
     font-size: 36px;
     margin: 0;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); /* Improve readability */
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .hero-content p {
@@ -49,12 +50,12 @@ body {
     align-items: center;
     width: 100%;
     gap: 20px;
-    margin: 20px 0; /* Reduced margin to fit within hero */
+    margin: 20px 0;
 }
 
 /* Override Background Colors for Buttons */
 .button-row .button1 {
-    background-color: #2a2a3a; /* Darker blue-gray */
+    background-color: #2a2a3a;
 }
 
 .button-row .button1:hover {
@@ -64,7 +65,7 @@ body {
 }
 
 .button-row .button2 {
-    background-color: #3a1c1c; /* Darker red */
+    background-color: #3a1c1c;
 }
 
 .button-row .button2:hover {
@@ -74,7 +75,7 @@ body {
 }
 
 .button-row .button3 {
-    background-color: #1c2525; /* Darker gray */
+    background-color: #1c2525;
 }
 
 .button-row .button3:hover {
@@ -86,8 +87,8 @@ body {
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .hero-section {
-        height: 300px; /* Smaller height for mobile */
-        background-size: 100% auto; /* Adjust for smaller screens */
+        min-height: 300px; /* Smaller for mobile */
+        background-size: contain;
     }
 
     .hero-content h1 {
@@ -104,7 +105,7 @@ body {
     }
 }
 
-/* Rest of your existing styles */
+/* Panels */
 .panel {
     display: flex;
     justify-content: space-between;
@@ -156,6 +157,7 @@ body {
     color: #ddd;
 }
 
+/* How It Works Section */
 .steps {
     max-width: 1000px;
     margin: 60px auto;
