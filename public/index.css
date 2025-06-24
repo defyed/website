@@ -206,6 +206,11 @@ body {
     scroll-snap-align: start;
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
 }
+.service-card img {
+width: 100px!important;
+height: 100px!important;
+
+}
 
 @keyframes scroll-testimonials {
     0% {
