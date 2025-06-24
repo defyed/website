@@ -109,7 +109,8 @@ body {
     padding: 30px 20px;
     text-align: center;
     max-width: 1000px;
-    margin: -100px!important;
+    margin: 0 auto 20px;
+    margin-top: -200px!important;
     border-radius: 10px;
 }
 /* Panels */
