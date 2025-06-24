@@ -140,7 +140,7 @@ body {
     border-radius: 12px;
     object-fit: cover;
     filter: brightness(0.9) contrast(1.1);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 6px 20px #ffcc33(0, 0, 0, 0.6);
 }
 
 .panel-text {
