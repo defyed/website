@@ -57,25 +57,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Helper function to check if a profile has meaningful data
+    // Helper function to check if a profile has critical data
     function hasMeaningfulProfile(booster) {
-        return booster.lol_highest_rank ||
-               booster.valorant_highest_rank ||
-               booster.lol_preferred_lanes ||
-               booster.lol_preferred_champions ||
-               booster.valorant_preferred_roles ||
-               booster.valorant_preferred_agents ||
-               booster.language ||
-               booster.bio;
+    const hasRank = !!booster.lol_highest_rank || !!booster.valorant_highest_rank;
+    const hasPreferences = !!booster.lol_preferred_lanes || !!booster.valorant_preferred_agents;
+    return hasRank || hasPreferences;
+
     }
 
     function renderBoosters(boosters) {
         boostersContainer.innerHTML = '';
         boosters.forEach(booster => {
             // Skip empty profiles unless it's the current user
-            if (!hasMeaningfulProfile(booster) && booster.id != userId) return;
+           if (!hasMeaningfulProfile(booster) && booster.id !== parseInt(userId)) {
+            return;
+        }
 
-            const boosterCard = document.createElement('div');
-            boosterCard.className = 'booster-card';
+        const boosterCard = document.createElement('div');
+        boosterCard.className = 'booster-card';
 
             const header = document.createElement('div');
             header.className = 'card-header';
