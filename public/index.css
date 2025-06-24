@@ -151,7 +151,7 @@ body {
     object-fit: cover;
     opacity: 0.55;
     filter: brightness(1.05) contrast(1.1);
-    box-shadow: 0 6px 20px #ffcc3318;
+    box-shadow: 0 6px 20px #00000018;
 }
 
 .panel-text {
