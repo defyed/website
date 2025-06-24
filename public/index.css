@@ -86,7 +86,7 @@ body {
 
 /* Move Game Selection Buttons Higher */
 body.league-services .ls-new-section-top {
-    margin: -190px auto; /* Reduced to move section higher */
+    margin: 10px auto; /* Reduced to move section higher */
     padding: 0 20px;
     text-align: center;
 }
