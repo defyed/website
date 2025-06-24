@@ -1,0 +1,97 @@
+
+/* General Reset */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #0b0b0f;
+    color: #f5f5f5;
+}
+
+/* Banner/Logo remains untouched as per user's request */
+
+/* Button Row */
+.button-row {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 40px 0;
+}
+
+.button-row a {
+    background-color: #1c1c25;
+    color: #fff;
+    padding: 12px 28px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.button-row a:hover {
+    background-color: #29293d;
+}
+
+/* Panels */
+.panel {
+    display: flex;
+    align-items: center;
+    background-color: rgba(25, 25, 34, 0.9);
+    border-radius: 12px;
+    margin: 30px auto;
+    max-width: 1100px;
+    padding: 20px;
+    gap: 25px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.panel img {
+    width: 300px;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.panel-content {
+    flex: 1;
+}
+
+.panel-content h2 {
+    margin-top: 0;
+    color: #ffd700;
+    font-size: 26px;
+}
+
+.panel-content p {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #dcdcdc;
+}
+
+/* "How it works" Section */
+.steps {
+    max-width: 1000px;
+    margin: 60px auto;
+    padding: 30px;
+    border-radius: 12px;
+    background: rgba(30, 30, 40, 0.95);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
+}
+
+.steps h2 {
+    text-align: center;
+    font-size: 32px;
+    margin-bottom: 25px;
+    color: #ffffff;
+}
+
+.step {
+    margin: 20px 0;
+    padding: 10px 15px;
+    border-left: 4px solid #ffbf00;
+    background-color: #1c1c25;
+    border-radius: 6px;
+}
+
+.step strong {
+    color: #ffd700;
+}
