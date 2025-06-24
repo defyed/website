@@ -3,47 +3,58 @@ body {
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #13171F!important; /* Solid background color */
+    background-color: #13171F!important;
     color: #f5f5f5;
 }
 
-/* Hero Section with Image and Fading Overlay */
+/* Hero Section */
 .hero-section {
     position: relative;
     width: 100%;
-    min-height: 500px; /* Increased to fit image without cropping */
+    min-height: 500px;
     background-image: 
         linear-gradient(to bottom, rgba(19, 23, 31, 0.7) 0%, rgba(19, 23, 31, 0.3) 70%, rgba(19, 23, 31, 0) 100%), 
         url('images/pageArt/bgimage.png');
-    background-size: contain; /* Show full image without cropping */
+    background-size: contain;
     background-position: center top;
     background-repeat: no-repeat;
-    z-index: 0; /* Ensure below header */
+    z-index: 0;
 }
 
-/* Content inside Hero Section */
 .hero-content {
     position: relative;
     z-index: 1;
     text-align: center;
-    padding: 60px 20px; /* Adjusted for better spacing */
+    padding: 60px 20px;
     color: white;
     margin-top: 120px!important;
 }
 
 .hero-content h1 {
-    font-size: 36px;
-    margin: 0;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    font-size: 42px;
+    font-weight: 700;
+    color: #ffffff;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
 }
 
-.hero-content p {
+.hero-content h2 {
+    font-size: 28px;
+    font-weight: 500;
+    margin-top: 10px;
+    color: #ffcc33;
+}
+
+.hero-content h3 {
     font-size: 18px;
-    margin: 10px 0 20px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    margin-top: 10px;
+    line-height: 1.5;
+    color: #ddd;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-/* Button Row (overriding styles.css) */
+/* Button Row */
 .button-row {
     display: flex;
     flex-direction: row;
@@ -54,11 +65,9 @@ body {
     margin: 20px 0;
 }
 
-/* Override Background Colors for Buttons */
 .button-row .button1 {
     background-color: #2a2a3a;
 }
-
 .button-row .button1:hover {
     background-color: #3a3a4a;
     opacity: 0.8;
@@ -68,7 +77,6 @@ body {
 .button-row .button2 {
     background-color: #3a1c1c;
 }
-
 .button-row .button2:hover {
     background-color: #4a2c2c;
     opacity: 0.8;
@@ -78,17 +86,16 @@ body {
 .button-row .button3 {
     background-color: #1c2525;
 }
-
 .button-row .button3:hover {
     background-color: #2c3535;
     opacity: 0.8;
     transform: scale(1.05);
 }
 
-/* Responsive adjustments */
+/* Responsive */
 @media (max-width: 768px) {
     .hero-section {
-        min-height: 300px; /* Smaller for mobile */
+        min-height: 300px;
         background-size: contain;
     }
 
@@ -105,96 +112,21 @@ body {
         gap: 15px;
     }
 }
+
 .game-selection {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
     gap: 15px;
-  
 }
-.ls-new-section-top{
-     margin-top: -100px!important;
-     background-color: rgba(25, 25, 34, 0.6)!important;
-}
-/* Panels */
-.panel {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+
+.ls-new-section-top {
+    margin-top: -100px!important;
     background-color: rgba(25, 25, 34, 0.6)!important;
-    border-radius: 12px;
-    margin: 30px auto;
-    max-width: 1100px;
-    padding: 20px;
-    gap: 25px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
 }
 
-.panel:nth-child(2) {
-    flex-direction: row-reverse;
-}
-
-.panel img {
-    width: 300px;
-    border-radius: 12px;
-    object-fit: cover;
-    filter: brightness(0.9) contrast(1.1);
-    box-shadow: 0 6px 20px #ffcc33(0, 0, 0, 0.6);
-}
-
-.panel-text {
-    background-color: rgba(40, 40, 55, 0.85);
-    padding: 20px 25px;
-    border-radius: 10px;
-    box-shadow: inset 0 0 12px #ffcc33(0,0,0,0.4);
-    flex: 1;
-    transition: transform 0.2s ease;
-}
-
-.panel-text:hover {
-    transform: scale(1.015);
-}
-
-.panel-text h3 {
-    margin-top: 0;
-    font-size: 26px;
-    color: #ffcc33;
-    font-weight: 600;
-}
-
-.panel-text p {
-    font-size: 17px;
-    line-height: 1.7;
-    color: #ddd;
-}
-
-
-
-/* Hero text polish */
-.hero-content h1 {
-    font-size: 42px;
-    font-weight: 700;
-    color: #ffffff;
-    text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
-}
-.hero-content h2 {
-    font-size: 28px;
-    font-weight: 500;
-    margin-top: 10px;
-    color: #ffcc33;
-}
-.hero-content h3 {
-    font-size: 18px;
-    margin-top: 10px;
-    line-height: 1.5;
-    color: #ddd;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-/* Panel adjustments */
+/* Panels */
 .panel {
     display: flex;
     justify-content: space-between;
@@ -203,14 +135,13 @@ body {
     border-radius: 12px;
     margin: 30px auto;
     max-width: 1100px;
+    min-height: 280px;
     padding: 20px;
     gap: 25px;
-    min-height: 280px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.5);
 }
 
-/* Ensure second panel image is on right */
-.panel:nth-child(2) {
+.panel:nth-child(2n) {
     flex-direction: row-reverse;
 }
 
@@ -218,14 +149,13 @@ body {
     width: 300px;
     border-radius: 12px;
     object-fit: cover;
-    filter: brightness(0.9) contrast(1.1);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
-    opacity: 0.8;
-    transition: transform 0.3s ease;
+    opacity: 0.75;
+    filter: brightness(1.05) contrast(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
 }
 
 .panel-text {
-    background-color: rgba(40, 40, 55, 0.85);
+    background-color: rgba(40, 40, 55, 0.9);
     padding: 20px 25px;
     border-radius: 10px;
     box-shadow: inset 0 0 12px rgba(0,0,0,0.4);
@@ -236,14 +166,18 @@ body {
 .panel-text:hover {
     transform: scale(1.015);
 }
+
 .panel-text h3 {
     margin-top: 0;
     font-size: 26px;
     color: #ffcc33;
     font-weight: 600;
+    text-shadow: 1px 1px 2px black;
 }
+
 .panel-text p {
     font-size: 17px;
     line-height: 1.7;
     color: #ddd;
+    text-shadow: 1px 1px 2px black;
 }
