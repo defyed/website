@@ -1,0 +1,68 @@
+body {
+  background-color: #1a1a2e;
+  color: #ffffff;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+}
+
+.coaching-container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #28a745;
+}
+
+#coaches-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.coach-card {
+  background-color: #2a2a3e;
+  border-radius: 10px;
+  padding: 20px;
+  border: 1px solid #444;
+}
+
+.coach-card h2 {
+  color: #007bff;
+  margin-bottom: 10px;
+}
+
+.coach-card p {
+  margin: 8px 0;
+}
+
+.coach-card .price-display {
+  font-weight: bold;
+  color: #28a745;
+}
+
+.coach-card .hour-select {
+  margin-top: 5px;
+  padding: 5px;
+  background: #1a1a2e;
+  color: white;
+  border: 1px solid #666;
+  border-radius: 5px;
+}
+
+.coach-card .book-btn {
+  margin-top: 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.coach-card .book-btn:hover {
+  background-color: #0056b3;
+}

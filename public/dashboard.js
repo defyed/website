@@ -247,10 +247,12 @@
                     <td>${user.role}</td>
                     <td>
                         <select onchange="updateUserRole(${user.id}, this.value)">
-                            <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
-                            <option value="booster" ${user.role === 'booster' ? 'selected' : ''}>Booster</option>
-                            <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
-                        </select>
+                         <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
+                         <option value="booster" ${user.role === 'booster' ? 'selected' : ''}>Booster</option>
+                        <option value="coach" ${user.role === 'coach' ? 'selected' : ''}>Coach</option>
+                        <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                    </select>
+
                     </td>
                 `;
                 userTableBody.appendChild(row);
@@ -1474,6 +1476,38 @@
         localStorage.removeItem('role');
         window.location.href = '/league-services.html';
     }
+    document.getElementById('coaching-orders-link').addEventListener('click', async () => {
+  showPanel('coaching-orders-panel');
+  try {
+    const res = await fetch('/api/my-coaching-orders');
+    const orders = await res.json();
+
+    const container = document.getElementById('coaching-orders');
+    if (orders.length === 0) {
+      container.innerHTML = '<p>No coaching orders found.</p>';
+      return;
+    }
+
+    container.innerHTML = '<table class="orders-table"><thead><tr><th>Order ID</th><th>Customer</th><th>Hours</th><th>Price</th><th>Status</th><th>Created</th></tr></thead><tbody>' +
+      orders.map(o => `
+        <tr>
+          <td>${o.order_id}</td>
+          <td>${o.customer_username}</td>
+          <td>${o.booked_hours}</td>
+          <td>$${parseFloat(o.price).toFixed(2)}</td>
+          <td>${o.status}</td>
+          <td>${new Date(o.created_at).toLocaleString()}</td>
+        </tr>
+      `).join('') + '</tbody></table>';
+  } catch (err) {
+    document.getElementById('coaching-orders').innerHTML = 'Error loading coaching orders.';
+  }
+});
+
+document.getElementById('close-coaching-orders').addEventListener('click', () => {
+  hidePanel('coaching-orders-panel');
+});
+
 
     document.addEventListener('DOMContentLoaded', () => {
         console.log('DOMContentLoaded event fired');

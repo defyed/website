@@ -235,7 +235,6 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
     const { userId, orderId } = session.metadata || {};
     let orderData = {};
     try {
-      // Prefer fullOrderData from metadata if available
       if (session.metadata && session.metadata.fullOrderData) {
         orderData = JSON.parse(session.metadata.fullOrderData);
         console.log('Webhook using fullOrderData from metadata:', orderData);
@@ -264,60 +263,18 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
         return res.status(400).json({ error: 'User not found' });
       }
 
-      const leagueRanks = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Emerald', 'Diamond', 'Master', 'Grandmaster', 'Challenger'];
-      const valorantRanks = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal', 'Radiant'];
-      const leagueDivisions = ['I', 'II', 'III', 'IV'];
-      const valorantDivisions = ['I', 'II', 'III'];
       const gameType = orderData.game || 'League of Legends';
-      const validRanks = gameType === 'Valorant' ? valorantRanks : leagueRanks;
-      const validDivisions = gameType === 'Valorant' ? valorantDivisions : leagueDivisions;
-
-      if (!['League of Legends', 'Valorant'].includes(gameType)) {
-        console.error('Invalid gameType:', gameType);
-        return res.status(400).json({ error: 'Invalid game type' });
-      }
-
-      // Normalize ranks by removing division if included
-      let normalizedCurrentRank = orderData.currentRank || '';
-      let normalizedDesiredRank = orderData.desiredRank || '';
-      if (normalizedCurrentRank.includes(' ')) {
-        normalizedCurrentRank = normalizedCurrentRank.split(' ')[0];
-      }
-      if (normalizedDesiredRank.includes(' ')) {
-        normalizedDesiredRank = normalizedDesiredRank.split(' ')[0];
-      }
-
-      if (!normalizedCurrentRank || !validRanks.includes(normalizedCurrentRank)) {
-        console.error('Invalid normalized currentRank:', normalizedCurrentRank, 'Original:', orderData.currentRank);
-        return res.status(400).json({ error: 'Invalid current rank' });
-      }
-      if (!normalizedDesiredRank || !validRanks.includes(normalizedDesiredRank)) {
-        console.error('Invalid normalized desiredRank:', normalizedDesiredRank, 'Original:', orderData.desiredRank);
-        return res.status(400).json({ error: 'Invalid desired rank' });
-      }
-      if (!['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedCurrentRank) && orderData.currentDivision && !validDivisions.includes(orderData.currentDivision)) {
-        console.warn('Invalid currentDivision:', orderData.currentDivision, 'Setting to default');
-        orderData.currentDivision = '';
-      }
-      if (!['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedDesiredRank) && orderData.desiredDivision && !validDivisions.includes(orderData.desiredDivision)) {
-        console.warn('Invalid desiredDivision:', orderData.desiredDivision, 'Setting to default');
-        orderData.desiredDivision = '';
-      }
-
-      const currentRank = ['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedCurrentRank) 
-        ? normalizedCurrentRank 
-        : `${normalizedCurrentRank} ${orderData.currentDivision || ''}`.trim().slice(0, 50);
-      const desiredRank = ['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedDesiredRank) 
-        ? normalizedDesiredRank 
-        : `${normalizedDesiredRank} ${orderData.desiredDivision || ''}`.trim().slice(0, 50);
-
       const cashback = (orderData.finalPrice || 0) * 0.03;
       const extras = Array.isArray(orderData.extras) ? orderData.extras : [];
       const price = parseFloat(orderData.finalPrice) || 0;
 
+      const currentRank = orderData.currentRank || 'Unranked';
+      const desiredRank = orderData.desiredRank || 'Unranked';
+
       const connection = await pool.getConnection();
       try {
         await connection.beginTransaction();
+
         const [existingRows] = await connection.query('SELECT order_id FROM orders WHERE order_id = ?', [orderId]);
         if (existingRows.length > 0) {
           await connection.query(
@@ -336,7 +293,6 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
               parseInt(userId)
             ]
           );
-          console.log(`Order ${orderId} updated for user ${userId}`);
         } else {
           await connection.query(
             'INSERT INTO orders (order_id, user_id, current_rank, desired_rank, current_lp, desired_lp, price, status, cashback, payout_status, game_type, extras) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
@@ -355,12 +311,21 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
               JSON.stringify(extras)
             ]
           );
-          console.log(`Order ${orderId} created for user ${userId}`);
         }
+
+        if (orderData.game === 'Coaching' && orderData.coachId && orderData.hours) {
+          await connection.query(
+            'INSERT INTO coaching_orders (order_id, coach_id, booked_hours) VALUES (?, ?, ?)',
+            [orderId, parseInt(orderData.coachId), parseInt(orderData.hours)]
+          );
+          console.log(`Coaching order recorded: orderId=${orderId}, coachId=${orderData.coachId}, hours=${orderData.hours}`);
+        }
+
         await connection.query(
           'UPDATE users SET account_balance = account_balance + ? WHERE id = ?',
           [cashback, parseInt(userId)]
         );
+
         await connection.commit();
         console.log(`Transaction committed for orderId: ${orderId}`);
       } catch (err) {
@@ -375,6 +340,7 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
       return res.status(500).json({ error: 'Database error', details: error.message });
     }
   }
+
   res.json({ received: true });
 });
 
@@ -504,6 +470,100 @@ app.post('/api/reset-password', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+app.get('/api/coaches', async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT u.id, u.username, cp.game_type, cp.bio, cp.price_per_hour,
+             TIMESTAMPDIFF(MINUTE, u.last_activity, NOW()) <= 5 AS online_status
+      FROM users u
+      JOIN coach_profiles cp ON u.id = cp.user_id
+      WHERE u.role = 'coach'
+    `);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching coaches:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+app.post('/api/create-coaching-session', async (req, res) => {
+  const { coachId, userId, hours } = req.body;
+  if (!coachId || !userId || ![1, 2, 3, 4].includes(hours)) {
+    return res.status(400).json({ error: 'Invalid input' });
+  }
+
+  try {
+    const [[coach]] = await pool.query(`
+      SELECT u.username, cp.price_per_hour
+      FROM users u
+      JOIN coach_profiles cp ON u.id = cp.user_id
+      WHERE u.id = ? AND u.role = 'coach'
+    `, [coachId]);
+
+    if (!coach) {
+      return res.status(404).json({ error: 'Coach not found' });
+    }
+
+    const finalPrice = parseFloat(coach.price_per_hour) * hours;
+    const orderId = uuidv4();
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [{
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: `Coaching with ${coach.username}`,
+            description: `${hours} hour(s)`
+          },
+          unit_amount: Math.round(finalPrice * 100)
+        },
+        quantity: 1
+      }],
+      mode: 'payment',
+      success_url: `${process.env.FRONTEND_URL}/confirmation.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.FRONTEND_URL}/coaching.html`,
+      metadata: {
+        userId: userId.toString(),
+        orderId,
+        coachId: coachId.toString(),
+        hours: hours.toString(),
+        game: 'Coaching',
+        fullOrderData: JSON.stringify({ finalPrice, coachId, hours, game: 'Coaching' })
+      }
+    });
+
+    res.json({ id: session.id });
+  } catch (error) {
+    console.error('Error creating coaching session:', error.message);
+    res.status(500).json({ error: 'Failed to create checkout session' });
+  }
+});
+app.get('/api/my-coaching-orders', authenticate, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const role = req.user.role;
+
+    if (role !== 'coach') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const [rows] = await pool.query(`
+      SELECT o.order_id, o.user_id, u.username AS customer_username, o.price, co.booked_hours, o.status, o.created_at
+      FROM coaching_orders co
+      JOIN orders o ON co.order_id = o.order_id
+      JOIN users u ON o.user_id = u.id
+      WHERE co.coach_id = ?
+      ORDER BY o.created_at DESC
+    `, [userId]);
+
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching coaching orders:', err.message);
+    res.status(500).json({ error: 'Failed to fetch coaching orders' });
+  }
+});
+
+
 
 app.post('/api/create-checkout-session', async (req, res) => {
   try {

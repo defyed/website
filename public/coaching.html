@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coaching Services</title>
+  <link rel="stylesheet" href="/coaching.css">
+  <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+  <div class="coaching-container">
+    <h1>Available Coaches</h1>
+    <div id="coaches-list">Loading coaches...</div>
+  </div>
+
+  <script>
+    const userId = localStorage.getItem('userId');
+    const stripe = Stripe("pk_test_1234567890"); // Replace with your real publishable key
+
+    async function loadCoaches() {
+      const res = await fetch('/api/coaches');
+      const coaches = await res.json();
+
+      const container = document.getElementById('coaches-list');
+      container.innerHTML = '';
+
+      if (coaches.length === 0) {
+        container.innerHTML = '<p>No coaches available.</p>';
+        return;
+      }
+
+      coaches.forEach(coach => {
+        const coachCard = document.createElement('div');
+        coachCard.className = 'coach-card';
+
+        coachCard.innerHTML = `
+          <h2>${coach.username}</h2>
+          <p><strong>Game:</strong> ${coach.game_type}</p>
+          <p><strong>Rate:</strong> $${parseFloat(coach.price_per_hour).toFixed(2)}/hr</p>
+          <p><strong>Bio:</strong> ${coach.bio || 'N/A'}</p>
+          <label for="hours-${coach.id}">Hours:</label>
+          <select id="hours-${coach.id}" class="hour-select">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+          </select>
+          <p class="price-display" id="price-${coach.id}">Total: $${parseFloat(coach.price_per_hour).toFixed(2)}</p>
+          <button class="book-btn" data-id="${coach.id}" data-price="${coach.price_per_hour}">Book Now</button>
+        `;
+
+        container.appendChild(coachCard);
+
+        const hoursSelect = coachCard.querySelector(`#hours-${coach.id}`);
+        const priceDisplay = coachCard.querySelector(`#price-${coach.id}`);
+
+        hoursSelect.addEventListener('change', () => {
+          const hours = parseInt(hoursSelect.value);
+          const total = (parseFloat(coach.price_per_hour) * hours).toFixed(2);
+          priceDisplay.textContent = `Total: $${total}`;
+        });
+
+        coachCard.querySelector('.book-btn').addEventListener('click', async () => {
+          const hours = parseInt(hoursSelect.value);
+          const res = await fetch('/api/create-coaching-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ coachId: coach.id, userId, hours })
+          });
+
+          const data = await res.json();
+          if (data.id) {
+            stripe.redirectToCheckout({ sessionId: data.id });
+          } else {
+            alert('Failed to create checkout session');
+          }
+        });
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', loadCoaches);
+  </script>
+</body>
+</html>
