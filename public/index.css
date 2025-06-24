@@ -104,7 +104,14 @@ body {
         gap: 15px;
     }
 }
-
+.ls-new-section-top {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 30px 20px;
+    text-align: center;
+    max-width: 1000px;
+    margin: -100px!important;
+    border-radius: 10px;
+}
 /* Panels */
 .panel {
     display: flex;
