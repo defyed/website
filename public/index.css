@@ -131,7 +131,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: rgba(25, 25, 34, 0.7);
+    background-color: rgba(25, 25, 34, 0.9);
     border-radius: 12px;
     margin: 30px auto;
     max-width: 1100px;
