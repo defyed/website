@@ -1476,6 +1476,41 @@
         localStorage.removeItem('role');
         window.location.href = '/league-services.html';
     }
+    document.getElementById('coach-profile-link').addEventListener('click', async () => {
+  showPanel('coach-profile-panel');
+  try {
+    const res = await fetch('/api/coach-profile');
+    const profile = await res.json();
+    document.getElementById('game-type').value = profile.game_type || '';
+    document.getElementById('coach-bio').value = profile.bio || '';
+    document.getElementById('coach-rate').value = profile.price_per_hour || '';
+  } catch {
+    document.getElementById('coach-profile-status').textContent = 'Failed to load profile.';
+  }
+});
+
+document.getElementById('coach-profile-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const payload = {
+    game_type: document.getElementById('game-type').value,
+    bio: document.getElementById('coach-bio').value,
+    price_per_hour: document.getElementById('coach-rate').value
+  };
+
+  const res = await fetch('/api/coach-profile', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  const msg = await res.json();
+  document.getElementById('coach-profile-status').textContent = msg.success ? 'Profile saved!' : 'Error saving.';
+});
+
+document.getElementById('close-coach-profile').addEventListener('click', () => {
+  hidePanel('coach-profile-panel');
+});
+
     document.getElementById('coaching-orders-link').addEventListener('click', async () => {
   showPanel('coaching-orders-panel');
   try {

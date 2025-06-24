@@ -1249,22 +1249,36 @@ app.post('/api/booster-profile', authenticate, checkRole(['booster', 'admin']), 
 });
 
 app.post('/admin/update-role', async (req, res) => {
-    const { userId, newRole, adminUserId } = req.body;
+  const { userId, newRole, adminUserId } = req.body;
 
-    try {
-        const [adminRows] = await pool.query('SELECT role FROM users WHERE id = ?', [adminUserId]);
-        if (!adminRows.length || adminRows[0].role !== 'admin') {
-            return res.status(403).json({ error: 'Unauthorized: Only admins can update roles' });
-        }
-
-        await pool.query('UPDATE users SET role = ? WHERE id = ?', [newRole, userId]);
-        console.log(`Updated user ${userId} to role ${newRole} by admin ${adminUserId}`);
-        res.json({ success: true });
-    } catch (err) {
-        console.error('Error updating user role:', err.message);
-        res.status(500).json({ error: 'Database error', details: err.message });
+  try {
+    const [adminRows] = await pool.query('SELECT role FROM users WHERE id = ?', [adminUserId]);
+    if (!adminRows.length || adminRows[0].role !== 'admin') {
+      return res.status(403).json({ error: 'Unauthorized: Only admins can update roles' });
     }
+
+    await pool.query('UPDATE users SET role = ? WHERE id = ?', [newRole, userId]);
+    console.log(`Updated user ${userId} to role ${newRole} by admin ${adminUserId}`);
+
+    // ✅ Auto-create coach_profiles entry if promoted to coach
+    if (newRole === 'coach') {
+      const [existing] = await pool.query('SELECT user_id FROM coach_profiles WHERE user_id = ?', [userId]);
+      if (existing.length === 0) {
+        await pool.query(`
+          INSERT INTO coach_profiles (user_id, game_type, bio, price_per_hour)
+          VALUES (?, 'League of Legends', 'Edit me from your profile.', 20.00)
+        `, [userId]);
+        console.log(`Created coach_profiles row for new coach user ${userId}`);
+      }
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error updating user role:', err.message);
+    res.status(500).json({ error: 'Database error', details: err.message });
+  }
 });
+
 
 app.get('/admin/users', authenticate, checkRole(['admin']), async (req, res) => {
   try {
@@ -1321,6 +1335,34 @@ app.delete('/api/coupons/:id', authenticate, checkRole(['admin']), async (req, r
     res.status(500).json({ error: 'Failed to delete coupon', details: error.message });
   }
 });
+
+// Get coach profile
+app.get('/api/coach-profile', authenticate, async (req, res) => {
+  const userId = req.user.id;
+  const role = req.user.role;
+  if (role !== 'coach') return res.status(403).json({ error: 'Forbidden' });
+
+  const [[profile]] = await pool.query('SELECT * FROM coach_profiles WHERE user_id = ?', [userId]);
+  res.json(profile || {});
+});
+
+// Update coach profile
+app.post('/api/coach-profile', authenticate, async (req, res) => {
+  const userId = req.user.id;
+  const role = req.user.role;
+  const { game_type, bio, price_per_hour } = req.body;
+
+  if (role !== 'coach') return res.status(403).json({ error: 'Forbidden' });
+
+  await pool.query(`
+    UPDATE coach_profiles
+    SET game_type = ?, bio = ?, price_per_hour = ?
+    WHERE user_id = ?
+  `, [game_type, bio, parseFloat(price_per_hour), userId]);
+
+  res.json({ success: true });
+});
+
 
 app.post('/api/apply-coupon', async (req, res) => {
   const { code, game } = req.body;
