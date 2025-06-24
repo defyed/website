@@ -1181,12 +1181,14 @@ footer {
     color: #ccc;
 }
 
-.league-services .ls-guarantees {
+.league-services  
+{
     text-align: center;
     padding: 20px;
 }
 
-.league-services .ls-guarantees h3 {
+.league-services 
+{
     font-size: 1.8em;
     margin-bottom: 15px;
     background: linear-gradient(90deg, #ffcc00, #ffffff);
@@ -1195,12 +1197,14 @@ footer {
     -webkit-text-fill-color: transparent;
 }
 
-.league-services .ls-guarantees ul {
+.league-services 
+{
     list-style: none;
     padding: 0;
 }
 
-.league-services .ls-guarantees li {
+.league-services 
+{
     font-size: 1.1em;
     color: #ddd;
     margin: 10px 0;
