@@ -7,28 +7,72 @@ body {
     color: #f5f5f5;
 }
 
-/* Banner/Logo remains untouched as per user's request */
-
-/* Button Row */
+/* Button Row (adapted from styles.css .button-container) */
 .button-row {
     display: flex;
+    flex-direction: row;
     justify-content: center;
-    gap: 15px;
-    margin: 40px 0;
+    align-items: center;
+    width: 100%;
+    gap: 20px;
+    margin: 70px 0; /* Updated from 40px to match styles.css */
 }
 
+/* Button Styles (adapted from styles.css .button1, .button2, .button3) */
 .button-row a {
-    background-color: #1c1c25;
-    color: #fff;
-    padding: 12px 28px;
+    border: none;
     border-radius: 8px;
+    color: white;
+    padding: 15px 32px; /* Updated from 12px 28px */
+    font-size: large;
+    text-align: center;
+    width: 220px; /* Matches styles.css */
+    cursor: pointer;
     text-decoration: none;
     font-weight: bold;
-    transition: background-color 0.3s ease;
+    transition: opacity 0.3s ease-in-out, color 0.3s ease-in-out, transform 0.3s ease; /* Updated transitions */
 }
 
-.button-row a:hover {
-    background-color: #29293d;
+/* Individual Button Styles */
+.button-row a:nth-child(1) { /* Boosters */
+    background-color: rgb(0, 98, 255); /* Matches .button1 */
+}
+
+.button-row a:nth-child(1):hover {
+    opacity: 0.8;
+    color: rgb(255, 255, 255);
+    transform: scale(1.05);
+    text-decoration: none;
+}
+
+.button-row a:nth-child(2) { /* Coaching */
+    background-color: rgb(235, 42, 42); /* Matches .button2 */
+}
+
+.button-row a:nth-child(2):hover {
+    opacity: 0.8;
+    color: rgb(255, 255, 255);
+    transform: scale(1.05);
+    text-decoration: none;
+}
+
+.button-row a:nth-child(3) { /* Sign In */
+    background-color: rgb(63, 63, 63); /* Matches .button3 */
+}
+
+.button-row a:nth-child(3):hover {
+    opacity: 0.8;
+    color: rgb(255, 255, 255);
+    transform: scale(1.05);
+    text-decoration: none;
+}
+
+/* Responsive adjustments (from styles.css) */
+@media (max-width: 768px) {
+    .button-row {
+        flex-direction: column;
+        gap: 15px;
+    }
 }
 
 /* Panels */
@@ -45,46 +89,44 @@ body {
     box-shadow: 0 4px 20px rgba(0,0,0,0.5);
 }
 
-.panel img {
-    width: 300px;
-    border-radius: 10px;
-    object-fit: cover;
-    filter: brightness(0.95) contrast(1.05);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-    transition: transform 0.3s ease;
-}
-
-.panel img:hover {
-    transform: scale(1.03);
-}
-
-/* Make image appear on right */
-.panel.row-reverse {
+/* Reverse panel layout */
+.panel:nth-child(2) {
     flex-direction: row-reverse;
 }
 
-.panel-content {
-    flex: 1;
+.panel img {
+    width: 300px;
+    border-radius: 12px;
+    object-fit: cover;
+    filter: brightness(0.9) contrast(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
 }
 
-/* New: translucent box inside panel */
-.panel-text-box {
-    background-color: rgba(40, 40, 55, 0.8);
-    padding: 20px;
+/* Text bubble inside panels */
+.panel-text {
+    background-color: rgba(40, 40, 55, 0.85);
+    padding: 20px 25px;
     border-radius: 10px;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    box-shadow: inset 0 0 12px rgba(0,0,0,0.4);
+    flex: 1;
+    transition: transform 0.2s ease;
 }
 
-.panel-content h2 {
+.panel-text:hover {
+    transform: scale(1.015);
+}
+
+.panel-text h3 {
     margin-top: 0;
-    color: #ffd700;
     font-size: 26px;
+    color: #ffcc33;
+    font-weight: 600;
 }
 
-.panel-content p {
-    font-size: 16px;
-    line-height: 1.6;
-    color: #dcdcdc;
+.panel-text p {
+    font-size: 17px;
+    line-height: 1.7;
+    color: #ddd;
 }
 
 /* "How it works" Section */
@@ -114,250 +156,4 @@ body {
 
 .step strong {
     color: #ffd700;
-}
-
-/* --- Imported button styles from styles.css --- */
-.button-container {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    top: 0;
-    width: 100%;
-    gap: 20px;
-    margin-top: 70px;
-}
-
-.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 24px;
-    cursor: pointer;
-    color: #fff;
-}
-
-.register-btn {
-    background: #28a745;
-}
-
-.register-btn:hover {
-    background: #218838;
-}
-
-.sign-in-btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    background: #007bff;
-    color: #fff;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-.sign-in-btn:hover {
-    background: #0056b3;
-}
-
-.profile-btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    background: #007bff;
-    color: #fff;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-.profile-btn:hover {
-    background: #0056b3;
-}
-
-.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 1.5em;
-    cursor: pointer;
-    color: #ffffff;
-}
-
-.close-btn:hover {
-    color: #ff4444;
-}
-
-.forgot-password-btn, .reset-btn {
-    padding: 10px;
-    border: none;
-    border-radius: 4px;
-    background: #dc3545;
-    color: #fff;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background 0.3s;
-}
-
-.forgot-password-btn:hover, .reset-btn:hover {
-    background: #c82333;
-}
-
-.forgot-password-link-btn {
-    display: inline-block;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 4px;
-    background: #dc3545;
-    color: #fff;
-    font-size: 14px;
-    text-decoration: none;
-    cursor: pointer;
-    transition: background 0.3s;
-}
-
-.forgot-password-link-btn:hover {
-    background: #c82333;
-}
-
-.order-btn {
-    background-color: #ff4444;
-    color: white;
-    padding: 15px 30px;
-    border: none;
-    border-radius: 5px;
-    font-size: 1.2em;
-    cursor: pointer;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.order-btn:hover {
-    opacity: 0.8;
-    transform: scale(1.05);
-}
-
-.rank-btn {
-    background: rgba(255, 255, 155, 0.1);
-    border: none;
-    padding: 5px;
-    border-radius: 10%;
-    cursor: pointer;
-}
-
-.rank-btn img {
-    width: 40px;
-    height: 40px;
-}
-
-.rank-btn.selected {
-    border: 1px solid #ffffff;
-    border-radius: 5px;
-}
-
-.rank-btn.disabled {
-    background-color: #666;
-    cursor: not-allowed;
-    opacity: 0.5;
-}
-
-.division-btn {
-    padding: 5px 10px;
-    border: 1px solid #ccc;
-    background: #f8f9fa;
-    cursor: pointer;
-}
-
-.division-btn.selected {
-    background: #007bff;
-    color: #fff;
-    border-color: #007bff;
-}
-
-.division-btn.disabled {
-    background-color: #666;
-    cursor: not-allowed;
-    opacity: 0.5;
-}
-
-.rank-btn:hover {
-    outline: 2px solid white;
-}
-
-.rank-btn img {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-}
-
-.rank-btn.selected {
-    background: #ff4444c6;
-}
-
-.division-btn {
-    background-color: #333;
-    color: white;
-    padding: 8px 15px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.3s ease;
-}
-
-.division-btn:hover {
-    background-color: #555;
-    transform: scale(1.1);
-}
-
-.division-btn.selected {
-    background-color: #ff4444;
-}
-
-.button-container {
-        flex-direction: column;
-        gap: 15px;
-    }
-
-.order-btn {
-        padding: 10px 20px;
-        font-size: 1em;
-    }
-
-.message-close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 20px;
-    cursor: pointer;
-    color: #333;
-}
-
-.message-close-btn:hover {
-    color: #f00;
-}
-
-.sign-in-redirect-btn,
-.register-redirect-btn {
-    padding: 10px 20px;
-    margin: 0 10px;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-.sign-in-redirect-btn {
-    background-color: #007bff;
-    color: #fff;
-}
-
-.sign-in-redirect-btn:hover {
-    background-color: #0056b3;
-}
-
-.register-redirect-btn {
-    background-color: #28a745;
-    color: #fff;
-}
-
-.register-redirect-btn:hover {
-    background-color: #218838;
 }
