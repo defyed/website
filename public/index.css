@@ -169,34 +169,7 @@ body {
     color: #ddd;
 }
 
-/* How It Works Section */
-.steps {
-    max-width: 1000px;
-    margin: 60px auto;
-    padding: 30px;
-    border-radius: 12px;
-    background-color: rgba(0, 0, 255, 0.85);
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
-}
 
-.steps h2 {
-    text-align: center;
-    font-size: 32px;
-    margin-bottom: 25px;
-    color: #ffffff;
-}
-
-.step {
-    margin: 20px 0;
-    padding: 10px 15px;
-    border-left: 4px solid #ffbf00;
-    background-color: #1c1c25;
-    border-radius: 6px;
-}
-
-.step strong {
-    color: #ffd700;
-}
 
 /* Hero text polish */
 .hero-content h1 {
