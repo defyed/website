@@ -58,14 +58,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Helper function to check if a profile has meaningful data
     function hasMeaningfulProfile(booster) {
-  const nonEmptyArray = arr => Array.isArray(arr) && arr.filter(x => x && x.trim() !== '').length > 0;
-  return booster.rank?.trim() ||
-         booster.bio?.trim() ||
-         nonEmptyArray(booster.lanes) ||
-         nonEmptyArray(booster.roles) ||
-         nonEmptyArray(booster.champions) ||
-         nonEmptyArray(booster.agents);
-}
+        return booster.lol_highest_rank ||
+               booster.valorant_highest_rank ||
+               booster.lol_preferred_lanes ||
+               booster.lol_preferred_champions ||
+               booster.valorant_preferred_roles ||
+               booster.valorant_preferred_agents ||
+               booster.language ||
+               booster.bio;
+    }
 
     function renderBoosters(boosters) {
         boostersContainer.innerHTML = '';
