@@ -27,7 +27,7 @@ body {
     z-index: 1;
     text-align: center;
     padding: 60px 20px; /* Adjusted for better spacing */
-    color: white;
+    color: rgb(247, 0, 0);
     margin-top: 120px!important;
 }
 
