@@ -127,7 +127,8 @@ body.league-services .ls-new-section-top .game-selection {
 
     body.league-services .ls-new-section-top .game-selection {
         gap: 15px;
-        margin-top: 5px;
+        margin-top: -50px;
+        
     }
 }
 
