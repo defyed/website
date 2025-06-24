@@ -181,19 +181,37 @@ body {
     color: #ddd;
     text-shadow: 1px 1px 2px black;
 }
-/* Scrollable testimonials */
-.ls-testimonials .testimonial-scroll {
-    display: flex;
-    flex-direction: row;
-    gap: 20px;
-    overflow-x: auto;
-    padding: 10px;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
+.testimonial-marquee {
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+    padding: 10px 0;
 }
 
-.ls-testimonials .ls-testimonial-card {
+.testimonial-track {
+    display: flex;
+    gap: 20px;
+    animation: scroll-testimonials 60s linear infinite;
+    width: max-content;
+}
+
+.ls-testimonial-card {
     flex: 0 0 auto;
-    min-width: 250px;
+    min-width: 280px;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    border-radius: 10px;
+    margin: 0;
+    transition: transform 0.3s ease;
     scroll-snap-align: start;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+@keyframes scroll-testimonials {
+    0% {
+        transform: translateX(0%);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
 }
