@@ -8,94 +8,7 @@
         window.location.href = '/league-services.html';
         return;
     }
-// Panel show/hide functions
-function showPanel(id) {
-    document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
-    const panel = document.getElementById(id);
-    if (panel) panel.style.display = 'flex';
-}
 
-function hidePanel(id) {
-    const panel = document.getElementById(id);
-    if (panel) panel.style.display = 'none';
-}
-
-// Coach Profile Panel
-document.getElementById('coach-profile-link').addEventListener('click', async () => {
-    showPanel('coach-profile-panel');
-    try {
-        const res = await fetch('/api/coach-profile', {
-            headers: {
-                'x-user-id': userId,
-                'x-user-role': role
-            }
-        });
-        const profile = await res.json();
-        document.getElementById('game-type').value = profile.game_type || '';
-        document.getElementById('coach-bio').value = profile.bio || '';
-        document.getElementById('coach-rate').value = profile.price_per_hour || '';
-    } catch {
-        document.getElementById('coach-profile-status').textContent = 'Failed to load profile.';
-    }
-});
-
-document.getElementById('coach-profile-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const payload = {
-        userId,
-        role,
-        game_type: document.getElementById('game-type').value,
-        bio: document.getElementById('coach-bio').value,
-        price_per_hour: document.getElementById('coach-rate').value
-    };
-    const res = await fetch('/api/coach-profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    });
-    const msg = await res.json();
-    document.getElementById('coach-profile-status').textContent = msg.success ? 'Profile saved!' : 'Error saving.';
-});
-
-// Coaching Orders Panel
-document.getElementById('coaching-orders-link').addEventListener('click', async () => {
-    showPanel('coaching-orders-panel');
-    try {
-        const res = await fetch('/api/my-coaching-orders', {
-            headers: {
-                'x-user-id': userId,
-                'x-user-role': role
-            }
-        });
-        const orders = await res.json();
-        const container = document.getElementById('coaching-orders');
-        if (orders.length === 0) {
-            container.innerHTML = '<p>No coaching orders found.</p>';
-            return;
-        }
-        container.innerHTML = '<table class="orders-table"><thead><tr><th>Order ID</th><th>Customer</th><th>Hours</th><th>Price</th><th>Status</th><th>Created</th></tr></thead><tbody>' +
-            orders.map(o => `
-            <tr>
-              <td>${o.order_id}</td>
-              <td>${o.customer_username}</td>
-              <td>${o.booked_hours}</td>
-              <td>$${parseFloat(o.price).toFixed(2)}</td>
-              <td>${o.status}</td>
-              <td>${new Date(o.created_at).toLocaleString()}</td>
-            </tr>
-          `).join('') + '</tbody></table>';
-    } catch (err) {
-        document.getElementById('coaching-orders').innerHTML = 'Error loading coaching orders.';
-    }
-});
-
-document.getElementById('close-coach-profile').addEventListener('click', () => {
-    hidePanel('coach-profile-panel');
-});
-
-document.getElementById('close-coaching-orders').addEventListener('click', () => {
-    hidePanel('coaching-orders-panel');
-});
     // Flag to prevent multiple fetch calls
     let isFetchingAvailableOrders = false;
     // Store user balance globally
@@ -178,12 +91,6 @@ document.getElementById('close-coaching-orders').addEventListener('click', () =>
                 if (payoutManagementLink) payoutManagementLink.style.display = 'block';
                 if (adminPanelLink) adminPanelLink.style.display = 'block';
                 console.log('All buttons set to display: block for admin');
-                } else if (role === 'coach') {
-    console.log('Showing coach buttons');
-    const coachProfileLink = document.getElementById('coach-profile-link');
-    const coachingOrdersLink = document.getElementById('coaching-orders-link');
-    if (coachProfileLink) coachProfileLink.style.display = 'block';
-    if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
             } else {
                 // Customer role (default)
                 console.log('Showing customer buttons');
@@ -344,7 +251,7 @@ document.getElementById('close-coaching-orders').addEventListener('click', () =>
                          <option value="booster" ${user.role === 'booster' ? 'selected' : ''}>Booster</option>
                         <option value="coach" ${user.role === 'coach' ? 'selected' : ''}>Coach</option>
                         <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
-                    </select>
+            </select>
 
                     </td>
                 `;
@@ -1569,47 +1476,38 @@ document.getElementById('close-coaching-orders').addEventListener('click', () =>
         localStorage.removeItem('role');
         window.location.href = '/league-services.html';
     }
-    document.getElementById('coach-profile-link').addEventListener('click', async () => {
-  showPanel('coach-profile-panel');
+    document.getElementById('coaching-orders-link').addEventListener('click', async () => {
+  showPanel('coaching-orders-panel');
   try {
-    const res = await fetch('/api/coach-profile', {
-          headers: {
-            'x-user-id': userId,
-            'x-user-role': role
-          }
-        });
-    const profile = await res.json();
-    document.getElementById('game-type').value = profile.game_type || '';
-    document.getElementById('coach-bio').value = profile.bio || '';
-    document.getElementById('coach-rate').value = profile.price_per_hour || '';
-  } catch {
-    document.getElementById('coach-profile-status').textContent = 'Failed to load profile.';
+    const res = await fetch('/api/my-coaching-orders');
+    const orders = await res.json();
+
+    const container = document.getElementById('coaching-orders');
+    if (orders.length === 0) {
+      container.innerHTML = '<p>No coaching orders found.</p>';
+      return;
+    }
+
+    container.innerHTML = '<table class="orders-table"><thead><tr><th>Order ID</th><th>Customer</th><th>Hours</th><th>Price</th><th>Status</th><th>Created</th></tr></thead><tbody>' +
+      orders.map(o => `
+        <tr>
+          <td>${o.order_id}</td>
+          <td>${o.customer_username}</td>
+          <td>${o.booked_hours}</td>
+          <td>$${parseFloat(o.price).toFixed(2)}</td>
+          <td>${o.status}</td>
+          <td>${new Date(o.created_at).toLocaleString()}</td>
+        </tr>
+      `).join('') + '</tbody></table>';
+  } catch (err) {
+    document.getElementById('coaching-orders').innerHTML = 'Error loading coaching orders.';
   }
 });
 
-document.getElementById('coach-profile-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const payload = {
-    game_type: document.getElementById('game-type').value,
-    bio: document.getElementById('coach-bio').value,
-    price_per_hour: document.getElementById('coach-rate').value
-  };
-
-  const res = await fetch('/api/coach-profile', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-
-  const msg = await res.json();
-  document.getElementById('coach-profile-status').textContent = msg.success ? 'Profile saved!' : 'Error saving.';
+document.getElementById('close-coaching-orders').addEventListener('click', () => {
+  hidePanel('coaching-orders-panel');
 });
 
-document.getElementById('close-coach-profile').addEventListener('click', () => {
-  hidePanel('coach-profile-panel');
-});
-
-   
 
     document.addEventListener('DOMContentLoaded', () => {
         console.log('DOMContentLoaded event fired');
