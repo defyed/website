@@ -3,76 +3,32 @@ body {
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #0b0b0f;
+    background-color: #13171F !important;
+    background-image: linear-gradient(to right, rgba(19, 23, 31, 0.8), rgba(19, 23, 31, 0)), url('images/peakpx.png');
     color: #f5f5f5;
 }
 
-/* Button Row (adapted from styles.css .button-container) */
+
+/* Button Row */
 .button-row {
     display: flex;
-    flex-direction: row;
     justify-content: center;
-    align-items: center;
-    width: 100%;
-    gap: 20px;
-    margin: 70px 0; /* Updated from 40px to match styles.css */
+    gap: 15px;
+    margin: 40px 0;
 }
 
-/* Button Styles (adapted from styles.css .button1, .button2, .button3) */
 .button-row a {
-    border: none;
+    background-color: #1c1c25;
+    color: #fff;
+    padding: 12px 28px;
     border-radius: 8px;
-    color: white;
-    padding: 15px 32px; /* Updated from 12px 28px */
-    font-size: large;
-    text-align: center;
-    width: 220px; /* Matches styles.css */
-    cursor: pointer;
     text-decoration: none;
     font-weight: bold;
-    transition: opacity 0.3s ease-in-out, color 0.3s ease-in-out, transform 0.3s ease; /* Updated transitions */
+    transition: background-color 0.3s ease;
 }
 
-/* Individual Button Styles */
-.button-row a:nth-child(1) { /* Boosters */
-    background-color: rgb(0, 98, 255); /* Matches .button1 */
-}
-
-.button-row a:nth-child(1):hover {
-    opacity: 0.8;
-    color: rgb(255, 255, 255);
-    transform: scale(1.05);
-    text-decoration: none;
-}
-
-.button-row a:nth-child(2) { /* Coaching */
-    background-color: rgb(235, 42, 42); /* Matches .button2 */
-}
-
-.button-row a:nth-child(2):hover {
-    opacity: 0.8;
-    color: rgb(255, 255, 255);
-    transform: scale(1.05);
-    text-decoration: none;
-}
-
-.button-row a:nth-child(3) { /* Sign In */
-    background-color: rgb(63, 63, 63); /* Matches .button3 */
-}
-
-.button-row a:nth-child(3):hover {
-    opacity: 0.8;
-    color: rgb(255, 255, 255);
-    transform: scale(1.05);
-    text-decoration: none;
-}
-
-/* Responsive adjustments (from styles.css) */
-@media (max-width: 768px) {
-    .button-row {
-        flex-direction: column;
-        gap: 15px;
-    }
+.button-row a:hover {
+    background-color: #29293d;
 }
 
 /* Panels */
