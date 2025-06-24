@@ -23,6 +23,8 @@
             <li><a href="#" id="orders-link">📋Orders</a></li>
             <li><a href="#" id="available-orders-link">🔍Available Orders</a></li>
             <li><a href="#" id="working-orders-link">⚙️My Working Orders</a></li>
+            <li><a href="#" id="coach-profile-link">📝Edit Coach Profile</a></li>
+            <li><a href="#" id="coaching-orders-link">🎓My Coaching Orders</a></li>
             <li><a href="#" id="completed-orders-link">✅Completed Orders</a></li>
             <li><a href="#" id="payout-history-link">💸Payout History</a></li>
             <li><a href="#" id="payout-management-link">🛠️Payout Management</a></li>
@@ -80,6 +82,13 @@
                     <div id="working-orders">Loading working orders...</div>
                     <button id="close-working-orders">Close</button>
                 </div>
+                
+                <div id="coaching-orders-panel" class="panel">
+  <h2>My Coaching Orders</h2>
+  <div id="coaching-orders">Loading coaching orders...</div>
+  <button id="close-coaching-orders" class="cancel-btn">Close</button>
+</div>
+
                 <div id="completed-orders-panel" class="panel">
                     <h2>Completed Orders</h2>
                     <div id="completed-orders">Loading completed orders...</div>
@@ -160,42 +169,5 @@
             </div>
         </div>
     </div>
-
-<!-- Coach Profile Panel -->
-<div id="coach-profile-panel" class="panel" style="display: none;">
-  <div class="panel-header">
-    <h2>Edit Coach Profile</h2>
-    <button id="close-coach-profile">X</button>
-  </div>
-  <form id="coach-profile-form" class="panel-body">
-    <label for="game-type">Game:</label>
-    <select id="game-type" required>
-      <option value="">Select a game</option>
-      <option value="League of Legends">League of Legends</option>
-      <option value="Valorant">Valorant</option>
-    </select>
-
-    <label for="coach-bio">Bio:</label>
-    <textarea id="coach-bio" rows="4" placeholder="Write something about your coaching style..." required></textarea>
-
-    <label for="coach-rate">Price per Hour ($):</label>
-    <input type="number" id="coach-rate" min="5" step="1" required />
-
-    <button type="submit">Save Profile</button>
-    <p id="coach-profile-status"></p>
-  </form>
-</div>
-
-<!-- Coaching Orders Panel -->
-<div id="coaching-orders-panel" class="panel" style="display: none;">
-  <div class="panel-header">
-    <h2>My Coaching Orders</h2>
-    <button id="close-coaching-orders">X</button>
-  </div>
-  <div id="coaching-orders" class="panel-body">
-    <p>Loading orders...</p>
-  </div>
-</div>
-
 </body>
 </html>

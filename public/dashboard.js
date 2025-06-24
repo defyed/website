@@ -8,7 +8,94 @@
         window.location.href = '/league-services.html';
         return;
     }
+// Panel show/hide functions
+function showPanel(id) {
+    document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
+    const panel = document.getElementById(id);
+    if (panel) panel.style.display = 'flex';
+}
 
+function hidePanel(id) {
+    const panel = document.getElementById(id);
+    if (panel) panel.style.display = 'none';
+}
+
+// Coach Profile Panel
+document.getElementById('coach-profile-link').addEventListener('click', async () => {
+    showPanel('coach-profile-panel');
+    try {
+        const res = await fetch('/api/coach-profile', {
+            headers: {
+                'x-user-id': userId,
+                'x-user-role': role
+            }
+        });
+        const profile = await res.json();
+        document.getElementById('game-type').value = profile.game_type || '';
+        document.getElementById('coach-bio').value = profile.bio || '';
+        document.getElementById('coach-rate').value = profile.price_per_hour || '';
+    } catch {
+        document.getElementById('coach-profile-status').textContent = 'Failed to load profile.';
+    }
+});
+
+document.getElementById('coach-profile-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {
+        userId,
+        role,
+        game_type: document.getElementById('game-type').value,
+        bio: document.getElementById('coach-bio').value,
+        price_per_hour: document.getElementById('coach-rate').value
+    };
+    const res = await fetch('/api/coach-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+    const msg = await res.json();
+    document.getElementById('coach-profile-status').textContent = msg.success ? 'Profile saved!' : 'Error saving.';
+});
+
+// Coaching Orders Panel
+document.getElementById('coaching-orders-link').addEventListener('click', async () => {
+    showPanel('coaching-orders-panel');
+    try {
+        const res = await fetch('/api/my-coaching-orders', {
+            headers: {
+                'x-user-id': userId,
+                'x-user-role': role
+            }
+        });
+        const orders = await res.json();
+        const container = document.getElementById('coaching-orders');
+        if (orders.length === 0) {
+            container.innerHTML = '<p>No coaching orders found.</p>';
+            return;
+        }
+        container.innerHTML = '<table class="orders-table"><thead><tr><th>Order ID</th><th>Customer</th><th>Hours</th><th>Price</th><th>Status</th><th>Created</th></tr></thead><tbody>' +
+            orders.map(o => `
+            <tr>
+              <td>${o.order_id}</td>
+              <td>${o.customer_username}</td>
+              <td>${o.booked_hours}</td>
+              <td>$${parseFloat(o.price).toFixed(2)}</td>
+              <td>${o.status}</td>
+              <td>${new Date(o.created_at).toLocaleString()}</td>
+            </tr>
+          `).join('') + '</tbody></table>';
+    } catch (err) {
+        document.getElementById('coaching-orders').innerHTML = 'Error loading coaching orders.';
+    }
+});
+
+document.getElementById('close-coach-profile').addEventListener('click', () => {
+    hidePanel('coach-profile-panel');
+});
+
+document.getElementById('close-coaching-orders').addEventListener('click', () => {
+    hidePanel('coaching-orders-panel');
+});
     // Flag to prevent multiple fetch calls
     let isFetchingAvailableOrders = false;
     // Store user balance globally
@@ -30,15 +117,7 @@
             const balanceDisplay = document.getElementById('balance-display');
             if (balanceDisplay) {
                 balanceDisplay.textContent = `Balance: $${data.balance.toFixed(2)}`;
-            
-        } else if (role === 'coach') {
-            console.log('Showing coach buttons');
-            const coachProfileLink = document.getElementById('coach-profile-link');
-            const coachingOrdersLink = document.getElementById('coaching-orders-link');
-            if (coachProfileLink) coachProfileLink.style.display = 'block';
-            if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
-    
-        } else {
+            } else {
                 console.error('Balance display element not found');
             }
         } catch (error) {
@@ -99,15 +178,13 @@
                 if (payoutManagementLink) payoutManagementLink.style.display = 'block';
                 if (adminPanelLink) adminPanelLink.style.display = 'block';
                 console.log('All buttons set to display: block for admin');
-            
-        } else if (role === 'coach') {
-            console.log('Showing coach buttons');
-            const coachProfileLink = document.getElementById('coach-profile-link');
-            const coachingOrdersLink = document.getElementById('coaching-orders-link');
-            if (coachProfileLink) coachProfileLink.style.display = 'block';
-            if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
-    
-        } else {
+                } else if (role === 'coach') {
+    console.log('Showing coach buttons');
+    const coachProfileLink = document.getElementById('coach-profile-link');
+    const coachingOrdersLink = document.getElementById('coaching-orders-link');
+    if (coachProfileLink) coachProfileLink.style.display = 'block';
+    if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
+            } else {
                 // Customer role (default)
                 console.log('Showing customer buttons');
                 if (ordersLink) ordersLink.style.display = 'block';
@@ -263,10 +340,12 @@
                     <td>${user.role}</td>
                     <td>
                         <select onchange="updateUserRole(${user.id}, this.value)">
-                            <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
-                            <option value="booster" ${user.role === 'booster' ? 'selected' : ''}>Booster</option>
-                            <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
-                        </select>
+                         <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
+                         <option value="booster" ${user.role === 'booster' ? 'selected' : ''}>Booster</option>
+                        <option value="coach" ${user.role === 'coach' ? 'selected' : ''}>Coach</option>
+                        <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                    </select>
+
                     </td>
                 `;
                 userTableBody.appendChild(row);
@@ -611,14 +690,6 @@
         if (payoutAmountInput) {
             payoutAmountInput.value = userBalance.toFixed(2);
             console.log('Pre-filled payout amount:', userBalance.toFixed(2));
-        
-        } else if (role === 'coach') {
-            console.log('Showing coach buttons');
-            const coachProfileLink = document.getElementById('coach-profile-link');
-            const coachingOrdersLink = document.getElementById('coaching-orders-link');
-            if (coachProfileLink) coachProfileLink.style.display = 'block';
-            if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
-    
         } else {
             console.warn('Payout amount input (#payout-amount) not found');
         }
@@ -904,26 +975,10 @@
                         summoner_name: credentials.summoner_name,
                         plaintext_password: credentials.plaintext_password ? '***' : 'N/A'
                     });
-                
-        } else if (role === 'coach') {
-            console.log('Showing coach buttons');
-            const coachProfileLink = document.getElementById('coach-profile-link');
-            const coachingOrdersLink = document.getElementById('coaching-orders-link');
-            if (coachProfileLink) coachProfileLink.style.display = 'block';
-            if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
-    
-        } else {
+                } else {
                     console.log('No credentials found for orderId:', order.order_id);
                 }
-            
-        } else if (role === 'coach') {
-            console.log('Showing coach buttons');
-            const coachProfileLink = document.getElementById('coach-profile-link');
-            const coachingOrdersLink = document.getElementById('coaching-orders-link');
-            if (coachProfileLink) coachProfileLink.style.display = 'block';
-            if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
-    
-        } else {
+            } else {
                 const errorData = await response.json();
                 console.error('Failed to fetch credentials:', errorData);
             }
@@ -971,14 +1026,6 @@
                 <input type="password" id="account-password" value="">
                 <button id="submit-credentials">Submit Credentials</button>
             `;
-        
-        } else if (role === 'coach') {
-            console.log('Showing coach buttons');
-            const coachProfileLink = document.getElementById('coach-profile-link');
-            const coachingOrdersLink = document.getElementById('coaching-orders-link');
-            if (coachProfileLink) coachProfileLink.style.display = 'block';
-            if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
-    
         } else {
             accountDetailsHtml += `
                 <label>Account Password:</label>
@@ -1061,14 +1108,6 @@
                     alert(`Failed to submit credentials: ${error.message}`);
                 }
             });
-        
-        } else if (role === 'coach') {
-            console.log('Showing coach buttons');
-            const coachProfileLink = document.getElementById('coach-profile-link');
-            const coachingOrdersLink = document.getElementById('coaching-orders-link');
-            if (coachProfileLink) coachProfileLink.style.display = 'block';
-            if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
-    
         } else {
             modal.querySelector('#toggle-password').addEventListener('click', () => {
                 const passwordField = modal.querySelector('#password-field');
@@ -1077,15 +1116,7 @@
                     passwordField.textContent = passwordField.dataset.password;
                     toggleButton.textContent = 'Hide Password';
                     console.log('Password revealed for orderId:', order.order_id);
-                
-        } else if (role === 'coach') {
-            console.log('Showing coach buttons');
-            const coachProfileLink = document.getElementById('coach-profile-link');
-            const coachingOrdersLink = document.getElementById('coaching-orders-link');
-            if (coachProfileLink) coachProfileLink.style.display = 'block';
-            if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
-    
-        } else {
+                } else {
                     passwordField.textContent = '********';
                     toggleButton.textContent = 'Show Password';
                     console.log('Password hidden for orderId:', order.order_id);
@@ -1194,14 +1225,6 @@
                     <th>Action</th>
                 </tr>
             `;
-        
-        } else if (role === 'coach') {
-            console.log('Showing coach buttons');
-            const coachProfileLink = document.getElementById('coach-profile-link');
-            const coachingOrdersLink = document.getElementById('coaching-orders-link');
-            if (coachProfileLink) coachProfileLink.style.display = 'block';
-            if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
-    
         } else {
             headers = `
                 <tr>
@@ -1238,15 +1261,7 @@
                 const desiredRankCapitalized = desired.rank.charAt(0).toUpperCase() + desired.rank.slice(1);
                 currentRankImgSrc = `/images/${currentRankCapitalized}_${currentDivision}_Rank.png`;
                 desiredRankImgSrc = `/images/${desiredRankCapitalized}_${desiredDivision}_Rank.png`;
-            
-        } else if (role === 'coach') {
-            console.log('Showing coach buttons');
-            const coachProfileLink = document.getElementById('coach-profile-link');
-            const coachingOrdersLink = document.getElementById('coaching-orders-link');
-            if (coachProfileLink) coachProfileLink.style.display = 'block';
-            if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
-    
-        } else {
+            } else {
                 currentRankImgSrc = `/images/${current.rank}.png`;
                 desiredRankImgSrc = `/images/${desired.rank}.png`;
             }
@@ -1315,15 +1330,7 @@
                         </button>
                     </td>
                 `;
-            
-        } else if (role === 'coach') {
-            console.log('Showing coach buttons');
-            const coachProfileLink = document.getElementById('coach-profile-link');
-            const coachingOrdersLink = document.getElementById('coaching-orders-link');
-            if (coachProfileLink) coachProfileLink.style.display = 'block';
-            if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
-    
-        } else {
+            } else {
                 rowData = `
                     <td>${orderIdHtml}</td>
                     <td>${detailsHtml}</td>
@@ -1494,15 +1501,7 @@
                         console.log('Row clicked for orderId:', orderId, 'Role:', userRole, 'Status:', order.status);
                         showOrderFormModal(order, userRole);
                     });
-                
-        } else if (role === 'coach') {
-            console.log('Showing coach buttons');
-            const coachProfileLink = document.getElementById('coach-profile-link');
-            const coachingOrdersLink = document.getElementById('coaching-orders-link');
-            if (coachProfileLink) coachProfileLink.style.display = 'block';
-            if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
-    
-        } else {
+                } else {
                     console.log('Skipping click handler for completed orderId:', orderId, 'in working orders');
                     row.style.cursor = 'not-allowed';
                 }
@@ -1570,38 +1569,47 @@
         localStorage.removeItem('role');
         window.location.href = '/league-services.html';
     }
-    document.getElementById('coaching-orders-link').addEventListener('click', async () => {
-  showPanel('coaching-orders-panel');
+    document.getElementById('coach-profile-link').addEventListener('click', async () => {
+  showPanel('coach-profile-panel');
   try {
-    const res = await fetch('/api/my-coaching-orders');
-    const orders = await res.json();
-
-    const container = document.getElementById('coaching-orders');
-    if (orders.length === 0) {
-      container.innerHTML = '<p>No coaching orders found.</p>';
-      return;
-    }
-
-    container.innerHTML = '<table class="orders-table"><thead><tr><th>Order ID</th><th>Customer</th><th>Hours</th><th>Price</th><th>Status</th><th>Created</th></tr></thead><tbody>' +
-      orders.map(o => `
-        <tr>
-          <td>${o.order_id}</td>
-          <td>${o.customer_username}</td>
-          <td>${o.booked_hours}</td>
-          <td>$${parseFloat(o.price).toFixed(2)}</td>
-          <td>${o.status}</td>
-          <td>${new Date(o.created_at).toLocaleString()}</td>
-        </tr>
-      `).join('') + '</tbody></table>';
-  } catch (err) {
-    document.getElementById('coaching-orders').innerHTML = 'Error loading coaching orders.';
+    const res = await fetch('/api/coach-profile', {
+          headers: {
+            'x-user-id': userId,
+            'x-user-role': role
+          }
+        });
+    const profile = await res.json();
+    document.getElementById('game-type').value = profile.game_type || '';
+    document.getElementById('coach-bio').value = profile.bio || '';
+    document.getElementById('coach-rate').value = profile.price_per_hour || '';
+  } catch {
+    document.getElementById('coach-profile-status').textContent = 'Failed to load profile.';
   }
 });
 
-document.getElementById('close-coaching-orders').addEventListener('click', () => {
-  hidePanel('coaching-orders-panel');
+document.getElementById('coach-profile-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const payload = {
+    game_type: document.getElementById('game-type').value,
+    bio: document.getElementById('coach-bio').value,
+    price_per_hour: document.getElementById('coach-rate').value
+  };
+
+  const res = await fetch('/api/coach-profile', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  const msg = await res.json();
+  document.getElementById('coach-profile-status').textContent = msg.success ? 'Profile saved!' : 'Error saving.';
 });
 
+document.getElementById('close-coach-profile').addEventListener('click', () => {
+  hidePanel('coach-profile-panel');
+});
+
+   
 
     document.addEventListener('DOMContentLoaded', () => {
         console.log('DOMContentLoaded event fired');
@@ -1699,14 +1707,6 @@ document.getElementById('close-coaching-orders').addEventListener('click', () =>
                 console.log('Join Discord button clicked');
                 window.open('https://discord.gg/XCS94bnaRc', '_blank');
             });
-        
-        } else if (role === 'coach') {
-            console.log('Showing coach buttons');
-            const coachProfileLink = document.getElementById('coach-profile-link');
-            const coachingOrdersLink = document.getElementById('coaching-orders-link');
-            if (coachProfileLink) coachProfileLink.style.display = 'block';
-            if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
-    
         } else {
             console.error('Join Discord button not found in #discord-panel');
         }
@@ -1719,14 +1719,6 @@ document.getElementById('close-coaching-orders').addEventListener('click', () =>
                 console.log('Settings button clicked');
                 window.location.href = '/account-settings.html';
             });
-        
-        } else if (role === 'coach') {
-            console.log('Showing coach buttons');
-            const coachProfileLink = document.getElementById('coach-profile-link');
-            const coachingOrdersLink = document.getElementById('coaching-orders-link');
-            if (coachProfileLink) coachProfileLink.style.display = 'block';
-            if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
-    
         } else {
             console.error('Settings button not found in #settings-panel');
         }
@@ -1739,14 +1731,6 @@ document.getElementById('close-coaching-orders').addEventListener('click', () =>
                 console.log('Order Now button clicked');
                 window.location.href = '/league-services.html';
             });
-        
-        } else if (role === 'coach') {
-            console.log('Showing coach buttons');
-            const coachProfileLink = document.getElementById('coach-profile-link');
-            const coachingOrdersLink = document.getElementById('coaching-orders-link');
-            if (coachProfileLink) coachProfileLink.style.display = 'block';
-            if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
-    
         } else {
             console.error('Order Now button not found in #order-boost-panel');
         }
@@ -1776,15 +1760,7 @@ document.getElementById('close-coaching-orders').addEventListener('click', () =>
                     console.log(`Close button clicked: ${button.id}`);
                     showDefaultPanels();
                 });
-            
-        } else if (role === 'coach') {
-            console.log('Showing coach buttons');
-            const coachProfileLink = document.getElementById('coach-profile-link');
-            const coachingOrdersLink = document.getElementById('coaching-orders-link');
-            if (coachProfileLink) coachProfileLink.style.display = 'block';
-            if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
-    
-        } else {
+            } else {
                 console.warn(`Close button not found: ${button.id}`);
             }
         });
