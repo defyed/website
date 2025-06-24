@@ -27,7 +27,7 @@ body {
     z-index: 1;
     text-align: center;
     padding: 60px 20px; /* Adjusted for better spacing */
-    color: rgb(247, 0, 0);
+    color: white;
     margin-top: 120px!important;
 }
 
@@ -115,6 +115,7 @@ body {
 }
 .ls-new-section-top{
      margin-top: -100px!important;
+      background: rgba(40, 40, 55, 0.85)!important;
 }
 /* Panels */
 .panel {
