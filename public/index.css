@@ -213,6 +213,20 @@ body {
     object-fit: contain;
     margin-bottom: 10px;
 }
+.service-card .ls-guarantees {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.service-card .ls-guarantees h3 {
+    margin-top: 0;
+}
+
+.service-card .ls-guarantees ul {
+    padding-left: 0;
+}
 
 
 
