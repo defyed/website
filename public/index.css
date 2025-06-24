@@ -237,6 +237,17 @@ body {
 .service-card.text-panel .ls-guarantees {
     text-align: center;
 }
+.service-card.text-panel {
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+}
+
+.service-card.text-panel .ls-guarantees {
+    background: none;
+    box-shadow: none;
+    padding: 0;
+}
 
 
 
