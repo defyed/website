@@ -1479,7 +1479,12 @@
     document.getElementById('coach-profile-link').addEventListener('click', async () => {
   showPanel('coach-profile-panel');
   try {
-    const res = await fetch('/api/coach-profile');
+    const res = await fetch('/api/coach-profile', {
+          headers: {
+            'x-user-id': userId,
+            'x-user-role': role
+          }
+        });
     const profile = await res.json();
     document.getElementById('game-type').value = profile.game_type || '';
     document.getElementById('coach-bio').value = profile.bio || '';
@@ -1514,7 +1519,12 @@ document.getElementById('close-coach-profile').addEventListener('click', () => {
     document.getElementById('coaching-orders-link').addEventListener('click', async () => {
   showPanel('coaching-orders-panel');
   try {
-    const res = await fetch('/api/my-coaching-orders');
+    const res = await fetch('/api/my-coaching-orders', {
+          headers: {
+            'x-user-id': userId,
+            'x-user-role': role
+          }
+        });
     const orders = await res.json();
 
     const container = document.getElementById('coaching-orders');
