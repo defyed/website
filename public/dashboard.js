@@ -178,7 +178,13 @@ document.getElementById('close-coaching-orders').addEventListener('click', () =>
                 if (payoutManagementLink) payoutManagementLink.style.display = 'block';
                 if (adminPanelLink) adminPanelLink.style.display = 'block';
                 console.log('All buttons set to display: block for admin');
-            } else {
+                } else if (role === 'coach') {
+                console.log('Showing coach buttons');
+                const coachProfileLink = document.getElementById('coach-profile-link');
+                const coachingOrdersLink = document.getElementById('coaching-orders-link');
+                if (coachProfileLink) coachProfileLink.style.display = 'block';
+                if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
+                } else {
                 // Customer role (default)
                 console.log('Showing customer buttons');
                 if (ordersLink) ordersLink.style.display = 'block';
