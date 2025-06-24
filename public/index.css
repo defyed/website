@@ -115,14 +115,14 @@ body {
 }
 .ls-new-section-top{
      margin-top: -100px!important;
-     background-color: rgba(25, 25, 34, 0.3)!important;
+     background-color: rgba(25, 25, 34, 0.5)!important;
 }
 /* Panels */
 .panel {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: rgba(25, 25, 34, 0.3);
+    background-color: rgba(25, 25, 34, 0.5);
     border-radius: 12px;
     margin: 30px auto;
     max-width: 1100px;
