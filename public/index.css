@@ -191,7 +191,7 @@ body {
 .testimonial-track {
     display: flex;
     gap: 20px;
-    animation: scroll-testimonials 60s linear infinite;
+    animation: scroll-testimonials 100s linear infinite;
     width: max-content;
 }
 
