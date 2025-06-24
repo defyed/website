@@ -15,7 +15,7 @@ body {
     background-image: 
         linear-gradient(to bottom, rgba(19, 23, 31, 0.9), rgba(19, 23, 31, 0)), 
         url('images/pageArt/bgimage.png'); /* Image path */
-    background-size: 80% auto; /* Scale image width to avoid being "massive" */
+    background-size: 100% auto; /* Scale image width to avoid being "massive" */
     background-position: center top; /* Center at top */
     background-repeat: no-repeat;
 }
