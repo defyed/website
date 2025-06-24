@@ -174,7 +174,8 @@
 
             sessionStorage.setItem('orderData', JSON.stringify(orderData));
             console.log('orderData before redirect:', JSON.stringify(orderData, null, 2));
-            window.location.href = '/checkout.html';
+            window.location.href = '/checkout';
+
         });
 
         const urlParams = new URLSearchParams(window.location.search);

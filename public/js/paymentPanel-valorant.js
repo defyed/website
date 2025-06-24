@@ -468,7 +468,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             debouncedUpdateTotalPrice();
-            window.location.href = '/checkout.html';
+            window.location.href = '/checkout';
+
         });
     }
 

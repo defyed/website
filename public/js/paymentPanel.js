@@ -570,7 +570,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             console.log('Proceeding to payment with validated inputs');
             debouncedUpdateTotalPrice();
-            window.location.href = '/checkout.html';
+            window.location.href = '/checkout';
+
         });
     } else {
         console.warn('Proceed payment button not found (.proceed-payment)');
