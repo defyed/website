@@ -63,10 +63,11 @@ h1 {
 }
 
 .card-header {
+    position: relative;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
+    padding: 10px;
 }
 
 .username-wrapper {
