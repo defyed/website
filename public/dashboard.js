@@ -1265,45 +1265,55 @@ function renderCoachingOrders(orders, containerId) {
         const tbody = table.querySelector('tbody');
 
         orders.forEach(order => {
-            if (!order || !order.order_id) {
-                console.warn('Skipping invalid order:', order);
-                return;
-            }
-            console.log('Processing order:', order.order_id, 'GameType:', order.game_type, 'CurrentRank:', order.current_rank, 'DesiredRank:', order.desired_rank);
-            const current = parseRank(order.current_rank || 'Unknown', order.game_type || 'League of Legends');
-            const desired = parseRank(order.desired_rank || 'Unknown', order.game_type || 'League of Legends');
+    if (!order || !order.order_id) {
+        console.warn('Skipping invalid order:', order);
+        return;
+    }
+    console.log('Processing order:', order.order_id, 'GameType:', order.game_type, 'CurrentRank:', order.currentRank, 'DesiredRank:', order.desiredRank);
 
-            const isValorant = (order.game_type || 'League of Legends') === 'Valorant';
-            let currentRankImgSrc, desiredRankImgSrc;
-            if (isValorant) {
-                const divisionMap = { 'I': '1', 'II': '2', 'III': '3', '': '0' };
-                const currentDivision = divisionMap[current.division] || '0';
-                const desiredDivision = divisionMap[desired.division] || '0';
-                const currentRankCapitalized = current.rank.charAt(0).toUpperCase() + current.rank.slice(1);
-                const desiredRankCapitalized = desired.rank.charAt(0).toUpperCase() + desired.rank.slice(1);
-                currentRankImgSrc = `/images/${currentRankCapitalized}_${currentDivision}_Rank.png`;
-                desiredRankImgSrc = `/images/${desiredRankCapitalized}_${desiredDivision}_Rank.png`;
-            } else {
-                currentRankImgSrc = `/images/${current.rank}.png`;
-                desiredRankImgSrc = `/images/${desired.rank}.png`;
-            }
+    // Use API-provided rank and division fields
+    const current = {
+        rank: order.currentRank.toLowerCase(),
+        division: order.currentDivision || '',
+        displayRank: order.currentRank.charAt(0).toUpperCase() + order.currentRank.slice(1)
+    };
+    const desired = {
+        rank: order.desiredRank.toLowerCase(),
+        division: order.desiredDivision || '',
+        displayRank: order.desiredRank.charAt(0).toUpperCase() + order.desiredRank.slice(1)
+    };
 
-            console.log('Image paths:', { current: currentRankImgSrc, desired: desiredRankImgSrc });
+    const isValorant = (order.game_type || 'League of Legends') === 'Valorant';
+    let currentRankImgSrc, desiredRankImgSrc;
+    if (isValorant) {
+        const divisionMap = { 'I': '1', 'II': '2', 'III': '3', '': '0' };
+        const currentDivision = divisionMap[current.division] || '0';
+        const desiredDivision = divisionMap[desired.division] || '0';
+        const currentRankCapitalized = current.displayRank;
+        const desiredRankCapitalized = desired.displayRank;
+        currentRankImgSrc = `/images/${currentRankCapitalized}_${currentDivision}_Rank.png`;
+        desiredRankImgSrc = `/images/${desiredRankCapitalized}_${desiredDivision}_Rank.png`;
+    } else {
+        currentRankImgSrc = `/images/${current.rank}.png`;
+        desiredRankImgSrc = `/images/${desired.rank}.png`;
+    }
 
-            const currentRankImg = `
-                <img src="${currentRankImgSrc}" alt="${current.displayRank} ${current.division}" class="rank-logo" onerror="console.warn('Image failed:', '${currentRankImgSrc}'); this.src='/images/fallback.png'">
-                ${current.division ? current.division : ''}
-            `;
-            const desiredRankHtml = `
-                <img src="${desiredRankImgSrc}" alt="${desired.displayRank} ${desired.division}" class="rank-logo" onerror="console.warn('Image failed:', '${desiredRankImgSrc}'); this.src='/images/fallback.png'">
-                ${desired.division ? desired.division : ''}
-            `;
-            const orderIdHtml = `
-                <button class="order-id-button" data-order-id="${order.order_id}">?</button>
-            `;
-            const detailsHtml = `
-                <button class="info-button" data-order-id="${order.order_id}">Info</button>
-            `;
+    console.log('Image paths:', { current: currentRankImgSrc, desired: desiredRankImgSrc });
+
+    const currentRankImg = `
+        <img src="${currentRankImgSrc}" alt="${current.displayRank} ${current.division}" class="rank-logo" onerror="console.warn('Image failed:', '${currentRankImgSrc}'); this.src='/images/fallback.png'">
+        ${current.displayRank} ${current.division ? current.division : ''}
+    `;
+    const desiredRankHtml = `
+        <img src="${desiredRankImgSrc}" alt="${desired.displayRank} ${desired.division}" class="rank-logo" onerror="console.warn('Image failed:', '${desiredRankImgSrc}'); this.src='/images/fallback.png'">
+        ${desired.displayRank} ${desired.division ? desired.division : ''}
+    `;
+    const orderIdHtml = `
+        <button class="order-id-button" data-order-id="${order.order_id}">?</button>
+    `;
+    const detailsHtml = `
+        <button class="info-button" data-order-id="${order.order_id}">Info</button>
+    `;
             const row = document.createElement('tr');
             row.dataset.orderId = order.order_id;
             let rowData = '';

@@ -655,109 +655,107 @@ app.post('/api/create-checkout-session', async (req, res) => {
         })
       };
     } else if (type === 'boost') {
-     const { currentRank, desiredRank, finalPrice, game, currentDivision, desiredDivision, currentLP, desiredLP, extras } = orderData;
+  const { currentRank, desiredRank, finalPrice, game, currentDivision, desiredDivision, currentLP, desiredLP, extras } = orderData;
   if (!currentRank || !desiredRank || !finalPrice) {
     console.error('Incomplete boost orderData:', orderData);
     return res.status(400).json({ error: 'Incomplete boost orderData' });
   }
-      const leagueRanks = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Emerald', 'Diamond', 'Master', 'Grandmaster', 'Challenger'];
-      const valorantRanks = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal', 'Radiant'];
-      const leagueDivisions = ['I', 'II', 'III', 'IV'];
-      const valorantDivisions = ['I', 'II', 'III'];
-      const gameType = game || 'League of Legends';
-      if (!['League of Legends', 'Valorant'].includes(gameType)) {
-        console.error('Invalid gameType:', gameType);
-        return res.status(400).json({ error: 'Invalid game type' });
-      }
-      const validRanks = gameType === 'Valorant' ? valorantRanks : leagueRanks;
-      const validDivisions = gameType === 'Valorant' ? valorantDivisions : leagueDivisions;
-      let normalizedCurrentRank = currentRank.includes(' ') ? currentRank.split(' ')[0] : currentRank;
-      let normalizedDesiredRank = desiredRank.includes(' ') ? desiredRank.split(' ')[0] : desiredRank;
-      if (!validRanks.includes(normalizedCurrentRank) || !validRanks.includes(normalizedDesiredRank)) {
-        console.error('Invalid ranks:', { currentRank: normalizedCurrentRank, desiredRank: normalizedDesiredRank, gameType });
-        return res.status(400).json({ error: 'Invalid rank' });
-      }
-      if (!['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedCurrentRank) && currentDivision && !validDivisions.includes(currentDivision)) {
-        console.warn('Invalid currentDivision:', currentDivision, 'Setting to default');
-        currentDivision = '';
-      }
-      if (!['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedDesiredRank) && desiredDivision && !validDivisions.includes(desiredDivision)) {
-        console.warn('Invalid desiredDivision:', desiredDivision, 'Setting to default');
-        desiredDivision = '';
-      }
-      const finalPriceParsed = parseFloat(finalPrice);
-      if (isNaN(finalPriceParsed) || finalPriceParsed <= 0) {
-        console.error('Invalid finalPrice:', finalPrice);
-        return res.status(400).json({ error: 'Invalid final price' });
-      }
-      if (['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedCurrentRank)) {
-        currentDivision = '';
-      }
-      if (['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedDesiredRank)) {
-        desiredDivision = '';
-      }
-      const abbreviateRank = (rank) => {
-        const abbreviations = {
-          'Ascendant': 'Asc', 'Immortal': 'Imm', 'Radiant': 'Rad',
-          'Challenger': 'Chal', 'Grandmaster': 'GM', 'Platinum': 'Plat',
-          'Diamond': 'Dia', 'Emerald': 'Em'
-        };
-        return abbreviations[rank] || rank.slice(0, 4);
-      };
-      let clientReference = {
-        currentRank: normalizedCurrentRank.slice(0, 10),
-        desiredRank: normalizedDesiredRank.slice(0, 10),
-        finalPrice: finalPriceParsed,
-        game: gameType,
-        currentDiv: (currentDivision || '').slice(0, 3),
-        desiredDiv: (desiredDivision || '').slice(0, 3)
-      };
-      let clientReferenceString = JSON.stringify(clientReference);
-      if (clientReferenceString.length > 190) {
-        clientReference.currentRank = abbreviateRank(normalizedCurrentRank);
-        clientReference.desiredRank = abbreviateRank(normalizedDesiredRank);
-        clientReferenceString = JSON.stringify(clientReference);
-      }
-      if (clientReferenceString.length > 200) {
-        console.error('client_reference_id too long:', clientReferenceString.length);
-        return res.status(400).json({ error: 'Order data too long' });
-      }
-      orderId = uuidv4();
-      const extrasMetadata = Array.isArray(extras) ? extras.map(e => e.label || '').join(', ') : '';
-      fullOrderData = {
-        type: 'boost',
-        currentRank: normalizedCurrentRank,
-        desiredRank: normalizedDesiredRank,
-        currentLP: currentLP || 0,
-        desiredLP: desiredLP || 0,
-        finalPrice: finalPriceParsed,
-        game: gameType,
-        extras: extras || []
-      };
-      sessionParams = {
-        payment_method_types: ['card'],
-        line_items: [{
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: `Rank Boost: ${normalizedCurrentRank} ${currentDivision || ''} to ${normalizedDesiredRank} ${desiredDivision || ''}`,
-              description: extrasMetadata || undefined
-            },
-            unit_amount: Math.round(finalPriceParsed * 100)
-          },
-          quantity: 1
-        }],
-        mode: 'payment',
-        success_url: `https://chboosting.com/confirmation?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `https://chboosting.com/checkout`,
-        metadata: {
-          userId: parsedUserId.toString(),
-          orderId,
-          extras: extrasMetadata,
-          fullOrderData: JSON.stringify(fullOrderData)
+  const leagueRanks = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Emerald', 'Diamond', 'Master', 'Grandmaster', 'Challenger'];
+  const valorantRanks = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal', 'Radiant'];
+  const leagueDivisions = ['I', 'II', 'III', 'IV'];
+  const valorantDivisions = ['I', 'II', 'III'];
+  const gameType = game || 'League of Legends';
+  if (!['League of Legends', 'Valorant'].includes(gameType)) {
+    console.error('Invalid gameType:', gameType);
+    return res.status(400).json({ error: 'Invalid game type' });
+  }
+  const validRanks = gameType === 'Valorant' ? valorantRanks : leagueRanks;
+  const validDivisions = gameType === 'Valorant' ? valorantDivisions : leagueDivisions;
+  let normalizedCurrentRank = currentRank.includes(' ') ? currentRank.split(' ')[0] : currentRank;
+  let normalizedDesiredRank = desiredRank.includes(' ') ? desiredRank.split(' ')[0] : desiredRank;
+  if (!validRanks.includes(normalizedCurrentRank) || !validRanks.includes(normalizedDesiredRank)) {
+    console.error('Invalid ranks:', { currentRank: normalizedCurrentRank, desiredRank: normalizedDesiredRank, gameType });
+    return res.status(400).json({ error: 'Invalid rank' });
+  }
+  let validatedCurrentDivision = currentDivision || '';
+  let validatedDesiredDivision = desiredDivision || '';
+  if (!['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedCurrentRank) && validatedCurrentDivision && !validDivisions.includes(validatedCurrentDivision)) {
+    console.warn('Invalid currentDivision:', validatedCurrentDivision, 'Setting to default');
+    validatedCurrentDivision = '';
+  }
+  if (!['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedDesiredRank) && validatedDesiredDivision && !validDivisions.includes(validatedDesiredDivision)) {
+    console.warn('Invalid desiredDivision:', validatedDesiredDivision, 'Setting to default');
+    validatedDesiredDivision = '';
+  }
+  const finalPriceParsed = parseFloat(finalPrice);
+  if (isNaN(finalPriceParsed) || finalPriceParsed <= 0) {
+    console.error('Invalid finalPrice:', finalPrice);
+    return res.status(400).json({ error: 'Invalid final price' });
+  }
+  const abbreviateRank = (rank) => {
+    const abbreviations = {
+      'Ascendant': 'Asc', 'Immortal': 'Imm', 'Radiant': 'Rad',
+      'Challenger': 'Chal', 'Grandmaster': 'GM', 'Platinum': 'Plat',
+      'Diamond': 'Dia', 'Emerald': 'Em'
+    };
+    return abbreviations[rank] || rank.slice(0, 4);
+  };
+  let clientReference = {
+    cRank: abbreviateRank(normalizedCurrentRank).slice(0, 10),
+    dRank: abbreviateRank(normalizedDesiredRank).slice(0, 10),
+    price: finalPriceParsed,
+    game: gameType === 'League of Legends' ? 'LoL' : 'Val',
+    cDiv: validatedCurrentDivision.slice(0, 3),
+    dDiv: validatedDesiredDivision.slice(0, 3)
+  };
+  let clientReferenceString = JSON.stringify(clientReference);
+  if (clientReferenceString.length > 190) {
+    clientReference.cRank = abbreviateRank(normalizedCurrentRank).slice(0, 4);
+    clientReference.dRank = abbreviateRank(normalizedDesiredRank).slice(0, 4);
+    clientReferenceString = JSON.stringify(clientReference);
+  }
+  if (clientReferenceString.length > 200) {
+    console.error('client_reference_id too long:', clientReferenceString.length);
+    return res.status(400).json({ error: 'Order data too long' });
+  }
+  orderId = uuidv4();
+  const extrasMetadata = Array.isArray(extras) ? extras.map(e => e.label || '').join(', ') : '';
+  fullOrderData = {
+    type: 'boost',
+    currentRank: normalizedCurrentRank,
+    desiredRank: normalizedDesiredRank,
+    currentDivision: validatedCurrentDivision,
+    desiredDivision: validatedDesiredDivision,
+    currentLP: currentLP || 0,
+    desiredLP: desiredLP || 0,
+    finalPrice: finalPriceParsed,
+    game: gameType,
+    extras: extras || []
+  };
+  sessionParams = {
+    payment_method_types: ['card'],
+    line_items: [{
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: `Rank Boost: ${normalizedCurrentRank} ${validatedCurrentDivision} to ${normalizedDesiredRank} ${validatedDesiredDivision}`,
+          description: extrasMetadata || undefined
         },
-        client_reference_id: clientReferenceString
-      };
+        unit_amount: Math.round(finalPriceParsed * 100)
+      },
+      quantity: 1
+    }],
+    mode: 'payment',
+    success_url: `https://chboosting.com/confirmation?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `https://chboosting.com/checkout`,
+    metadata: {
+      userId: parsedUserId.toString(),
+      orderId,
+      extras: extrasMetadata,
+      fullOrderData: JSON.stringify(fullOrderData)
+    },
+    client_reference_id: clientReferenceString
+  };
     } else {
       console.error('Invalid type:', type);
       return res.status(400).json({ error: 'Invalid order type' });
@@ -779,8 +777,25 @@ app.get('/api/user-orders', authenticate, async (req, res) => {
       'SELECT order_id, current_rank, desired_rank, current_lp, desired_lp, price, status, cashback, DATE_FORMAT(created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at, extras, game_type FROM orders WHERE user_id = ?',
       [req.user.id]
     );
-    console.log(`Orders found for userId ${req.user.id}: ${rows.length}`, rows);
-    res.json(rows);
+    const orders = rows.map(row => {
+      const parseRank = (rank, gameType) => {
+        const highRanks = gameType === 'Valorant' ? ['Immortal', 'Radiant'] : ['Master', 'Grandmaster', 'Challenger'];
+        if (highRanks.includes(rank)) {
+          return { rank, division: '' };
+        }
+        const [baseRank, division] = rank.split(' ');
+        return { rank: baseRank || rank, division: division || '' };
+      };
+      return {
+        ...row,
+        currentRank: parseRank(row.current_rank, row.game_type).rank,
+        currentDivision: parseRank(row.current_rank, row.game_type).division,
+        desiredRank: parseRank(row.desired_rank, row.game_type).rank,
+        desiredDivision: parseRank(row.desired_rank, row.game_type).division
+      };
+    });
+    console.log(`Orders found for userId ${req.user.id}: ${orders.length}`, orders);
+    res.json(orders);
   } catch (error) {
     console.error('Error fetching user orders:', error.message);
     res.status(500).json({ error: 'Internal server error', details: error.message });
