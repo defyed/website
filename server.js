@@ -277,40 +277,14 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
 
         const [existingRows] = await connection.query('SELECT order_id FROM orders WHERE order_id = ?', [orderId]);
         if (existingRows.length > 0) {
-          await connection.query(
-            'UPDATE orders SET current_rank = ?, desired_rank = ?, current_lp = ?, desired_lp = ?, price = ?, status = ?, cashback = ?, game_type = ?, extras = ? WHERE order_id = ? AND user_id = ?',
-            [
-              currentRank,
-              desiredRank,
-              parseInt(orderData.currentLP) || 0,
-              parseInt(orderData.desiredLP) || 0,
-              price,
-              'Pending',
-              cashback,
-              gameType,
-              JSON.stringify(extras),
-              orderId,
-              parseInt(userId)
-            ]
-          );
+         await connection.query(
+    'UPDATE orders SET current_rank = ?, desired_rank = ?, current_lp = ?, desired_lp = ?, price = ?, status = ?, cashback = ?, game_type = ?, extras = ? WHERE order_id = ? AND user_id = ?',
+    );
         } else {
-          await connection.query(
-            'INSERT INTO orders (order_id, user_id, current_rank, desired_rank, current_lp, desired_lp, price, status, cashback, payout_status, game_type, extras) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [
-              orderId,
-              parseInt(userId),
-              currentRank,
-              desiredRank,
-              parseInt(orderData.currentLP) || 0,
-              parseInt(orderData.desiredLP) || 0,
-              price,
-              'Pending',
-              cashback,
-              'Pending',
-              gameType,
-              JSON.stringify(extras)
-            ]
-          );
+         await connection.query(
+    'INSERT INTO orders (order_id, user_id, current_rank, desired_rank, current_lp, desired_lp, price, status, cashback, payout_status, game_type, extras) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+
+    );
         }
 
         if (orderData.game === 'Coaching' && orderData.coachId && orderData.hours) {

@@ -66,6 +66,8 @@
             const payoutHistoryLink = document.getElementById('payout-history-link');
             const payoutManagementLink = document.getElementById('payout-management-link');
             const adminPanelLink = document.getElementById('admin-panel-link');
+            const coachingOrdersLink = document.getElementById('coaching-orders-link');
+            if (coachingOrdersLink) coachingOrdersLink.style.display = 'none';
             if (ordersLink) ordersLink.style.display = 'none';
             if (availableOrdersLink) availableOrdersLink.style.display = 'none';
             if (workingOrdersLink) workingOrdersLink.style.display = 'none';
@@ -91,12 +93,20 @@
                 if (payoutManagementLink) payoutManagementLink.style.display = 'block';
                 if (adminPanelLink) adminPanelLink.style.display = 'block';
                 console.log('All buttons set to display: block for admin');
+                if (role === 'coach') {
+    console.log('Showing coach buttons');
+    if (ordersLink) ordersLink.style.display = 'block';
+    if (payoutHistoryLink) payoutHistoryLink.style.display = 'block';
+    if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
+    console.log('Coach buttons set to display: block');
+}
             } else {
                 // Customer role (default)
                 console.log('Showing customer buttons');
                 if (ordersLink) ordersLink.style.display = 'block';
                 console.log('Customer buttons set to display: block');
             }
+            document.getElementById('coaching-orders-panel').style.display = ['coach', 'admin'].includes(role) ? 'block' : 'none';
             return role;
         } catch (error) {
             console.error('Error fetching user role:', error.message);
@@ -164,6 +174,98 @@
             document.getElementById('working-orders').innerHTML = '<p>Error loading working orders. Please try again later.</p>';
         }
     }
+
+    async function fetchCoachingOrders() {
+    try {
+        const response = await fetch(`/api/my-coaching-orders?userId=${userId}`);
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        const orders = await response.json();
+        renderCoachingOrders(orders, 'coaching-orders');
+    } catch (error) {
+        console.error('Error fetching coaching orders:', error.message);
+        document.getElementById('coaching-orders').innerHTML = '<p>Error loading coaching orders.</p>';
+    }
+}
+function renderCoachingOrders(orders, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (orders.length === 0) {
+        container.innerHTML = '<p>No coaching orders found.</p>';
+        return;
+    }
+
+    const table = document.createElement('table');
+    table.className = 'orders-table';
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Game</th>
+                <th>Hours</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    `;
+    const tbody = table.querySelector('tbody');
+
+    orders.forEach(order => {
+        const row = document.createElement('tr');
+        row.dataset.orderId = order.order_id;
+        row.innerHTML = `
+            <td><button class="order-id-button" data-order-id="${order.order_id}">?</button></td>
+            <td>${order.customer_username || 'N/A'} (${order.user_id})</td>
+            <td>${order.game_type || 'N/A'}</td>
+            <td>${order.booked_hours || 'N/A'}</td>
+            <td>$${parseFloat(order.price || 0).toFixed(2)}</td>
+            <td>${order.status || 'Pending'}</td>
+            <td>${new Date(order.created_at).toLocaleDateString()}</td>
+            <td><button class="complete-btn" data-order-id="${order.order_id}" ${order.status === 'Completed' ? 'disabled' : ''}>Complete</button></td>
+        `;
+        tbody.appendChild(row);
+    });
+
+    container.innerHTML = '';
+    container.appendChild(table);
+
+    document.querySelectorAll('.order-id-button').forEach(button => {
+        button.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const orderId = button.getAttribute('data-order-id');
+            showOrderIdModal(orderId);
+        });
+    });
+
+    document.querySelectorAll('.complete-btn').forEach(button => {
+        button.addEventListener('click', async function (e) {
+            e.stopPropagation();
+            const orderId = button.getAttribute('data-order-id');
+            if (confirm(`Mark coaching order ${orderId} as completed?`)) {
+                try {
+                    const response = await fetch('/api/complete-order', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ userId, orderId })
+                    });
+                    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                    alert('Coaching order marked as completed!');
+                    fetchCoachingOrders();
+                    fetchCompletedOrders();
+                } catch (error) {
+                    console.error('Error completing coaching order:', error.message);
+                    alert('Failed to complete coaching order.');
+                }
+            }
+        });
+    });
+}
 
     async function fetchCompletedOrders() {
         try {
@@ -1476,37 +1578,9 @@
         localStorage.removeItem('role');
         window.location.href = '/league-services.html';
     }
-    document.getElementById('coaching-orders-link').addEventListener('click', async () => {
-  showPanel('coaching-orders-panel');
-  try {
-    const res = await fetch('/api/my-coaching-orders');
-    const orders = await res.json();
+   
 
-    const container = document.getElementById('coaching-orders');
-    if (orders.length === 0) {
-      container.innerHTML = '<p>No coaching orders found.</p>';
-      return;
-    }
-
-    container.innerHTML = '<table class="orders-table"><thead><tr><th>Order ID</th><th>Customer</th><th>Hours</th><th>Price</th><th>Status</th><th>Created</th></tr></thead><tbody>' +
-      orders.map(o => `
-        <tr>
-          <td>${o.order_id}</td>
-          <td>${o.customer_username}</td>
-          <td>${o.booked_hours}</td>
-          <td>$${parseFloat(o.price).toFixed(2)}</td>
-          <td>${o.status}</td>
-          <td>${new Date(o.created_at).toLocaleString()}</td>
-        </tr>
-      `).join('') + '</tbody></table>';
-  } catch (err) {
-    document.getElementById('coaching-orders').innerHTML = 'Error loading coaching orders.';
-  }
-});
-
-document.getElementById('close-coaching-orders').addEventListener('click', () => {
-  hidePanel('coaching-orders-panel');
-});
+    
 
 
     document.addEventListener('DOMContentLoaded', () => {
