@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function renderCoaches(coaches) {
         coachesContainer.innerHTML = '';
         coaches.forEach(coach => {
-            if (!hasMeaningfulProfile(coach) && coach.user_id !== parseInt(userId)) {
+            if (!hasMeaningfulProfile(coach) && coach.id !== parseInt(userId)) {
                 return;
             }
 
@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             coachCard.appendChild(footer);
 
-            if (['admin', 'coach'].includes(userRole) && coach.user_id == userId) {
+            if (['admin', 'coach'].includes(userRole) && coach.id == userId) {
                 const editBtn = document.createElement('button');
                 editBtn.className = 'edit-coach-btn';
                 editBtn.textContent = 'Edit Profile';
@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const purchaseBtn = document.createElement('button');
                 purchaseBtn.className = 'purchase-coach-btn';
                 purchaseBtn.textContent = 'Book Coaching Session';
-                purchaseBtn.dataset.id = coach.user_id;
+                purchaseBtn.dataset.id = coach.id;
                 purchaseSection.appendChild(hoursLabel);
                 purchaseSection.appendChild(hoursSelect);
                 purchaseSection.appendChild(totalPrice);

@@ -610,6 +610,15 @@ app.post('/api/create-checkout-session', async (req, res) => {
         console.error('Incomplete coaching orderData:', orderData);
         return res.status(400).json({ error: 'Missing coaching order fields' });
       }
+      // Add coach validation
+  const [coachRows] = await pool.query('SELECT id, username FROM users WHERE id = ? AND role = "coach"', [validatedCoachId]);
+  if (!coachRows.length) {
+    console.error('Coach not found:', validatedCoachId);
+    return res.status(400).json({ error: 'Coach not found' });
+  }
+  if (coachRows[0].username !== validatedCoachName) {
+    console.warn('Coach name mismatch:', { expected: coachRows[0].username, received: validatedCoachName });
+  }
       if (!['League of Legends', 'Valorant'].includes(validatedGame)) {
         console.error('Invalid game:', validatedGame);
         return res.status(400).json({ error: 'Invalid game type' });
