@@ -44,75 +44,75 @@
     }
 
     async function checkUserRole() {
-        try {
-            console.log('Checking role for userId:', userId);
-            const response = await fetch(`/api/user-role?userId=${userId}`);
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            const { role } = await response.json();
-            console.log('User role:', role);
-    const couponSection = document.getElementById('coupon-management');
-    if (couponSection) {
-        couponSection.style.display = (role === 'admin') ? 'block' : 'none';
-    }
+    try {
+        const response = await fetch(`/api/user-role?userId=${encodeURIComponent(userId)}`);
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        const { role } = await response.json();
+        localStorage.setItem('userRole', role);
 
+        // Hide all role-specific buttons by default
+        const ordersLink = document.getElementById('orders-link');
+        const availableOrdersLink = document.getElementById('available-orders-link');
+        const workingOrdersLink = document.getElementById('working-orders-link');
+        const completedOrdersLink = document.getElementById('completed-orders-link');
+        const payoutHistoryLink = document.getElementById('payout-history-link');
+        const payoutManagementLink = document.getElementById('payout-management-link');
+        const adminPanelLink = document.getElementById('admin-panel-link');
+        const coachingOrdersLink = document.getElementById('coaching-orders-link');
 
-            // Hide all role-specific buttons by default
-            const ordersLink = document.getElementById('orders-link');
-            const availableOrdersLink = document.getElementById('available-orders-link');
-            const workingOrdersLink = document.getElementById('working-orders-link');
-            const completedOrdersLink = document.getElementById('completed-orders-link');
-            const payoutHistoryLink = document.getElementById('payout-history-link');
-            const payoutManagementLink = document.getElementById('payout-management-link');
-            const adminPanelLink = document.getElementById('admin-panel-link');
-            const coachingOrdersLink = document.getElementById('coaching-orders-link');
-            if (coachingOrdersLink) coachingOrdersLink.style.display = 'none';
-            if (ordersLink) ordersLink.style.display = 'none';
-            if (availableOrdersLink) availableOrdersLink.style.display = 'none';
-            if (workingOrdersLink) workingOrdersLink.style.display = 'none';
-            if (completedOrdersLink) completedOrdersLink.style.display = 'none';
-            if (payoutHistoryLink) payoutHistoryLink.style.display = 'none';
-            if (payoutManagementLink) payoutManagementLink.style.display = 'none';
-            if (adminPanelLink) adminPanelLink.style.display = role === 'admin' ? 'block' : 'none';
+        // Safely hide links if they exist
+        if (ordersLink) ordersLink.style.display = 'none';
+        if (availableOrdersLink) availableOrdersLink.style.display = 'none';
+        if (workingOrdersLink) workingOrdersLink.style.display = 'none';
+        if (completedOrdersLink) completedOrdersLink.style.display = 'none';
+        if (payoutHistoryLink) payoutHistoryLink.style.display = 'none';
+        if (payoutManagementLink) payoutManagementLink.style.display = 'none';
+        if (adminPanelLink) adminPanelLink.style.display = 'none';
+        if (coachingOrdersLink) coachingOrdersLink.style.display = 'none';
 
-            if (role === 'booster') {
-                console.log('Showing booster buttons');
-                if (availableOrdersLink) availableOrdersLink.style.display = 'block';
-                if (workingOrdersLink) workingOrdersLink.style.display = 'block';
-                if (ordersLink) ordersLink.style.display = 'block';
-                if (payoutHistoryLink) payoutHistoryLink.style.display = 'block';
-                console.log('Booster buttons set to display: block');
-            } else if (role === 'admin') {
-                console.log('Showing all buttons for admin');
-                if (ordersLink) ordersLink.style.display = 'block';
-                if (availableOrdersLink) availableOrdersLink.style.display = 'block';
-                if (workingOrdersLink) workingOrdersLink.style.display = 'block';
-                if (completedOrdersLink) completedOrdersLink.style.display = 'block';
-                if (payoutHistoryLink) payoutHistoryLink.style.display = 'block';
-                if (payoutManagementLink) payoutManagementLink.style.display = 'block';
-                if (adminPanelLink) adminPanelLink.style.display = 'block';
-                console.log('All buttons set to display: block for admin');
-                if (role === 'coach') {
-    console.log('Showing coach buttons');
-    if (ordersLink) ordersLink.style.display = 'block';
-    if (payoutHistoryLink) payoutHistoryLink.style.display = 'block';
-    if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
-    console.log('Coach buttons set to display: block');
-}
-            } else {
-                // Customer role (default)
-                console.log('Showing customer buttons');
-                if (ordersLink) ordersLink.style.display = 'block';
-                console.log('Customer buttons set to display: block');
-            }
-            document.getElementById('coaching-orders-panel').style.display = ['coach', 'admin'].includes(role) ? 'block' : 'none';
-            return role;
-        } catch (error) {
-            console.error('Error fetching user role:', error.message);
-            return null;
+        if (role === 'booster') {
+            console.log('Showing booster buttons');
+            if (availableOrdersLink) availableOrdersLink.style.display = 'block';
+            if (workingOrdersLink) workingOrdersLink.style.display = 'block';
+            if (ordersLink) ordersLink.style.display = 'block';
+            if (payoutHistoryLink) payoutHistoryLink.style.display = 'block';
+            console.log('Booster buttons set to display: block');
+        } else if (role === 'admin') {
+            console.log('Showing all buttons for admin');
+            if (ordersLink) ordersLink.style.display = 'block';
+            if (availableOrdersLink) availableOrdersLink.style.display = 'block';
+            if (workingOrdersLink) workingOrdersLink.style.display = 'block';
+            if (completedOrdersLink) completedOrdersLink.style.display = 'block';
+            if (payoutHistoryLink) payoutHistoryLink.style.display = 'block';
+            if (payoutManagementLink) payoutManagementLink.style.display = 'block';
+            if (adminPanelLink) adminPanelLink.style.display = 'block';
+            if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
+            console.log('All buttons set to display: block for admin');
+        } else if (role === 'coach') {
+            console.log('Showing coach buttons');
+            if (ordersLink) ordersLink.style.display = 'block';
+            if (payoutHistoryLink) payoutHistoryLink.style.display = 'block';
+            if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
+            console.log('Coach buttons set to display: block');
+        } else {
+            // Customer role (default)
+            console.log('Showing customer buttons');
+            if (ordersLink) ordersLink.style.display = 'block';
+            console.log('Customer buttons set to display: block');
         }
+
+        // Initialize panel visibility (hide all panels except default)
+        document.querySelectorAll('.panel').forEach(panel => {
+            panel.style.display = 'none';
+        });
+        document.getElementById('orders-panel').style.display = 'block'; // Show default panel
+
+        return role;
+    } catch (error) {
+        console.error('Error fetching user role:', error.message);
+        return null;
     }
+}
 
     async function fetchUserOrders() {
         try {
