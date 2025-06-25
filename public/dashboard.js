@@ -43,73 +43,73 @@
         }
     }
 
-    async function checkUserRole() {
-        try {
-            const response = await fetch(`/api/user-role?userId=${encodeURIComponent(userId)}`);
-            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-            const { role } = await response.json();
-            localStorage.setItem('userRole', role);
+   async function checkUserRole() {
+    try {
+        const response = await fetch(`/api/user-role?userId=${encodeURIComponent(userId)}`);
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        const { role } = await response.json();
+        localStorage.setItem('userRole', role);
 
-            // Hide all role-specific buttons by default
-            const ordersLink = document.getElementById('orders-link');
-            const availableOrdersLink = document.getElementById('available-orders-link');
-            const workingOrdersLink = document.getElementById('working-orders-link');
-            const completedOrdersLink = document.getElementById('completed-orders-link');
-            const payoutHistoryLink = document.getElementById('payout-history-link');
-            const payoutManagementLink = document.getElementById('payout-management-link');
-            const adminPanelLink = document.getElementById('admin-panel-link');
-            const coachingOrdersLink = document.getElementById('coaching-orders-link');
+        // Hide all role-specific buttons by default
+        const ordersLink = document.getElementById('orders-link');
+        const availableOrdersLink = document.getElementById('available-orders-link');
+        const workingOrdersLink = document.getElementById('working-orders-link');
+        const completedOrdersLink = document.getElementById('completed-orders-link');
+        const payoutHistoryLink = document.getElementById('payout-history-link');
+        const payoutManagementLink = document.getElementById('payout-management-link');
+        const adminPanelLink = document.getElementById('admin-panel-link');
+        const coachingOrdersLink = document.getElementById('coaching-orders-link');
 
-            // Debug log
-            console.log('coachingOrdersLink exists:', !!coachingOrdersLink);
+        // Debug log
+        console.log('coachingOrdersLink exists:', !!coachingOrdersLink);
 
-            // Safely hide links
-            if (ordersLink) ordersLink.style.display = 'none';
-            if (availableOrdersLink) availableOrdersLink.style.display = 'none';
-            if (workingOrdersLink) workingOrdersLink.style.display = 'none';
-            if (completedOrdersLink) completedOrdersLink.style.display = 'none';
-            if (payoutHistoryLink) payoutHistoryLink.style.display = 'none';
-            if (payoutManagementLink) payoutManagementLink.style.display = 'none';
-            if (adminPanelLink) adminPanelLink.style.display = 'none';
-            if (coachingOrdersLink) coachingOrdersLink.style.display = 'none';
+        // Safely hide links
+        if (ordersLink) ordersLink.style.display = 'none';
+        if (availableOrdersLink) availableOrdersLink.style.display = 'none';
+        if (workingOrdersLink) workingOrdersLink.style.display = 'none';
+        if (completedOrdersLink) completedOrdersLink.style.display = 'none';
+        if (payoutHistoryLink) payoutHistoryLink.style.display = 'none';
+        if (payoutManagementLink) payoutManagementLink.style.display = 'none';
+        if (adminPanelLink) adminPanelLink.style.display = 'none';
+        if (coachingOrdersLink) coachingOrdersLink.style.display = 'none';
 
-            if (role === 'booster') {
-                console.log('Showing booster buttons');
-                if (availableOrdersLink) availableOrdersLink.style.display = 'block';
-                if (workingOrdersLink) workingOrdersLink.style.display = 'block';
-                if (ordersLink) ordersLink.style.display = 'block';
-                if (payoutHistoryLink) payoutHistoryLink.style.display = 'block';
-                console.log('Booster buttons set to display: block');
-            } else if (role === 'admin') {
-                console.log('Showing all buttons for admin');
-                if (ordersLink) ordersLink.style.display = 'block';
-                if (availableOrdersLink) availableOrdersLink.style.display = 'block';
-                if (workingOrdersLink) workingOrdersLink.style.display = 'block';
-                if (completedOrdersLink) completedOrdersLink.style.display = 'block';
-                if (payoutHistoryLink) payoutHistoryLink.style.display = 'block';
-                if (payoutManagementLink) payoutManagementLink.style.display = 'block';
-                if (adminPanelLink) adminPanelLink.style.display = 'block';
-                if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
-                console.log('All buttons set to display: block for admin');
-            } else if (role === 'coach') {
-                console.log('Showing coach buttons');
-                if (ordersLink) ordersLink.style.display = 'block';
-                if (payoutHistoryLink) payoutHistoryLink.style.display = 'block';
-                if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
-                console.log('Coach buttons set to display: block');
-            } else {
-                // Customer role (default)
-                console.log('Showing customer buttons');
-                if (ordersLink) ordersLink.style.display = 'block';
-                console.log('Customer buttons set to display: block');
-            }
-
-            return role;
-        } catch (error) {
-            console.error('Error fetching user role:', error.message);
-            return null;
+        if (role === 'booster') {
+            console.log('Showing booster buttons');
+            if (availableOrdersLink) availableOrdersLink.style.display = 'block';
+            if (workingOrdersLink) workingOrdersLink.style.display = 'block';
+            if (ordersLink) ordersLink.style.display = 'block';
+            if (payoutHistoryLink) payoutHistoryLink.style.display = 'block';
+            console.log('Booster buttons set to display: block');
+        } else if (role === 'admin') {
+            console.log('Showing all buttons for admin');
+            if (ordersLink) ordersLink.style.display = 'block';
+            if (availableOrdersLink) availableOrdersLink.style.display = 'block';
+            if (workingOrdersLink) workingOrdersLink.style.display = 'block';
+            if (completedOrdersLink) completedOrdersLink.style.display = 'block';
+            if (payoutHistoryLink) payoutHistoryLink.style.display = 'block';
+            if (payoutManagementLink) payoutManagementLink.style.display = 'block';
+            if (adminPanelLink) adminPanelLink.style.display = 'block';
+            if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
+            console.log('All buttons set to display: block for admin');
+        } else if (role === 'coach') {
+            console.log('Showing coach buttons');
+            if (ordersLink) ordersLink.style.display = 'block';
+            if (payoutHistoryLink) payoutHistoryLink.style.display = 'block';
+            if (coachingOrdersLink) coachingOrdersLink.style.display = 'block';
+            console.log('Coach buttons set to display: block');
+        } else {
+            // Customer role (default)
+            console.log('Showing customer buttons');
+            if (ordersLink) ordersLink.style.display = 'block';
+            console.log('Customer buttons set to display: block');
         }
+
+        return role;
+    } catch (error) {
+        console.error('Error fetching user role:', error.message);
+        return null;
     }
+}
 
     async function fetchUserOrders() {
         try {
@@ -128,94 +128,82 @@
         }
     }
 
-    async function fetchAvailableOrders() {
-        if (isFetchingAvailableOrders) {
-            console.log('fetchAvailableOrders already in progress, skipping');
-            return;
-        }
-        isFetchingAvailableOrders = true;
-        try {
-            console.log('Fetching available orders for userId:', userId);
-            const response = await fetch(`/api/available-orders?userId=${userId}`, {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-            });
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`);
-            }
-            const orders = await response.json();
-            console.log('Available orders received:', orders);
-            orders.forEach(order => {
-                console.log(`Order ${order.order_id}: current_rank=${order.current_rank}, desired_rank=${order.desired_rank}, game_type=${order.game_type}`);
-            });
-            renderOrders(orders, 'available-orders', true);
-        } catch (error) {
-            console.error('Error fetching available orders:', error.message);
-            document.getElementById('available-orders').innerHTML = '<p>Error loading available orders. Please try again later.</p>';
-        } finally {
-            isFetchingAvailableOrders = false;
-        }
+     async function fetchAvailableOrders() {
+    if (isFetchingAvailableOrders) {
+      console.log('fetchAvailableOrders already in progress, skipping');
+      return;
     }
-
-    async function fetchWorkingOrders() {
-        try {
-            console.log('Fetching working orders for userId:', userId);
-            const response = await fetch(`/api/working-orders?userId=${userId}`, {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-            });
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`);
-            }
-            const orders = await response.json();
-            console.log('Working orders received for userId:', userId, 'Orders:', orders);
-            renderOrders(orders, 'working-orders', false, true);
-        } catch (error) {
-            console.error('Error fetching working orders for userId:', userId, 'Error:', error.message);
-            document.getElementById('working-orders').innerHTML = '<p>Error loading working orders. Please try again later.</p>';
-        }
-    }
-
-    async function fetchCoachingOrders() {
+    isFetchingAvailableOrders = true;
     try {
-        const token = localStorage.getItem('token');
-        console.log('Fetching coaching orders for userId:', userId, 'Token:', token ? 'Present' : 'Missing');
-        const response = await fetch(`/api/user-orders?userId=${encodeURIComponent(userId)}&type=coaching`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            credentials: 'include'
-        });
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`);
-        }
-        const orders = await response.json();
-        console.log('Coaching orders received:', orders);
-        if (!Array.isArray(orders)) {
-            console.warn('Unexpected response format for coaching orders:', orders);
-            throw new Error('Invalid response format from server');
-        }
-        renderCoachingOrders(orders, 'coaching-orders');
+      console.log('Fetching available orders for userId:', userId);
+      const response = await fetch(`/api/available-orders?userId=${userId}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`);
+      }
+      const orders = await response.json();
+      console.log('Available orders received:', orders);
+      orders.forEach(order => {
+        console.log(`Order ${order.order_id}: current_rank=${order.current_rank}, desired_rank=${order.desired_rank}, game_type=${order.game_type}`);
+      });
+      renderOrders(orders, 'available-orders', true);
     } catch (error) {
-        console.error('Error fetching coaching orders:', error.message);
-        const container = document.getElementById('coaching-orders');
-        if (container) {
-            container.innerHTML = `<p style="color: red;">Failed to load coaching orders: ${error.message}. Please check your login status or try again later.</p>`;
-        }
+      console.error('Error fetching available orders:', error.message);
+      document.getElementById('available-orders').innerHTML = '<p>Error loading available orders. Please try again later.</p>';
+    } finally {
+      isFetchingAvailableOrders = false;
     }
-}
+  }
 
+   async function fetchWorkingOrders() {
+    try {
+      console.log('Fetching working orders for userId:', userId);
+      const response = await fetch(`/api/working-orders?userId=${userId}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`);
+      }
+      const orders = await response.json();
+      console.log('Working orders received for userId:', userId, 'Orders:', orders);
+      renderOrders(orders, 'working-orders', false, true);
+    } catch (error) {
+      console.error('Error fetching working orders for userId:', userId, 'Error:', error.message);
+      document.getElementById('working-orders').innerHTML = '<p>Error loading working orders. Please try again later.</p>';
+    }
+  }
+
+  async function fetchCoachingOrders() {
+    try {
+      console.log('Fetching coaching orders for userId:', userId);
+      const response = await fetch(`/api/my-coaching-orders?userId=${encodeURIComponent(userId)}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`);
+      }
+      const orders = await response.json();
+      console.log('Coaching orders received:', orders);
+      renderOrders(orders, 'coaching-orders', false, false, true);
+    } catch (error) {
+      console.error('Error fetching coaching orders:', error.message);
+      document.getElementById('coaching-orders').innerHTML = `<p style="color: red;">Failed to load coaching orders: ${error.message}</p>`;
+    }
+  }
 function renderCoachingOrders(orders, containerId) {
     const container = document.getElementById(containerId);
-    if (!container) {
-        console.error(`Error: ${containerId} container not found`);
-        return;
-    }
+    if (!container) return;
 
-    if (!Array.isArray(orders) || orders.length === 0) {
+    if (orders.length === 0) {
         container.innerHTML = '<p>No coaching orders found.</p>';
         return;
     }
@@ -227,7 +215,7 @@ function renderCoachingOrders(orders, containerId) {
             <tr>
                 <th>Order ID</th>
                 <th>Customer</th>
-                <th>Booster</th>
+                <th>Coach</th>
                 <th>Game</th>
                 <th>Hours</th>
                 <th>Price</th>
@@ -241,22 +229,18 @@ function renderCoachingOrders(orders, containerId) {
     const tbody = table.querySelector('tbody');
 
     orders.forEach(order => {
-        if (!order || !order.order_id) {
-            console.warn('Skipping invalid coaching order:', order);
-            return;
-        }
         const row = document.createElement('tr');
         row.dataset.orderId = order.order_id;
         row.innerHTML = `
             <td><button class="order-id-button" data-order-id="${order.order_id}">?</button></td>
-            <td>${order.customer_username || 'Unknown Customer'} (${order.user_id || 'N/A'})</td>
-            <td>${order.booster_username || 'Unassigned Booster'}</td>
-            <td>${order.game || 'N/A'}</td>
+            <td>${order.customer_username || 'N/A'} (${order.user_id})</td>
+            <td>${order.coach_name || 'N/A'}</td>
+            <td>${order.game_type || 'N/A'}</td>
             <td>${order.booked_hours || 'N/A'}</td>
             <td>$${parseFloat(order.total_price || 0).toFixed(2)}</td>
-            <td>${order.order_status || 'pending'}</td>
-            <td>${order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}</td>
-            <td><button class="complete-btn" data-order-id="${order.order_id}" ${order.order_status === 'completed' ? 'disabled' : ''}>Complete</button></td>
+            <td>${order.status || 'pending'}</td>
+            <td>${new Date(order.created_at).toLocaleDateString()}</td>
+            <td><button class="complete-btn" data-order-id="${order.order_id}" ${order.status === 'completed' ? 'disabled' : ''}>Complete</button></td>
         `;
         tbody.appendChild(row);
     });
@@ -281,26 +265,23 @@ function renderCoachingOrders(orders, containerId) {
                     const response = await fetch('/api/complete-order', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({ userId, orderId })
                     });
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
-                    }
+                    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
                     alert('Coaching order marked as completed!');
                     fetchCoachingOrders();
                     fetchCompletedOrders();
                 } catch (error) {
                     console.error('Error completing coaching order:', error.message);
-                    alert(`Failed to complete coaching order: ${error.message}`);
+                    alert('Failed to complete coaching order.');
                 }
             }
         });
     });
-}
+  }
+
 
     async function fetchCompletedOrders() {
         try {
@@ -384,11 +365,12 @@ function renderCoachingOrders(orders, containerId) {
                     <td>${user.role}</td>
                     <td>
                         <select onchange="updateUserRole(${user.id}, this.value)">
-                            <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
-                            <option value="booster" ${user.role === 'booster' ? 'selected' : ''}>Booster</option>
-                            <option value="coach" ${user.role === 'coach' ? 'selected' : ''}>Coach</option>
-                            <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
-                        </select>
+                         <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
+                         <option value="booster" ${user.role === 'booster' ? 'selected' : ''}>Booster</option>
+                        <option value="coach" ${user.role === 'coach' ? 'selected' : ''}>Coach</option>
+                        <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+            </select>
+
                     </td>
                 `;
                 userTableBody.appendChild(row);
@@ -506,6 +488,7 @@ function renderCoachingOrders(orders, containerId) {
                 lol_discount_percentage: isFinite(leagueDiscount) ? leagueDiscount : 0,
                 valorant_discount_percentage: isFinite(valorantDiscount) ? valorantDiscount : 0
             };
+
 
             if (!couponData.code || isNaN(couponData.lol_discount_percentage) || isNaN(couponData.valorant_discount_percentage)) {
                 alert('Please fill in all fields with valid values.');
@@ -1284,60 +1267,60 @@ function renderCoachingOrders(orders, containerId) {
         table.innerHTML = `<thead>${headers}</thead><tbody></tbody>`;
         const tbody = table.querySelector('tbody');
 
-        orders.forEach(order => {
-            if (!order || !order.order_id) {
-                console.warn('Skipping invalid order:', order);
-                return;
-            }
-            console.log('Processing order:', order.order_id, 'GameType:', order.game_type, 'CurrentRank:', order.currentRank, 'CurrentRankRaw:', order.current_rank, 'DesiredRank:', order.desiredRank, 'DesiredRankRaw:', order.desired_rank);
+       orders.forEach(order => {
+    if (!order || !order.order_id) {
+        console.warn('Skipping invalid order:', order);
+        return;
+    }
+    console.log('Processing order:', order.order_id, 'GameType:', order.game_type, 'CurrentRank:', order.currentRank, 'CurrentRankRaw:', order.current_rank, 'DesiredRank:', order.desiredRank, 'DesiredRankRaw:', order.desired_rank);
 
-            // Use API-provided split fields if available; otherwise, parse raw rank strings
-            const current = order.currentRank && order.currentDivision !== undefined
-                ? {
-                    rank: order.currentRank.toLowerCase(),
-                    division: order.currentDivision || '',
-                    displayRank: order.currentRank.charAt(0).toUpperCase() + order.currentRank.slice(1)
-                }
-                : parseRank(order.current_rank || 'Unknown', order.game_type || 'League of Legends');
-            const desired = order.desiredRank && order.desiredDivision !== undefined
-                ? {
-                    rank: order.desiredRank.toLowerCase(),
-                    division: order.desiredDivision || '',
-                    displayRank: order.desiredRank.charAt(0).toUpperCase() + order.desiredRank.slice(1)
-                }
-                : parseRank(order.desired_rank || 'Unknown', order.game_type || 'League of Legends');
+    // Use API-provided split fields if available; otherwise, parse raw rank strings
+    const current = order.currentRank && order.currentDivision !== undefined
+        ? {
+            rank: order.currentRank.toLowerCase(),
+            division: order.currentDivision || '',
+            displayRank: order.currentRank.charAt(0).toUpperCase() + order.currentRank.slice(1)
+        }
+        : parseRank(order.current_rank || 'Unknown', order.game_type || 'League of Legends');
+    const desired = order.desiredRank && order.desiredDivision !== undefined
+        ? {
+            rank: order.desiredRank.toLowerCase(),
+            division: order.desiredDivision || '',
+            displayRank: order.desiredRank.charAt(0).toUpperCase() + order.desiredRank.slice(1)
+        }
+        : parseRank(order.desired_rank || 'Unknown', order.game_type || 'League of Legends');
 
-            const isValorant = (order.game_type || 'League of Legends') === 'Valorant';
-            let currentRankImgSrc, desiredRankImgSrc;
-            if (isValorant) {
-                const divisionMap = { 'I': '1', 'II': '2', 'III': '3', '': '0' };
-                const currentDivision = divisionMap[current.division] || '0';
-                const desiredDivision = divisionMap[desired.division] || '0';
-                const currentRankCapitalized = current.displayRank;
-                const desiredRankCapitalized = desired.displayRank;
-                currentRankImgSrc = `/images/${currentRankCapitalized}_${currentDivision}_Rank.png`;
-                desiredRankImgSrc = `/images/${desiredRankCapitalized}_${desiredDivision}_Rank.png`;
-            } else {
-                currentRankImgSrc = `/images/${current.rank}.png`;
-                desiredRankImgSrc = `/images/${desired.rank}.png`;
-            }
+    const isValorant = (order.game_type || 'League of Legends') === 'Valorant';
+    let currentRankImgSrc, desiredRankImgSrc;
+    if (isValorant) {
+        const divisionMap = { 'I': '1', 'II': '2', 'III': '3', '': '0' };
+        const currentDivision = divisionMap[current.division] || '0';
+        const desiredDivision = divisionMap[desired.division] || '0';
+        const currentRankCapitalized = current.displayRank;
+        const desiredRankCapitalized = desired.displayRank;
+        currentRankImgSrc = `/images/${currentRankCapitalized}_${currentDivision}_Rank.png`;
+        desiredRankImgSrc = `/images/${desiredRankCapitalized}_${desiredDivision}_Rank.png`;
+    } else {
+        currentRankImgSrc = `/images/${current.rank}.png`;
+        desiredRankImgSrc = `/images/${desired.rank}.png`;
+    }
 
-            console.log('Image paths:', { current: currentRankImgSrc, desired: desiredRankImgSrc });
+    console.log('Image paths:', { current: currentRankImgSrc, desired: desiredRankImgSrc });
 
-            const currentRankImg = `
-                <img src="${currentRankImgSrc}" alt="${current.displayRank} ${current.division}" class="rank-logo" onerror="console.warn('Image failed:', '${currentRankImgSrc}'); this.src='/images/fallback.png'">
-                ${current.displayRank} ${current.division ? current.division : ''}
-            `;
-            const desiredRankHtml = `
-                <img src="${desiredRankImgSrc}" alt="${desired.displayRank} ${desired.division}" class="rank-logo" onerror="console.warn('Image failed:', '${desiredRankImgSrc}'); this.src='/images/fallback.png'">
-                ${desired.displayRank} ${desired.division ? desired.division : ''}
-            `;
-            const orderIdHtml = `
-                <button class="order-id-button" data-order-id="${order.order_id}">?</button>
-            `;
-            const detailsHtml = `
-                <button class="info-button" data-order-id="${order.order_id}">Info</button>
-            `;
+    const currentRankImg = `
+        <img src="${currentRankImgSrc}" alt="${current.displayRank} ${current.division}" class="rank-logo" onerror="console.warn('Image failed:', '${currentRankImgSrc}'); this.src='/images/fallback.png'">
+        ${current.displayRank} ${current.division ? current.division : ''}
+    `;
+    const desiredRankHtml = `
+        <img src="${desiredRankImgSrc}" alt="${desired.displayRank} ${desired.division}" class="rank-logo" onerror="console.warn('Image failed:', '${desiredRankImgSrc}'); this.src='/images/fallback.png'">
+        ${desired.displayRank} ${desired.division ? desired.division : ''}
+    `;
+    const orderIdHtml = `
+        <button class="order-id-button" data-order-id="${order.order_id}">?</button>
+    `;
+    const detailsHtml = `
+        <button class="info-button" data-order-id="${order.order_id}">Info</button>
+    `;
             const row = document.createElement('tr');
             row.dataset.orderId = order.order_id;
             let rowData = '';
@@ -1578,8 +1561,7 @@ function renderCoachingOrders(orders, containerId) {
             'completed-orders-panel',
             'payout-history-panel',
             'payout-management-panel',
-            'admin-panel',
-            'coaching-orders-panel'
+            'admin-panel'
         ];
         allPanels.forEach(id => {
             const panel = document.getElementById(id);
@@ -1606,8 +1588,7 @@ function renderCoachingOrders(orders, containerId) {
             'completed-orders-panel',
             'payout-history-panel',
             'payout-management-panel',
-            'admin-panel',
-            'coaching-orders-panel'
+            'admin-panel'
         ];
         const defaultPanels = ['account-balance-panel', 'order-boost-panel', 'discord-panel', 'settings-panel'];
         orderPanels.forEach(id => {
@@ -1627,6 +1608,10 @@ function renderCoachingOrders(orders, containerId) {
         localStorage.removeItem('role');
         window.location.href = '/league-services.html';
     }
+   
+
+    
+
 
     document.addEventListener('DOMContentLoaded', () => {
         console.log('DOMContentLoaded event fired');
@@ -1662,16 +1647,20 @@ function renderCoachingOrders(orders, containerId) {
                 fetchAvailableOrders();
             });
         }
-
-        if (document.getElementById('coaching-orders-link')) {
-            document.getElementById('coaching-orders-link').addEventListener('click', function (e) {
-                e.preventDefault();
-                console.log('Coaching orders link clicked');
-                showPanel('coaching-orders-panel');
-                fetchCoachingOrders();
-            });
+if (document.getElementById('coaching-orders-link')) {
+    document.getElementById('coaching-orders-link').addEventListener('click', function (e) {
+        e.preventDefault();
+        console.log('Coaching orders link clicked');
+        document.querySelectorAll('.panel').forEach(panel => panel.style.display = 'none');
+        const coachingPanel = document.getElementById('coaching-orders-panel');
+        if (coachingPanel) {
+            coachingPanel.style.display = 'block';
+            fetchCoachingOrders();
+        } else {
+            console.error('coaching-orders-panel not found');
         }
-
+    });
+}
         const workingOrdersLink = document.getElementById('working-orders-link');
         if (workingOrdersLink) {
             workingOrdersLink.addEventListener('click', (e) => {
@@ -1769,27 +1758,27 @@ function renderCoachingOrders(orders, containerId) {
             });
         }
 
-        const closeButtons = [
-            { id: 'close-orders', panel: 'orders-panel' },
-            { id: 'close-available-orders', panel: 'available-orders-panel' },
-            { id: 'close-working-orders', panel: 'working-orders-panel' },
-            { id: 'close-completed-orders', panel: 'completed-orders-panel' },
-            { id: 'close-payout-history', panel: 'payout-history-panel' },
-            { id: 'close-payout-management', panel: 'payout-management-panel' },
-            { id: 'close-coaching-orders', panel: 'coaching-orders-panel' }
-        ];
+       const closeButtons = [
+    { id: 'close-orders', panel: 'orders-panel' },
+    { id: 'close-available-orders', panel: 'available-orders-panel' },
+    { id: 'close-working-orders', panel: 'working-orders-panel' },
+    { id: 'close-completed-orders', panel: 'completed-orders-panel' },
+    { id: 'close-payout-history', panel: 'payout-history-panel' },
+    { id: 'close-payout-management', panel: 'payout-management-panel' },
+    { id: 'close-coaching-orders', panel: 'coaching-orders-panel' } // Add this
+];
 
-        closeButtons.forEach(button => {
-            const btn = document.getElementById(button.id);
-            if (btn) {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    console.log(`Close button clicked: ${button.id}`);
-                    showDefaultPanels();
-                });
-            } else {
-                console.warn(`Close button not found: ${button.id}`);
-            }
+closeButtons.forEach(button => {
+    const btn = document.getElementById(button.id);
+    if (btn) {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log(`Close button clicked: ${button.id}`);
+            showDefaultPanels();
         });
+    } else {
+        console.warn(`Close button not found: ${button.id}`);
+    }
+});
     });
 })();
