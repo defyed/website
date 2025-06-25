@@ -1273,37 +1273,42 @@ function renderCoachingOrders(orders, containerId) {
         return;
     }
     console.log('Processing order:', order.order_id, 'GameType:', order.game_type, 'CurrentRank:', order.currentRank, 'CurrentRankRaw:', order.current_rank, 'DesiredRank:', order.desiredRank, 'DesiredRankRaw:', order.desired_rank);
+const isCoaching = order.order_type === 'coaching';
 
     // Use API-provided split fields if available; otherwise, parse raw rank strings
-    const current = order.currentRank && order.currentDivision !== undefined
-        ? {
-            rank: order.currentRank.toLowerCase(),
-            division: order.currentDivision || '',
-            displayRank: order.currentRank.charAt(0).toUpperCase() + order.currentRank.slice(1)
-        }
-        : parseRank(order.current_rank || 'Unknown', order.game_type || 'League of Legends');
-    const desired = order.desiredRank && order.desiredDivision !== undefined
-        ? {
-            rank: order.desiredRank.toLowerCase(),
-            division: order.desiredDivision || '',
-            displayRank: order.desiredRank.charAt(0).toUpperCase() + order.desiredRank.slice(1)
-        }
-        : parseRank(order.desired_rank || 'Unknown', order.game_type || 'League of Legends');
+    let current = { rank: 'default', division: '', displayRank: '' };
+let desired = { rank: 'default', division: '', displayRank: '' };
+let currentRankImgSrc = '', desiredRankImgSrc = '';
 
-    const isValorant = (order.game_type || 'League of Legends') === 'Valorant';
-    let currentRankImgSrc, desiredRankImgSrc;
-    if (isValorant) {
-        const divisionMap = { 'I': '1', 'II': '2', 'III': '3', '': '0' };
-        const currentDivision = divisionMap[current.division] || '0';
-        const desiredDivision = divisionMap[desired.division] || '0';
-        const currentRankCapitalized = current.displayRank;
-        const desiredRankCapitalized = desired.displayRank;
-        currentRankImgSrc = `/images/${currentRankCapitalized}_${currentDivision}_Rank.png`;
-        desiredRankImgSrc = `/images/${desiredRankCapitalized}_${desiredDivision}_Rank.png`;
-    } else {
-        currentRankImgSrc = `/images/${current.rank}.png`;
-        desiredRankImgSrc = `/images/${desired.rank}.png`;
-    }
+if (!isCoaching) {
+  current = order.currentRank && order.currentDivision !== undefined
+    ? {
+        rank: order.currentRank.toLowerCase(),
+        division: order.currentDivision || '',
+        displayRank: order.currentRank.charAt(0).toUpperCase() + order.currentRank.slice(1)
+      }
+    : parseRank(order.current_rank || 'Unknown', order.game_type || 'League of Legends');
+  desired = order.desiredRank && order.desiredDivision !== undefined
+    ? {
+        rank: order.desiredRank.toLowerCase(),
+        division: order.desiredDivision || '',
+        displayRank: order.desiredRank.charAt(0).toUpperCase() + order.desiredRank.slice(1)
+      }
+    : parseRank(order.desired_rank || 'Unknown', order.game_type || 'League of Legends');
+
+  const isValorant = (order.game_type || 'League of Legends') === 'Valorant';
+  if (isValorant) {
+    const divisionMap = { 'I': '1', 'II': '2', 'III': '3', '': '0' };
+    const currentDivision = divisionMap[current.division] || '0';
+    const desiredDivision = divisionMap[desired.division] || '0';
+    currentRankImgSrc = `/images/${current.displayRank}_${currentDivision}_Rank.png`;
+    desiredRankImgSrc = `/images/${desired.displayRank}_${desiredDivision}_Rank.png`;
+  } else {
+    currentRankImgSrc = `/images/${current.rank}.png`;
+    desiredRankImgSrc = `/images/${desired.rank}.png`;
+  }
+}
+
 
     console.log('Image paths:', { current: currentRankImgSrc, desired: desiredRankImgSrc });
 
@@ -1324,6 +1329,24 @@ function renderCoachingOrders(orders, containerId) {
             const row = document.createElement('tr');
             row.dataset.orderId = order.order_id;
             let rowData = '';
+            if (isCoaching) {
+    const extras = order.extras || {};
+    const bookedHours = extras.hours || order.booked_hours || 'N/A';
+    const coach = extras.coach_name || order.coach_name || 'Coach';
+    rowData = `
+        <td>${orderIdHtml}</td>
+        <td>${detailsHtml}</td>
+        <td colspan="2">Session: ${bookedHours} hour(s) with ${coach}</td>
+        <td>$${parseFloat(order.price || 0).toFixed(2)}</td>
+        <td>${order.status || 'Pending'}</td>
+        <td>${new Date(order.created_at).toLocaleDateString()}</td>
+        <td>${parseFloat(order.cashback || 0) > 0 ? `$${parseFloat(order.cashback).toFixed(2)}` : ''}</td>
+    `;
+    row.innerHTML = rowData;
+    tbody.appendChild(row);
+    return;
+}
+
             if (isAvailable) {
                 rowData = `
                     <td>${currentRankImg}</td>
