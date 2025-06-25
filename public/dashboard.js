@@ -43,7 +43,7 @@
         }
     }
 
-    async function checkUserRole() {
+   async function checkUserRole() {
     try {
         const response = await fetch(`/api/user-role?userId=${encodeURIComponent(userId)}`);
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
@@ -60,7 +60,10 @@
         const adminPanelLink = document.getElementById('admin-panel-link');
         const coachingOrdersLink = document.getElementById('coaching-orders-link');
 
-        // Safely hide links if they exist
+        // Debug log
+        console.log('coachingOrdersLink exists:', !!coachingOrdersLink);
+
+        // Safely hide links
         if (ordersLink) ordersLink.style.display = 'none';
         if (availableOrdersLink) availableOrdersLink.style.display = 'none';
         if (workingOrdersLink) workingOrdersLink.style.display = 'none';
@@ -100,12 +103,6 @@
             if (ordersLink) ordersLink.style.display = 'block';
             console.log('Customer buttons set to display: block');
         }
-
-        // Initialize panel visibility (hide all panels except default)
-        document.querySelectorAll('.panel').forEach(panel => {
-            panel.style.display = 'none';
-        });
-        document.getElementById('orders-panel').style.display = 'block'; // Show default panel
 
         return role;
     } catch (error) {
@@ -1617,7 +1614,20 @@ function renderCoachingOrders(orders, containerId) {
                 fetchAvailableOrders();
             });
         }
-
+if (document.getElementById('coaching-orders-link')) {
+    document.getElementById('coaching-orders-link').addEventListener('click', function (e) {
+        e.preventDefault();
+        console.log('Coaching orders link clicked');
+        document.querySelectorAll('.panel').forEach(panel => panel.style.display = 'none');
+        const coachingPanel = document.getElementById('coaching-orders-panel');
+        if (coachingPanel) {
+            coachingPanel.style.display = 'block';
+            fetchCoachingOrders();
+        } else {
+            console.error('coaching-orders-panel not found');
+        }
+    });
+}
         const workingOrdersLink = document.getElementById('working-orders-link');
         if (workingOrdersLink) {
             workingOrdersLink.addEventListener('click', (e) => {
@@ -1715,26 +1725,27 @@ function renderCoachingOrders(orders, containerId) {
             });
         }
 
-        const closeButtons = [
-            { id: 'close-orders', panel: 'orders-panel' },
-            { id: 'close-available-orders', panel: 'available-orders-panel' },
-            { id: 'close-working-orders', panel: 'working-orders-panel' },
-            { id: 'close-completed-orders', panel: 'completed-orders-panel' },
-            { id: 'close-payout-history', panel: 'payout-history-panel' },
-            { id: 'close-payout-management', panel: 'payout-management-panel' }
-        ];
+       const closeButtons = [
+    { id: 'close-orders', panel: 'orders-panel' },
+    { id: 'close-available-orders', panel: 'available-orders-panel' },
+    { id: 'close-working-orders', panel: 'working-orders-panel' },
+    { id: 'close-completed-orders', panel: 'completed-orders-panel' },
+    { id: 'close-payout-history', panel: 'payout-history-panel' },
+    { id: 'close-payout-management', panel: 'payout-management-panel' },
+    { id: 'close-coaching-orders', panel: 'coaching-orders-panel' } // Add this
+];
 
-        closeButtons.forEach(button => {
-            const btn = document.getElementById(button.id);
-            if (btn) {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    console.log(`Close button clicked: ${button.id}`);
-                    showDefaultPanels();
-                });
-            } else {
-                console.warn(`Close button not found: ${button.id}`);
-            }
+closeButtons.forEach(button => {
+    const btn = document.getElementById(button.id);
+    if (btn) {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log(`Close button clicked: ${button.id}`);
+            showDefaultPanels();
         });
+    } else {
+        console.warn(`Close button not found: ${button.id}`);
+    }
+});
     });
 })();
