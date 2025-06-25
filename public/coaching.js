@@ -455,40 +455,69 @@ editProfileForm.addEventListener('submit', async (e) => {
   if (e.target.classList.contains('purchase-coach-btn')) {
     const coachId = e.target.dataset.id;
     const hoursSelect = e.target.parentElement.querySelector('.session-hours');
-    const hours = parseInt(hoursSelect.value);
+    const hours = parseInt(hoursSelect?.value);
     const coachCard = e.target.closest('.coach-card');
-    const coachName = coachCard.querySelector('.username-wrapper h3').textContent;
-    const gameType = coachCard.querySelector('.game-icon').alt;
-    const pricePerHour = parseFloat(coachCard.querySelector('.rate-value').textContent.replace('$', '').replace('/hr', ''));
+    const coachName = coachCard?.querySelector('.username-wrapper h3')?.textContent?.trim();
+    const gameType = coachCard?.querySelector('.game-icon')?.alt?.trim();
+    const pricePerHourText = coachCard?.querySelector('.rate-value')?.textContent?.replace('$', '').replace('/hr', '').trim();
+    const pricePerHour = parseFloat(pricePerHourText);
     const totalPrice = hours * pricePerHour;
 
+    // Log extracted values for debugging
+    console.log('Extracted checkout data:', { coachId, hours, coachName, gameType, pricePerHour, totalPrice });
+
     // Validate inputs
-    if (!coachId || isNaN(hours) || hours < 1 || hours > 4 || !gameType || !['League of Legends', 'Valorant'].includes(gameType) || isNaN(totalPrice) || totalPrice <= 0 || !coachName) {
-      console.error('Invalid checkout data:', { coachId, hours, gameType, totalPrice, coachName });
-      alert('Please select a valid coach, game, and number of hours (1–4).');
+    if (!coachId || isNaN(parseInt(coachId))) {
+      console.error('Invalid coachId:', coachId);
+      alert('Invalid coach selected.');
       return;
     }
-    if (!userId || isNaN(parseInt(userId))) {
+    if (isNaN(hours) || hours < 1 || hours > 4) {
+      console.error('Invalid hours:', hours);
+      alert('Please select 1–4 hours.');
+      return;
+    }
+    if (!gameType || !['League of Legends', 'Valorant'].includes(gameType)) {
+      console.error('Invalid gameType:', gameType);
+      alert('Invalid game type.');
+      return;
+    }
+    if (isNaN(totalPrice) || totalPrice <= 0 || isNaN(pricePerHour)) {
+      console.error('Invalid price:', { pricePerHour, totalPrice });
+      alert('Invalid price.');
+      return;
+    }
+    if (!coachName) {
+      console.error('Invalid coachName:', coachName);
+      alert('Coach name not found.');
+      return;
+    }
+    const userId = parseInt(localStorage.getItem('userId'));
+    if (!userId || isNaN(userId)) {
       console.error('Invalid userId:', userId);
       alert('You must be logged in to book a coaching session.');
       return;
     }
 
+    // Construct request body
+    const requestBody = {
+      userId,
+      type: 'coaching',
+      orderData: {
+        coachId: parseInt(coachId),
+        hours,
+        game: gameType,
+        totalPrice,
+        coachName
+      }
+    };
+    console.log('Sending checkout request:', requestBody);
+
     try {
       const response = await fetch('https://chboosting.com/api/create-checkout-session', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }, // Remove Authorization if not used by server
-        body: JSON.stringify({
-          userId: parseInt(userId),
-          type: 'coaching',
-          orderData: {
-            coachId: parseInt(coachId),
-            hours,
-            game: gameType,
-            totalPrice,
-            coachName
-          }
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody)
       });
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${await response.text()}`);

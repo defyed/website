@@ -773,6 +773,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
     res.status(500).json({ error: 'Error creating checkout session', details: error.message });
   }
 });
+
 app.get('/api/user-orders', authenticate, async (req, res) => {
   try {
     console.log(`Fetching orders for userId: ${req.user.id}`);
