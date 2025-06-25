@@ -1185,6 +1185,25 @@ app.get('/api/coaches', async (req, res) => {
     res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 });
+app.get('/api/coach-profile', authenticate, async (req, res) => {
+  console.log('GET /api/coach-profile called for userId:', req.user?.id);
+  const userId = req.user.id;
+  const role = req.user.role;
+  if (role !== 'coach') {
+    console.log('Forbidden: User role is', role, 'userId:', userId);
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  try {
+    const [profileRows] = await pool.query('SELECT * FROM coach_profiles WHERE user_id = ?', [userId]);
+    const [userRows] = await pool.query('SELECT username FROM users WHERE id = ?', [userId]);
+    const profile = profileRows[0] || {};
+    const username = userRows[0]?.username || 'Unknown';
+    res.json({ ...profile, username });
+  } catch (error) {
+    console.error('Error fetching coach profile:', error);
+    res.status(500).json({ error: 'Failed to fetch profile' });
+  }
+});
 
 app.get('/api/order-messages', authenticate, async (req, res) => {
   const { orderId } = req.query;
