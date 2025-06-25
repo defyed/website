@@ -1269,19 +1269,23 @@ function renderCoachingOrders(orders, containerId) {
         console.warn('Skipping invalid order:', order);
         return;
     }
-    console.log('Processing order:', order.order_id, 'GameType:', order.game_type, 'CurrentRank:', order.currentRank, 'DesiredRank:', order.desiredRank);
+    console.log('Processing order:', order.order_id, 'GameType:', order.game_type, 'CurrentRank:', order.currentRank, 'CurrentRankRaw:', order.current_rank, 'DesiredRank:', order.desiredRank, 'DesiredRankRaw:', order.desired_rank);
 
-    // Use API-provided rank and division fields
-    const current = {
-        rank: order.currentRank.toLowerCase(),
-        division: order.currentDivision || '',
-        displayRank: order.currentRank.charAt(0).toUpperCase() + order.currentRank.slice(1)
-    };
-    const desired = {
-        rank: order.desiredRank.toLowerCase(),
-        division: order.desiredDivision || '',
-        displayRank: order.desiredRank.charAt(0).toUpperCase() + order.desiredRank.slice(1)
-    };
+    // Use API-provided split fields if available; otherwise, parse raw rank strings
+    const current = order.currentRank && order.currentDivision !== undefined
+        ? {
+            rank: order.currentRank.toLowerCase(),
+            division: order.currentDivision || '',
+            displayRank: order.currentRank.charAt(0).toUpperCase() + order.currentRank.slice(1)
+        }
+        : parseRank(order.current_rank || 'Unknown', order.game_type || 'League of Legends');
+    const desired = order.desiredRank && order.desiredDivision !== undefined
+        ? {
+            rank: order.desiredRank.toLowerCase(),
+            division: order.desiredDivision || '',
+            displayRank: order.desiredRank.charAt(0).toUpperCase() + order.desiredRank.slice(1)
+        }
+        : parseRank(order.desired_rank || 'Unknown', order.game_type || 'League of Legends');
 
     const isValorant = (order.game_type || 'League of Legends') === 'Valorant';
     let currentRankImgSrc, desiredRankImgSrc;
@@ -1314,6 +1318,8 @@ function renderCoachingOrders(orders, containerId) {
     const detailsHtml = `
         <button class="info-button" data-order-id="${order.order_id}">Info</button>
     `;
+    
+});
             const row = document.createElement('tr');
             row.dataset.orderId = order.order_id;
             let rowData = '';
