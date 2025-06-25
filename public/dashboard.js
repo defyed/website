@@ -213,6 +213,7 @@ function renderCoachingOrders(orders, containerId) {
             <tr>
                 <th>Order ID</th>
                 <th>Customer</th>
+                <th>Coach</th>
                 <th>Game</th>
                 <th>Hours</th>
                 <th>Price</th>

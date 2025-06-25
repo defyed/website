@@ -1,59 +1,135 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coaching Services</title>
-    <link rel="stylesheet" href="dashboardstyle.css">
-    <link rel="stylesheet" href="coaching.css">
+    <title>Our Coaches - CH Boosting</title>
+    <link rel="stylesheet" href="/coaching.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="dashboard-container">
-        <div class="sidebar">
-            <img src="/images/logo.png" alt="Logo" class="sidebar-logo">
+    <header>
+        <nav>
             <ul>
-                <li><a href="/index.html">Home</a></li>
+                <li><a href="/home.html">Home</a></li>
                 <li><a href="/league-services.html">Services</a></li>
                 <li><a href="/boosters.html">Boosters</a></li>
                 <li><a href="/coaching.html" class="active">Coaching</a></li>
                 <li><a href="#" id="logout-link">Logout</a></li>
             </ul>
-        </div>
-        <div class="main-content">
-            <h1>Our Coaches</h1>
-            <div id="coach-profile-controls" style="text-align: center; margin: 20px;">
-                <button id="edit-my-profile-btn" style="display: none;">Edit My Coach Profile</button>
-            </div>
-            <div id="coaches-list"></div>
-
-            <div id="edit-coach-modal" class="modal">
-                <div class="modal-content">
-                    <span class="modal-close">&times;</span>
-                    <h3>Edit Coach Profile</h3>
-                    <form id="edit-coach-form">
+        </nav>
+    </header>
+    <main>
+        <h1>Our Coaches</h1>
+        <button id="edit-my-profile-btn" style="display: none;">Edit My Coach Profile</button>
+        <div id="coaches-list"></div>
+        <div id="edit-coach-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Edit Coach Profile</h2>
+                <form id="edit-coach-form">
+                    <div class="form-group">
                         <label for="coach-name">Name:</label>
-                        <input type="text" id="coach-name" name="name">
-
+                        <input type="text" id="coach-name" maxlength="50" required>
+                    </div>
+                    <div class="form-group">
                         <label for="coach-game">Game:</label>
-                        <select id="coach-game" name="game_type" required>
+                        <select id="coach-game" required>
                             <option value="League of Legends">League of Legends</option>
                             <option value="Valorant">Valorant</option>
                         </select>
-
-                        <label for="coach-bio">Bio:</label>
-                        <textarea id="coach-bio" name="bio" placeholder="e.g., Expert in laning and macro play"></textarea>
-
+                    </div>
+                    <div class="form-group">
+                        <label for="lol-highest-rank">LoL Highest Rank (if applicable):</label>
+                        <select id="lol-highest-rank">
+                            <option value="">Select Rank</option>
+                            <option value="Iron">Iron</option>
+                            <option value="Bronze">Bronze</option>
+                            <option value="Silver">Silver</option>
+                            <option value="Gold">Gold</option>
+                            <option value="Platinum">Platinum</option>
+                            <option value="Emerald">Emerald</option>
+                            <option value="Diamond">Diamond</option>
+                            <option value="Master">Master</option>
+                            <option value="Grandmaster">Grandmaster</option>
+                            <option value="Challenger">Challenger</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="lol-preferred-lanes">Preferred LoL Lanes (Max 3):</label>
+                        <div id="lol-preferred-lanes-buttons">
+                            <button type="button" class="lane-button" data-lane="Top">Top</button>
+                            <button type="button" class="lane-button" data-lane="Jungle">Jungle</button>
+                            <button type="button" class="lane-button" data-lane="Mid">Mid</button>
+                            <button type="button" class="lane-button" data-lane="ADC">ADC</button>
+                            <button type="button" class="lane-button" data-lane="Support">Support</button>
+                        </div>
+                        <input type="hidden" id="lol-preferred-lanes">
+                        <div id="lol-lanes-images" class="image-container"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="lol-preferred-champions">Preferred LoL Champions (Max 5):</label>
+                        <select id="lol-preferred-champions" multiple>
+                            <option value="Aatrox">Aatrox</option>
+                            <option value="Ahri">Ahri</option>
+                            <option value="Akali">Akali</option>
+                            <!-- Add all champions as in boosters.html -->
+                        </select>
+                        <div id="lol-champions-images" class="image-container"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="valorant-highest-rank">Valorant Highest Rank (if applicable):</label>
+                        <select id="valorant-highest-rank">
+                            <option value="">Select Rank</option>
+                            <option value="Iron">Iron</option>
+                            <option value="Bronze">Bronze</option>
+                            <option value="Silver">Silver</option>
+                            <option value="Gold">Gold</option>
+                            <option value="Platinum">Platinum</option>
+                            <option value="Diamond">Diamond</option>
+                            <option value="Ascendant">Ascendant</option>
+                            <option value="Immortal">Immortal</option>
+                            <option value="Radiant">Radiant</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="valorant-preferred-roles">Preferred Valorant Roles (Max 2):</label>
+                        <div id="valorant-preferred-roles-buttons">
+                            <button type="button" class="role-button" data-role="Duelist">Duelist</button>
+                            <button type="button" class="role-button" data-role="Controller">Controller</button>
+                            <button type="button" class="role-button" data-role="Initiator">Initiator</button>
+                            <button type="button" class="role-button" data-role="Sentinel">Sentinel</button>
+                        </div>
+                        <input type="hidden" id="valorant-preferred-roles">
+                        <div id="valorant-roles-images" class="image-container"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="valorant-preferred-agents">Preferred Valorant Agents (Max 3):</label>
+                        <select id="valorant-preferred-agents" multiple>
+                            <option value="Astra">Astra</option>
+                            <option value="Breach">Breach</option>
+                            <option value="Brimstone">Brimstone</option>
+                            <!-- Add all agents as in boosters.html -->
+                        </select>
+                        <div id="valorant-agents-images" class="image-container"></div>
+                    </div>
+                    <div class="form-group">
                         <label for="coach-rate">Hourly Rate ($):</label>
-                        <input type="number" id="coach-rate" name="price_per_hour" min="0" step="0.01" required>
-
-                        <button type="submit">Save Profile</button>
-                    </form>
-                </div>
+                        <input type="number" id="coach-rate" min="1" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="coach-bio">Bio (Max 100 characters):</label>
+                        <textarea id="coach-bio" maxlength="100"></textarea>
+                    </div>
+                    <button type="submit">Save Profile</button>
+                </form>
             </div>
         </div>
-    </div>
-
-    <script src="coaching.js"></script>
-    <script src="utils.js"></script>
+    </main>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="/coaching.js"></script>
 </body>
 </html>
+```
