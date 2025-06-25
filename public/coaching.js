@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const usernameWrapper = document.createElement('div');
             usernameWrapper.className = 'username-wrapper';
             const username = document.createElement('h3');
-            username.textContent = coach.name || 'Unnamed Coach';
+            username.textContent = coach.username || 'Unnamed Coach';
             const gameIcon = document.createElement('img');
             gameIcon.src = `/images/${coach.game_type.toLowerCase().replace(/\s+/g, '-')}.png`;
             gameIcon.alt = coach.game_type;
@@ -560,7 +560,7 @@ editProfileForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         try {
             const profileData = {
-                name: document.getElementById('coach-name').value.trim(),
+                
                 game_type: document.getElementById('coach-game').value,
                 lol_highest_rank: document.getElementById('lol-highest-rank').value || null,
                 valorant_highest_rank: document.getElementById('valorant-highest-rank').value || null,
