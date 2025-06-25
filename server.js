@@ -1266,24 +1266,25 @@ app.get('/api/coach-profile', authenticate, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch profile' });
   }
 });
-app.get('/api/my-coaching-orders', authenticate, checkRole(['coach', 'admin']), async (req, res) => {
+app.get('/api/my-coaching-orders', authenticate, async (req, res) => {
   try {
-    const userId = req.user.id;
-    console.log(`Fetching coaching orders for coachId: ${userId}`);
-    const [rows] = await pool.query(
-      `SELECT order_id, user_id, booked_hours, game_type, total_price, coach_name, status, 
-              DATE_FORMAT(created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at
-       FROM coaching_orders
-       WHERE coach_id = ?`,
-      [userId]
-    );
-    console.log(`Coaching orders found for coachId ${userId}: ${rows.length}`, rows);
+    const coachId = req.user.id;
+
+    const [rows] = await pool.query(`
+      SELECT co.*, u.username AS customer_username
+      FROM coaching_orders co
+      JOIN users u ON co.user_id = u.id
+      WHERE co.coach_id = ?
+      ORDER BY co.created_at DESC
+    `, [coachId]);
+
     res.json(rows);
   } catch (error) {
-    console.error('Error fetching coaching orders:', error.message);
-    res.status(500).json({ error: 'Failed to fetch coaching orders', details: error.message });
+    console.error('Error fetching coach orders:', error.message);
+    res.status(500).json({ error: 'Failed to fetch coaching orders' });
   }
 });
+
 app.post('/api/coach-profile', authenticate, async (req, res) => {
   console.log('POST /api/coach-profile called for userId:', req.user?.id, 'Body:', req.body);
   const userId = req.user.id;
