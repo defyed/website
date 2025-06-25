@@ -49,12 +49,12 @@
         const normalizedDesiredRank = orderData.desiredRank ? orderData.desiredRank.split(' ')[0] : '';
 
       // Set game type based on page user came from, not rank
-if (document.referrer.includes('league-services.html')) {
+if (document.referrer.includes('/league')) {
     orderData.game = 'League of Legends';
-    console.log('Forced game type to League of Legends based on referrer: league-services.html');
-} else if (document.referrer.includes('valorant-services.html')) {
+    console.log('Forced game type to League of Legends based on referrer: /league');
+} else if (document.referrer.includes('/valorant')) {
     orderData.game = 'Valorant';
-    console.log('Forced game type to Valorant based on referrer: valorant-services.html');
+    console.log('Forced game type to Valorant based on referrer: /valorant');
 } else if (orderData.game && ['League of Legends', 'Valorant'].includes(orderData.game)) {
     console.log(`Game type set to ${orderData.game} based on orderData.game`);
 } else {
