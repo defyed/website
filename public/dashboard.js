@@ -1264,7 +1264,7 @@ function renderCoachingOrders(orders, containerId) {
         table.innerHTML = `<thead>${headers}</thead><tbody></tbody>`;
         const tbody = table.querySelector('tbody');
 
-        orders.forEach(order => {
+       orders.forEach(order => {
     if (!order || !order.order_id) {
         console.warn('Skipping invalid order:', order);
         return;
@@ -1318,8 +1318,6 @@ function renderCoachingOrders(orders, containerId) {
     const detailsHtml = `
         <button class="info-button" data-order-id="${order.order_id}">Info</button>
     `;
-    
-});
             const row = document.createElement('tr');
             row.dataset.orderId = order.order_id;
             let rowData = '';
