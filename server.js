@@ -518,25 +518,34 @@ app.get('/api/my-coaching-orders', authenticate, async (req, res) => {
     const userId = req.user.id;
     const role = req.user.role;
 
-    if (role !== 'coach') {
+    if (!['coach', 'admin'].includes(role)) {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    const [rows] = await pool.query(`
+    let query = `
       SELECT o.order_id, o.user_id, u.username AS customer_username, o.price, co.booked_hours, o.status, o.created_at
       FROM coaching_orders co
       JOIN orders o ON co.order_id = o.order_id
       JOIN users u ON o.user_id = u.id
-      WHERE co.coach_id = ?
-      ORDER BY o.created_at DESC
-    `, [userId]);
+    `;
+    const params = [];
 
+    if (role === 'coach') {
+      query += ` WHERE co.coach_id = ?`;
+      params.push(userId);
+    }
+
+    query += ` ORDER BY o.created_at DESC`;
+
+    const [rows] = await pool.query(query, params);
     res.json(rows);
   } catch (err) {
     console.error('Error fetching coaching orders:', err.message);
     res.status(500).json({ error: 'Failed to fetch coaching orders' });
   }
 });
+
+
 
 
 
