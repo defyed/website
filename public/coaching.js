@@ -494,17 +494,17 @@ editProfileForm.addEventListener('submit', async (e) => {
     }
     if (!coachName || coachName === '') {
       console.error('Invalid coachName:', coachName, 'Element:', coachNameElement?.outerHTML);
-      alert('Coach name not found.');
+      alert('Coach name not found. Please check the coach profile.');
       return;
     }
     if (!gameType || !['League of Legends', 'Valorant'].includes(gameType)) {
       console.error('Invalid gameType:', gameType, 'Element:', gameTypeElement?.outerHTML);
-      alert('Invalid game type.');
+      alert('Invalid game type. Please check the coach profile.');
       return;
     }
     if (!pricePerHourText || isNaN(pricePerHour) || pricePerHour <= 0) {
       console.error('Invalid pricePerHour:', pricePerHourText, 'Element:', pricePerHourElement?.outerHTML);
-      alert('Invalid price.');
+      alert('Invalid price. Please check the coach profile.');
       return;
     }
     if (isNaN(totalPrice) || totalPrice <= 0) {
@@ -530,7 +530,7 @@ editProfileForm.addEventListener('submit', async (e) => {
         coachName
       }
     };
-    console.log('Sending checkout request:', requestBody);
+    console.log('Sending coaching checkout request:', requestBody);
 
     try {
       const response = await fetch('https://chboosting.com/api/create-checkout-session', {
@@ -550,7 +550,7 @@ editProfileForm.addEventListener('submit', async (e) => {
         alert(`Payment error: ${error.message}. Please try again or contact support.`);
       }
     } catch (error) {
-      console.error('Error initiating checkout:', error.message);
+      console.error('Error initiating coaching checkout:', error.message);
       alert(`Failed to book coaching session: ${error.message}`);
     }
   }

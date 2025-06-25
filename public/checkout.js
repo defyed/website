@@ -158,7 +158,7 @@ if (document.referrer.includes('league-services.html')) {
         };
         updateSummary();
 
-        proceedButton.addEventListener('click', async () => {
+       proceedButton.addEventListener('click', async () => {
     console.log('Pay Now button clicked at:', new Date().toISOString());
     const userId = localStorage.getItem('userId');
     if (!userId || isNaN(userId)) {
@@ -183,31 +183,38 @@ if (document.referrer.includes('league-services.html')) {
             ? (parseInt(orderData.desiredMasterLP) || parseInt(orderData.desiredRR) || 0)
             : (parseInt(orderData.desiredLP) || 0);
 
+        const abbreviate = (str) => {
+            const map = {
+                'League of Legends': 'LoL',
+                'Valorant': 'Val',
+                'Platinum': 'Plat',
+                'Diamond': 'Dia',
+                'Emerald': 'Em',
+                'Ascendant': 'Asc',
+                'Immortal': 'Imm',
+                'Grandmaster': 'GM',
+                'Challenger': 'Chal'
+            };
+            return map[str] || str.slice(0, 4);
+        };
+
         const clientReference = {
-            currentRank: orderData.currentRank || 'Iron',
-            desiredRank: orderData.desiredRank || 'Iron',
-            finalPrice: parseFloat(orderData.finalPrice) || 0,
-            basePrice: parseFloat(orderData.basePrice || orderData.totalPrice || orderData.finalPrice) || 0,
-            discount: parseFloat(orderData.discount) || (orderData.couponApplied ? 0.15 : 0),
-            couponApplied: orderData.couponApplied || false,
-            currentDivision: orderData.currentDivision || '',
-            desiredDivision: orderData.desiredDivision || '',
-            currentLP: currentLP,
-            desiredLP: desiredLP,
-            currentMasterLP: parseInt(orderData.currentMasterLP) || 0,
-            desiredMasterLP: parseInt(orderData.desiredMasterLP) || 0,
-            currentRR: parseInt(orderData.currentRR) || 0,
-            desiredRR: parseInt(orderData.desiredRR) || 0,
-            extras: orderData.extras || [],
-            game: orderData.game || 'League of Legends'
+            cRank: abbreviate(orderData.currentRank || 'Iron'),
+            dRank: abbreviate(orderData.desiredRank || 'Iron'),
+            price: parseFloat(orderData.finalPrice) || 0,
+            cDiv: orderData.currentDivision || '',
+            dDiv: orderData.desiredDivision || '',
+            cLP: currentLP,
+            dLP: desiredLP,
+            extras: orderData.extras?.map(e => ({ l: e.label.slice(0, 10), p: e.price })) || [],
+            game: abbreviate(orderData.game || 'League of Legends')
         };
         const clientReferenceString = JSON.stringify(clientReference);
         console.log('client_reference_id:', { length: clientReferenceString.length, value: clientReferenceString });
 
-        // Check clientReferenceString length
         if (clientReferenceString.length > 200) {
             console.error('client_reference_id too long:', clientReferenceString.length);
-            alert('Order data is too complex. Please simplify your selection.');
+            alert('Order data is too complex. Please simplify your selection (e.g., fewer extras).');
             return;
         }
 
