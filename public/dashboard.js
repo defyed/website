@@ -178,12 +178,13 @@
 
     async function fetchCoachingOrders() {
     try {
-        console.log('Fetching coaching orders for userId:', userId);
+        const token = localStorage.getItem('token');
+        console.log('Fetching coaching orders for userId:', userId, 'Token:', token ? 'Present' : 'Missing');
         const response = await fetch(`/api/user-orders?userId=${encodeURIComponent(userId)}&type=coaching`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                'Authorization': `Bearer ${token}`
             },
             credentials: 'include'
         });
@@ -193,6 +194,10 @@
         }
         const orders = await response.json();
         console.log('Coaching orders received:', orders);
+        if (!Array.isArray(orders)) {
+            console.warn('Unexpected response format for coaching orders:', orders);
+            throw new Error('Invalid response format from server');
+        }
         renderCoachingOrders(orders, 'coaching-orders');
     } catch (error) {
         console.error('Error fetching coaching orders:', error.message);
