@@ -800,34 +800,27 @@ app.post('/api/create-checkout-session', async (req, res) => {
 });
 app.get('/api/user-orders', authenticate, async (req, res) => {
   try {
-    console.log(`Fetching orders for userId: ${req.user.id}`);
-    // Fetch boost orders
-    const [boostRows] = await pool.query(
-      `SELECT order_id, current_rank, desired_rank, current_lp, desired_lp, price, status, cashback, 
-              DATE_FORMAT(created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at, extras, game_type, 'boost' AS order_type
-       FROM orders 
-       WHERE user_id = ?`,
-      [req.user.id]
-    );
-    // Fetch coaching orders
-    const [coachingRows] = await pool.query(
-      `SELECT order_id, NULL AS current_rank, NULL AS desired_rank, NULL AS current_lp, NULL AS desired_lp, 
-              total_price AS price, status, 0 AS cashback, 
-              DATE_FORMAT(created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at, 
-              JSON_OBJECT('coach_name', coach_name, 'hours', booked_hours) AS extras, 
-              game_type, 'coaching' AS order_type
-       FROM coaching_orders 
-       WHERE user_id = ?`,
-      [req.user.id]
-    );
-    // Combine and normalize orders
-    const orders = [...boostRows, ...coachingRows].map(row => {
-      if (row.order_type === 'boost') {
+    const { type } = req.query;
+    console.log(`Fetching orders for userId: ${req.user.id}, type: ${type || 'all'}`);
+    let orders = [];
+
+    if (!type || type === 'boost') {
+      // Fetch boost orders
+      const [boostRows] = await pool.query(
+        `SELECT o.order_id, o.current_rank, o.desired_rank, o.current_lp, o.desired_lp, o.price, o.status, o.cashback, 
+                DATE_FORMAT(o.created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at, o.extras, o.game_type, 'boost' AS order_type,
+                u.username AS customer_username, ub.username AS booster_username
+         FROM orders o
+         LEFT JOIN users u ON o.user_id = u.id
+         LEFT JOIN booster_orders bo ON o.order_id = bo.order_id
+         LEFT JOIN users ub ON bo.booster_id = ub.id
+         WHERE o.user_id = ? AND o.order_type = 'boost'`,
+        [req.user.id]
+      );
+      orders.push(...boostRows.map(row => {
         const parseRank = (rank, gameType) => {
           const highRanks = gameType === 'Valorant' ? ['Immortal', 'Radiant'] : ['Master', 'Grandmaster', 'Challenger'];
-          if (highRanks.includes(rank)) {
-            return { rank, division: '' };
-          }
+          if (highRanks.includes(rank)) return { rank, division: '' };
           const [baseRank, division] = rank ? rank.split(' ') : [rank, ''];
           return { rank: baseRank || rank, division: division || '' };
         };
@@ -838,15 +831,30 @@ app.get('/api/user-orders', authenticate, async (req, res) => {
           desiredRank: parseRank(row.desired_rank, row.game_type).rank,
           desiredDivision: parseRank(row.desired_rank, row.game_type).division
         };
-      }
-      return {
+      }));
+    }
+
+    if (!type || type === 'coaching') {
+      // Fetch coaching orders for customers or coaches
+      const [coachingRows] = await pool.query(
+        `SELECT co.order_id, co.user_id, co.coach_id, co.booked_hours, co.game_type, co.total_price AS price, co.coach_name, co.status, 
+                DATE_FORMAT(co.created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at, 'coaching' AS order_type,
+                u.username AS customer_username
+         FROM coaching_orders co
+         LEFT JOIN users u ON co.user_id = u.id
+         WHERE co.user_id = ? OR co.coach_id = ?`,
+        [req.user.id, req.user.id]
+      );
+      orders.push(...coachingRows.map(row => ({
         ...row,
         currentRank: null,
         currentDivision: null,
         desiredRank: null,
-        desiredDivision: null
-      };
-    });
+        desiredDivision: null,
+        coach_username: row.coach_name // Use coach_name as coach_username
+      })));
+    }
+
     console.log(`Orders found for userId ${req.user.id}: ${orders.length}`, orders);
     res.json(orders);
   } catch (error) {
@@ -1012,6 +1020,36 @@ app.post('/api/complete-order', authenticate, checkRole(['booster', 'admin']), a
     }
   } catch (error) {
     console.error('Error completing order:', error.message);
+    res.status(500).json({ error: 'Internal server error', details: error.message });
+  }
+});
+app.post('/api/complete-coaching-order', authenticate, checkRole(['coach', 'admin']), async (req, res) => {
+  const { orderId } = req.body;
+  try {
+    const [orderRows] = await pool.query(
+      'SELECT status, coach_id FROM coaching_orders WHERE order_id = ? AND status = ?',
+      [orderId, 'pending']
+    );
+    if (!orderRows.length) {
+      return res.status(400).json({ error: 'Order not found or not in pending status' });
+    }
+    if (req.user.role !== 'admin' && orderRows[0].coach_id !== req.user.id) {
+      return res.status(403).json({ error: 'Unauthorized: Not your coaching order' });
+    }
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+      await connection.query('UPDATE coaching_orders SET status = "completed" WHERE order_id = ?', [orderId]);
+      await connection.commit();
+      res.json({ success: true, message: 'Coaching order completed successfully' });
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error('Error completing coaching order:', error.message);
     res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 });
