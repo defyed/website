@@ -1246,105 +1246,229 @@ async function showOrderFormModal(order, userRole) {
     function renderOrders(orders, containerId, isAvailable = false, isWorking = false, isCompleted = false) {
     const ordersDiv = document.getElementById(containerId);
     if (!ordersDiv) {
-      console.error(`Error: ${containerId} div not found`);
-      return;
+        console.error(`Error: ${containerId} div not found`);
+        return;
     }
 
     if (orders.length === 0) {
-      ordersDiv.innerHTML = '<p>No orders found.</p>';
-      return;
+        ordersDiv.innerHTML = '<p>No orders found.</p>';
+        return;
     }
 
     const table = document.createElement('table');
     table.className = 'orders-table';
-    table.innerHTML = `
-      <thead>
-        <tr>
-          <th>Order ID</th>
-          <th>Details</th>
-          <th>Info</th>
-          <th>Session / Rank</th>
-          <th>Price</th>
-          <th>Status</th>
-          <th>Ordered On</th>
-          <th>Cashback</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    `;
+    let headers = '';
+    if (isAvailable) {
+        headers = `
+            <tr>
+                <th>Current Rank</th>
+                <th>Desired Rank</th>
+                <th>Details</th>
+                <th>Ordered On</th>
+                <th>Payout</th>
+                <th>Action</th>
+            </tr>
+        `;
+    } else if (isWorking) {
+        headers = `
+            <tr>
+                <th>Order ID</th>
+                <th>Details</th>
+                <th>Current Rank</th>
+                <th>Desired Rank</th>
+                <th>Ordered On</th>
+                <th>Payout</th>
+                <th>Action</th>
+            </tr>
+        `;
+    } else if (isCompleted) {
+        headers = `
+            <tr>
+                <th>Customer</th>
+                <th>Booster/Coach</th>
+                <th>Current Rank</th>
+                <th>Desired Rank</th>
+                <th>Price</th>
+                <th>Ordered On</th>
+                <th>Extras</th>
+                <th>Payout Status</th>
+                <th>Action</th>
+            </tr>
+        `;
+    } else {
+        headers = `
+            <tr>
+                <th>Order ID</th>
+                <th>Details</th>
+                <th>Current Rank</th>
+                <th>Desired Rank</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th>Ordered On</th>
+                <th>Cashback</th>
+            </tr>
+        `;
+    }
+    table.innerHTML = `<thead>${headers}</thead><tbody></tbody>`;
     const tbody = table.querySelector('tbody');
 
     orders.forEach(order => {
-      if (!order || !order.order_id) return;
-      console.log('Processing order:', order.order_id);
+        if (!order || !order.order_id) {
+            console.warn('Skipping invalid order:', order);
+            return;
+        }
+        console.log('Processing order:', order.order_id, 'OrderType:', order.order_type, 'GameType:', order.game_type, 'CurrentRank:', order.current_rank, 'DesiredRank:', order.desired_rank);
 
-      const isCoaching = order.order_type === 'coaching';
-      const row = document.createElement('tr');
-      row.dataset.orderId = order.order_id;
+        let rowData = '';
+        const orderIdHtml = `<button class="order-id-button" data-order-id="${order.order_id}">?</button>`;
+        const detailsHtml = `<button class="info-button" data-order-id="${order.order_id}">Info</button>`;
 
-      if (isCoaching) {
-        const hours = order.booked_hours || (order.extras && order.extras.hours) || 'N/A';
-        const coach = order.coach_name || (order.extras && order.extras.coach_name) || 'Coach';
-        row.innerHTML = `
-          <td><button class="order-id-button" data-order-id="${order.order_id}">?</button></td>
-          <td><button class="info-button" data-order-id="${order.order_id}">Info</button></td>
-          <td colspan="2">Session: ${hours} hour(s) with ${coach}</td>
-          <td>$${parseFloat(order.price || 0).toFixed(2)}</td>
-          <td>${order.status || 'Pending'}</td>
-          <td>${new Date(order.created_at).toLocaleDateString()}</td>
-          <td>${parseFloat(order.cashback || 0) > 0 ? `$${parseFloat(order.cashback).toFixed(2)}` : ''}</td>
-        `;
+        if (order.order_type === 'coaching') {
+            // Handle coaching orders
+            const coachName = order.coach_name || 'N/A';
+            const bookedHours = order.booked_hours || 'N/A';
+            const extras = parseExtras(order.extras);
+
+            if (isAvailable || isWorking) {
+                console.warn('Coaching orders should not appear in available or working orders:', order.order_id);
+                return; // Skip rendering coaching orders in these panels
+            } else if (isCompleted) {
+                rowData = `
+                    <td>${order.customer_username || 'N/A'} (${order.user_id})</td>
+                    <td>${coachName} (${order.coach_id || 'N/A'})</td>
+                    <td>N/A</td>
+                    <td>N/A</td>
+                    <td>$${parseFloat(order.total_price || order.price || 0).toFixed(2)}</td>
+                    <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                    <td>Hours: ${bookedHours}, ${extras}</td>
+                    <td>${order.payout_status || 'Pending'}</td>
+                    <td>
+                        <button class="approve-btn" data-order-id="${order.order_id}" ${order.payout_status === 'Paid' ? 'disabled' : ''}>
+                            Approve Payout ($${parseFloat(order.total_price || order.price * 0.85 || 0).toFixed(2)})
+                        </button>
+                    </td>
+                `;
+            } else {
+                rowData = `
+                    <td>${orderIdHtml}</td>
+                    <td>${detailsHtml}</td>
+                    <td>N/A</td>
+                    <td>N/A</td>
+                    <td>$${parseFloat(order.total_price || order.price || 0).toFixed(2)}</td>
+                    <td>${order.status || 'Pending'}</td>
+                    <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                    <td>$${parseFloat(order.cashback || 0).toFixed(2)}</td>
+                `;
+            }
+        } else {
+            // Handle boost orders
+            const current = order.currentRank && order.currentDivision !== undefined
+                ? {
+                    rank: order.currentRank.toLowerCase(),
+                    division: order.currentDivision || '',
+                    displayRank: order.currentRank.charAt(0).toUpperCase() + order.currentRank.slice(1)
+                }
+                : parseRank(order.current_rank || 'Unknown', order.game_type || 'League of Legends');
+            const desired = order.desiredRank && order.desiredDivision !== undefined
+                ? {
+                    rank: order.desiredRank.toLowerCase(),
+                    division: order.desiredDivision || '',
+                    displayRank: order.desiredRank.charAt(0).toUpperCase() + order.desiredRank.slice(1)
+                }
+                : parseRank(order.desired_rank || 'Unknown', order.game_type || 'League of Legends');
+
+            const isValorant = (order.game_type || 'League of Legends') === 'Valorant';
+            let currentRankImgSrc, desiredRankImgSrc;
+            if (isValorant) {
+                const divisionMap = { 'I': '1', 'II': '2', 'III': '3', '': '' };
+                const currentDivision = divisionMap[current.division] || '';
+                const desiredDivision = divisionMap[desired.division] || '';
+                const currentRankCapitalized = current.displayRank;
+                const desiredRankCapitalized = desired.displayRank;
+                currentRankImgSrc = `/images/${currentRankCapitalized}_${currentDivision}_Rank.png`;
+                desiredRankImgSrc = `/images/${desiredRankCapitalized}_${desiredDivision}_Rank.png`;
+            } else {
+                currentRankImgSrc = `/images/${current.rank || 'fallback'}.png`;
+                desiredRankImgSrc = `/images/${desired.rank || 'fallback'}.png`;
+            }
+
+            console.log('Image paths:', { current: currentRankImgSrc, desired: desiredRankImgSrc });
+
+            const currentRankImg = `
+                <img src="${currentRankImgSrc}" alt="${current.displayRank || 'N/A'} ${current.division || ''}" class="order-logo" onerror="console.warn('Image failed:', '${currentRankImgSrc}'); this.src='/images/fallback.png'">
+                ${current.displayRank || 'N/A'} ${current.division || ''}
+            `;
+            const desiredRankHtml = `
+                <img src="${desiredRankImgSrc}" alt="${desired.displayRank || 'N/A'} ${desired.division || ''}" class="order-logo" onerror="console.warn('Image failed:', '${desiredRankImgSrc}'); this.src='/images/fallback.png'">
+                ${desired.displayRank || 'N/A'} ${desired.division || ''}
+            `;
+            if (isAvailable) {
+                rowData = `
+                    <td>${currentRankImg}</td>
+                    <td>${desiredRankHtml}</td>
+                    <td>${detailsHtml}</td>
+                    <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                    <td>$${parseFloat(order.booster_payout || (order.price * 0.85)).toFixed(2)}</td>
+                    <td><button class="order-btn" data-order-id="${order.order_id}">Accept</button></td>
+                `;
+            } else if (isWorking) {
+                const isCompletedOrders = order.status === 'completed';
+                rowData = `
+                    <td>${orderIdHtml}</td>
+                    <td>${detailsHtml}</td>
+                    <td>${currentRankImg}</td>
+                    <td>${desiredRankHtml}</td>
+                    <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                    <td>$${parseFloat(order.booster_payout || (order.price * 0.85)).toFixed(2)}</td>
+                    <td>
+                        <button class="cancel-btn" data-order-id="${order.order_id}" ${isCompletedOrders ? 'disabled' : ''}>Cancel</button>
+                        <br>
+                        <button class="complete-btn" data-order-id="${order.order_id}" ${isCompletedOrders ? 'disabled' : ''}>Complete</button>
+                    </td>
+                `;
+                if (isCompletedOrders) {
+                    row.classList.add('completed-order');
+                }
+            } else if (isCompleted) {
+                const extras = parseExtras(order.extras);
+                const payout = parseFloat(order.booster_payout || (order.price * 0.85)).toFixed(2);
+                rowData = `
+                    <td>${order.customer_username || 'N/A'} (${order.user_id})</td>
+                    <td>${order.booster_username || 'N/A'} (${order.booster_id || 'N/A'})</td>
+                    <td>${currentRankImg}</td>
+                    <td>${desiredRankHtml}</td>
+                    <td>$${parseFloat(order.price || 0).toFixed(2)} <span class="price-payout">(Payout: $${payout})</span></td>
+                    <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                    <td>${extras}</td>
+                    <td>${order.payout_status || 'Pending'}</td>
+                    <td>
+                        <button class="approve-btn" data-order-id="${order.order_id}" ${order.payout_status === 'Paid' ? 'disabled' : ''}>
+                            Approve Payout ($${payout})
+                        </button>
+                    </td>
+                `;
+            } else {
+                rowData = `
+                    <td>${orderIdHtml}</td>
+                    <td>${detailsHtml}</td>
+                    <td>${currentRankImg}</td>
+                    <td>${desiredRankHtml}</td>
+                    <td>$${parseFloat(order.price || 0).toFixed(2)}</td>
+                    <td>${order.status || 'Pending'}</td>
+                    <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                    <td>$${parseFloat(order.cashback || 0).toFixed(2)}</td>
+                `;
+                if (order.status === 'Completed') {
+                    row.classList.add('customer-completed-order');
+                }
+            }
+        }
+
+        const row = document.createElement('tr');
+        row.dataset.orderId = order.order_id;
+        row.innerHTML = rowData;
         tbody.appendChild(row);
-        return;
-      }
-
-      // Boost order: safe to parse ranks and show images
-      const current = order.currentRank && order.currentDivision !== undefined
-        ? {
-            rank: order.currentRank.toLowerCase(),
-            division: order.currentDivision || '',
-            displayRank: order.currentRank.charAt(0).toUpperCase() + order.currentRank.slice(1)
-          }
-        : parseRank(order.current_rank || 'Unknown', order.game_type || 'League of Legends');
-      const desired = order.desiredRank && order.desiredDivision !== undefined
-        ? {
-            rank: order.desiredRank.toLowerCase(),
-            division: order.desiredDivision || '',
-            displayRank: order.desiredRank.charAt(0).toUpperCase() + order.desiredRank.slice(1)
-          }
-        : parseRank(order.desired_rank || 'Unknown', order.game_type || 'League of Legends');
-
-      const isValorant = (order.game_type || 'League of Legends') === 'Valorant';
-      let currentRankImgSrc = '', desiredRankImgSrc = '';
-      if (isValorant) {
-        const divisionMap = { 'I': '1', 'II': '2', 'III': '3', '': '0' };
-        const currentDivision = divisionMap[current.division] || '0';
-        const desiredDivision = divisionMap[desired.division] || '0';
-        currentRankImgSrc = `/images/${current.displayRank}_${currentDivision}_Rank.png`;
-        desiredRankImgSrc = `/images/${desired.displayRank}_${desiredDivision}_Rank.png`;
-      } else {
-        currentRankImgSrc = `/images/${current.rank}.png`;
-        desiredRankImgSrc = `/images/${desired.rank}.png`;
-      }
-
-      const currentRankImg = `<img src="${currentRankImgSrc}" alt="${current.displayRank} ${current.division}" class="rank-logo" onerror="this.src='/images/fallback.png'"> ${current.displayRank} ${current.division}`;
-      const desiredRankHtml = `<img src="${desiredRankImgSrc}" alt="${desired.displayRank} ${desired.division}" class="rank-logo" onerror="this.src='/images/fallback.png'"> ${desired.displayRank} ${desired.division}`;
-
-      row.innerHTML = `
-        <td><button class="order-id-button" data-order-id="${order.order_id}">?</button></td>
-        <td><button class="info-button" data-order-id="${order.order_id}">Info</button></td>
-        <td>${currentRankImg}</td>
-        <td>${desiredRankHtml}</td>
-        <td>$${parseFloat(order.price || 0).toFixed(2)}</td>
-        <td>${order.status || 'Pending'}</td>
-        <td>${new Date(order.created_at).toLocaleDateString()}</td>
-        <td>${parseFloat(order.cashback || 0) > 0 ? `$${parseFloat(order.cashback).toFixed(2)}` : ''}</td>
-      `;
-
-      tbody.appendChild(row);
     });
-
-   
 
     ordersDiv.innerHTML = '';
     ordersDiv.appendChild(table);
