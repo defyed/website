@@ -1166,6 +1166,25 @@ app.get('/api/order-credentials', authenticate, async (req, res) => {
     res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 });
+app.get('/api/coaches', async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT u.id, u.username,
+             TIMESTAMPDIFF(MINUTE, u.last_activity, NOW()) <= 8 AS online_status,
+             cp.game_type, cp.bio, cp.price_per_hour,
+             cp.lol_highest_rank, cp.valorant_highest_rank,
+             cp.lol_preferred_lanes, cp.lol_preferred_champions,
+             cp.valorant_preferred_roles, cp.valorant_preferred_agents
+      FROM users u
+      LEFT JOIN coach_profiles cp ON u.id = cp.user_id
+      WHERE u.role = 'coach'
+    `);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching coaches:', error.message);
+    res.status(500).json({ error: 'Internal server error', details: error.message });
+  }
+});
 
 app.get('/api/order-messages', authenticate, async (req, res) => {
   const { orderId } = req.query;
