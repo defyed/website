@@ -128,129 +128,151 @@
         }
     }
 
-    async function fetchAvailableOrders() {
-        if (isFetchingAvailableOrders) {
-            console.log('fetchAvailableOrders already in progress, skipping');
-            return;
-        }
-        isFetchingAvailableOrders = true;
-        try {
-            console.log('Fetching available orders for userId:', userId);
-            const response = await fetch(`/api/available-orders?userId=${userId}`);
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`);
-            }
-            const orders = await response.json();
-            console.log('Available orders received:', orders);
-            orders.forEach(order => {
-                console.log(`Order ${order.order_id}: current_rank=${order.current_rank}, desired_rank=${order.desired_rank}, game_type=${order.game_type}`);
-            });
-            renderOrders(orders, 'available-orders', true);
-        } catch (error) {
-            console.error('Error fetching available orders:', error.message);
-            document.getElementById('available-orders').innerHTML = '<p>Error loading available orders. Please try again later.</p>';
-        } finally {
-            isFetchingAvailableOrders = false;
-        }
+     async function fetchAvailableOrders() {
+    if (isFetchingAvailableOrders) {
+      console.log('fetchAvailableOrders already in progress, skipping');
+      return;
     }
-
-    async function fetchWorkingOrders() {
-        try {
-            console.log('Fetching working orders for userId:', userId);
-            const response = await fetch(`/api/working-orders?userId=${userId}`);
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`);
-            }
-            const orders = await response.json();
-            console.log('Working orders received for userId:', userId, 'Orders:', orders);
-            renderOrders(orders, 'working-orders', false, true);
-        } catch (error) {
-            console.error('Error fetching working orders for userId:', userId, 'Error:', error.message);
-            document.getElementById('working-orders').innerHTML = '<p>Error loading working orders. Please try again later.</p>';
-        }
-    }
-
-    async function fetchCoachingOrders() {
+    isFetchingAvailableOrders = true;
     try {
-        const userId = localStorage.getItem('userId');
-        if (!userId) throw new Error('No user ID found in localStorage');
-
-        const response = await fetch(`/api/my-coaching-orders?userId=${encodeURIComponent(userId)}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-                // Add auth headers if needed, e.g., 'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            credentials: 'include' // Include cookies for session-based auth
-        });
-
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-        const orders = await response.json();
-        renderCoachingOrders(orders);
+      console.log('Fetching available orders for userId:', userId);
+      const response = await fetch(`/api/available-orders?userId=${userId}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`);
+      }
+      const orders = await response.json();
+      console.log('Available orders received:', orders);
+      orders.forEach(order => {
+        console.log(`Order ${order.order_id}: current_rank=${order.current_rank}, desired_rank=${order.desired_rank}, game_type=${order.game_type}`);
+      });
+      renderOrders(orders, 'available-orders', true);
     } catch (error) {
-        console.error('Error fetching coaching orders:', error.message);
-        const coachingOrdersDiv = document.getElementById('coaching-orders');
-        if (coachingOrdersDiv) {
-            coachingOrdersDiv.innerHTML = `<p style="color: red;">Failed to load coaching orders: ${error.message}</p>`;
-        }
+      console.error('Error fetching available orders:', error.message);
+      document.getElementById('available-orders').innerHTML = '<p>Error loading available orders. Please try again later.</p>';
+    } finally {
+      isFetchingAvailableOrders = false;
     }
-}
-function renderCoachingOrders(orders, containerId) {
+  }
+
+   async function fetchWorkingOrders() {
+    try {
+      console.log('Fetching working orders for userId:', userId);
+      const response = await fetch(`/api/working-orders?userId=${userId}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`);
+      }
+      const orders = await response.json();
+      console.log('Working orders received for userId:', userId, 'Orders:', orders);
+      renderOrders(orders, 'working-orders', false, true);
+    } catch (error) {
+      console.error('Error fetching working orders for userId:', userId, 'Error:', error.message);
+      document.getElementById('working-orders').innerHTML = '<p>Error loading working orders. Please try again later.</p>';
+    }
+  }
+
+  async function fetchCoachingOrders() {
+    try {
+      console.log('Fetching coaching orders for userId:', userId);
+      const response = await fetch(`/api/my-coaching-orders?userId=${encodeURIComponent(userId)}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`);
+      }
+      const orders = await response.json();
+      console.log('Coaching orders received:', orders);
+      renderOrders(orders, 'coaching-orders', false, false, true);
+    } catch (error) {
+      console.error('Error fetching coaching orders:', error.message);
+      document.getElementById('coaching-orders').innerHTML = `<p style="color: red;">Failed to load coaching orders: ${error.message}</p>`;
+    }
+  }
+function renderOrders(orders, containerId, showClaimButton = false, showCompleteButton = false, isCoaching = false) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
     if (orders.length === 0) {
-        container.innerHTML = '<p>No coaching orders found.</p>';
-        return;
+      container.innerHTML = `<p>No ${isCoaching ? 'coaching' : 'orders'} found.</p>`;
+      return;
     }
 
     const table = document.createElement('table');
     table.className = 'orders-table';
     table.innerHTML = `
-        <thead>
-            <tr>
-                <th>Order ID</th>
-                <th>Customer</th>
-                <th>Coach</th>
-                <th>Game</th>
-                <th>Hours</th>
-                <th>Price</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          ${isCoaching ? '<th>Customer</th><th>Coach</th>' : '<th>Customer</th>'}
+          <th>Game</th>
+          <th>Details</th>
+          <th>Price</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
     `;
     const tbody = table.querySelector('tbody');
 
     orders.forEach(order => {
-        const row = document.createElement('tr');
-        row.dataset.orderId = order.order_id;
-        row.innerHTML = `
-            <td><button class="order-id-button" data-order-id="${order.order_id}">?</button></td>
-            <td>${order.customer_username || 'N/A'} (${order.user_id})</td>
-            <td>${order.game_type || 'N/A'}</td>
-            <td>${order.booked_hours || 'N/A'}</td>
-            <td>$${parseFloat(order.price || 0).toFixed(2)}</td>
-            <td>${order.status || 'Pending'}</td>
-            <td>${new Date(order.created_at).toLocaleDateString()}</td>
-            <td><button class="complete-btn" data-order-id="${order.order_id}" ${order.status === 'Completed' ? 'disabled' : ''}>Complete</button></td>
-        `;
-        tbody.appendChild(row);
+      const row = document.createElement('tr');
+      row.dataset.orderId = order.order_id;
+
+      let details = '';
+      if (isCoaching) {
+        const extras = order.extras ? JSON.parse(order.extras) : {};
+        details = `Hours: ${extras.hours || order.booked_hours || 'N/A'}`;
+      } else {
+        details = `From ${order.currentRank || order.current_rank || 'N/A'} ${order.currentDivision || ''} to ${order.desiredRank || order.desired_rank || 'N/A'} ${order.desiredDivision || ''}`;
+        if (order.extras) {
+          const extrasArray = Array.isArray(order.extras) ? order.extras : JSON.parse(order.extras);
+          details += `<br>Extras: ${extrasArray.map(e => e.label || e).join(', ')}`;
+        }
+      }
+
+      const customerCell = isCoaching
+        ? `<td>${order.customer_username || 'N/A'} (${order.user_id})</td><td>${order.coach_name || 'N/A'}</td>`
+        : `<td>${order.customer_username || 'N/A'}</td>`;
+
+      row.innerHTML = `
+        <td><button class="order-id-button" data-order-id="${order.order_id}">?</button></td>
+        ${customerCell}
+        <td>${order.game_type || 'N/A'}</td>
+        <td>${details}</td>
+        <td>$${parseFloat(order.price || order.total_price || 0).toFixed(2)}</td>
+        <td>${order.status || 'Pending'}</td>
+        <td>${new Date(order.created_at).toLocaleDateString()}</td>
+        <td>
+          ${showClaimButton ? `<button class="claim-btn" data-order-id="${order.order_id}">Claim</button>` : ''}
+          ${showCompleteButton ? `<button class="complete-btn" data-order-id="${order.order_id}" ${order.status === 'Completed' ? 'disabled' : ''}>Complete</button>` : ''}
+          ${isCoaching ? `<button class="complete-btn" data-order-id="${order.order_id}" ${order.status === 'completed' ? 'disabled' : ''}>Complete</button>` : ''}
+        </td>
+      `;
+      tbody.appendChild(row);
     });
 
     container.innerHTML = '';
     container.appendChild(table);
 
     document.querySelectorAll('.order-id-button').forEach(button => {
-        button.addEventListener('click', function (e) {
-            e.stopPropagation();
-            const orderId = button.getAttribute('data-order-id');
-            showOrderIdModal(orderId);
-        });
+      button.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const orderId = button.getAttribute('data-order-id');
+        showOrderIdModal(orderId);
+      });
     });
 
     document.querySelectorAll('.complete-btn').forEach(button => {

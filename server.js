@@ -114,23 +114,22 @@ async function initializeDatabase() {
     `);
 
     // Coaching orders table
-    await connection.query(`
-      CREATE TABLE IF NOT EXISTS coaching_orders (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        customer_id INT NOT NULL,
-        coach_id INT NOT NULL,
-        order_id VARCHAR(255) DEFAULT NULL,
-        hours INT NOT NULL,
-        total_price DECIMAL(10,2) NOT NULL,
-        game_type VARCHAR(50) NOT NULL,
-        customer_name VARCHAR(255) NOT NULL,
-        coach_name VARCHAR(255) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (customer_id) REFERENCES users(id),
-        FOREIGN KEY (coach_id) REFERENCES users(id),
-        FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE SET NULL
-      )
-    `);
+   await connection.query(`
+  CREATE TABLE IF NOT EXISTS coaching_orders (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    coach_id INT NOT NULL,
+    order_id VARCHAR(255) NOT NULL,
+    booked_hours INT NOT NULL,
+    game_type VARCHAR(50) NOT NULL,
+    total_price DECIMAL(10,2) NOT NULL,
+    coach_name VARCHAR(255) NOT NULL,
+    status ENUM('pending', 'completed', 'cancelled') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (coach_id) REFERENCES users(id) ON DELETE CASCADE
+  )
+`);
 
     // Coach profiles table
     await connection.query(`
@@ -304,16 +303,18 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
-    const { userId, orderId } = session.metadata || {};
+    const { userId, orderId, fullOrderData } = session.metadata || {};
     let orderData = {};
     try {
-      // Prefer fullOrderData from metadata if available
-      if (session.metadata && session.metadata.fullOrderData) {
-        orderData = JSON.parse(session.metadata.fullOrderData);
-        console.log('Webhook using fullOrderData from metadata:', orderData);
+      if (fullOrderData) {
+        orderData = JSON.parse(fullOrderData);
+        console.log('Webhook using fullOrderData:', orderData);
       } else if (session.client_reference_id) {
         orderData = JSON.parse(session.client_reference_id);
         console.log('Webhook using client_reference_id:', orderData);
+      } else {
+        console.error('No order data found in metadata or client_reference_id');
+        return res.status(400).json({ error: 'No order data provided' });
       }
     } catch (parseError) {
       console.error('Failed to parse order data:', parseError.message);
@@ -330,109 +331,127 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
     }
 
     try {
-      const [userRows] = await pool.query('SELECT id FROM users WHERE id = ?', [userId]);
-      if (userRows.length === 0) {
+      const [userRows] = await pool.query('SELECT id, username FROM users WHERE id = ?', [userId]);
+      if (!userRows.length) {
         console.error('User not found:', userId);
         return res.status(400).json({ error: 'User not found' });
       }
 
-      const leagueRanks = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Emerald', 'Diamond', 'Master', 'Grandmaster', 'Challenger'];
-      const valorantRanks = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal', 'Radiant'];
-      const leagueDivisions = ['I', 'II', 'III', 'IV'];
-      const valorantDivisions = ['I', 'II', 'III'];
-      const gameType = orderData.game || 'League of Legends';
-      const validRanks = gameType === 'Valorant' ? valorantRanks : leagueRanks;
-      const validDivisions = gameType === 'Valorant' ? valorantDivisions : leagueDivisions;
-
-      if (!['League of Legends', 'Valorant'].includes(gameType)) {
-        console.error('Invalid gameType:', gameType);
-        return res.status(400).json({ error: 'Invalid game type' });
-      }
-
-      // Normalize ranks by removing division if included
-      let normalizedCurrentRank = orderData.currentRank || '';
-      let normalizedDesiredRank = orderData.desiredRank || '';
-      if (normalizedCurrentRank.includes(' ')) {
-        normalizedCurrentRank = normalizedCurrentRank.split(' ')[0];
-      }
-      if (normalizedDesiredRank.includes(' ')) {
-        normalizedDesiredRank = normalizedDesiredRank.split(' ')[0];
-      }
-
-      if (!normalizedCurrentRank || !validRanks.includes(normalizedCurrentRank)) {
-        console.error('Invalid normalized currentRank:', normalizedCurrentRank, 'Original:', orderData.currentRank);
-        return res.status(400).json({ error: 'Invalid current rank' });
-      }
-      if (!normalizedDesiredRank || !validRanks.includes(normalizedDesiredRank)) {
-        console.error('Invalid normalized desiredRank:', normalizedDesiredRank, 'Original:', orderData.desiredRank);
-        return res.status(400).json({ error: 'Invalid desired rank' });
-      }
-      if (!['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedCurrentRank) && orderData.currentDivision && !validDivisions.includes(orderData.currentDivision)) {
-        console.warn('Invalid currentDivision:', orderData.currentDivision, 'Setting to default');
-        orderData.currentDivision = '';
-      }
-      if (!['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedDesiredRank) && orderData.desiredDivision && !validDivisions.includes(orderData.desiredDivision)) {
-        console.warn('Invalid desiredDivision:', orderData.desiredDivision, 'Setting to default');
-        orderData.desiredDivision = '';
-      }
-
-      const currentRank = ['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedCurrentRank) 
-        ? normalizedCurrentRank 
-        : `${normalizedCurrentRank} ${orderData.currentDivision || ''}`.trim().slice(0, 50);
-      const desiredRank = ['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedDesiredRank) 
-        ? normalizedDesiredRank 
-        : `${normalizedDesiredRank} ${orderData.desiredDivision || ''}`.trim().slice(0, 50);
-
-      const cashback = (orderData.finalPrice || 0) * 0.03;
-      const extras = Array.isArray(orderData.extras) ? orderData.extras : [];
-      const price = parseFloat(orderData.finalPrice) || 0;
-
       const connection = await pool.getConnection();
       try {
         await connection.beginTransaction();
-        const [existingRows] = await connection.query('SELECT order_id FROM orders WHERE order_id = ?', [orderId]);
-        if (existingRows.length > 0) {
+
+        if (orderData.type === 'coaching') {
+          const { coachId, hours, game, finalPrice, coachName } = orderData;
+          if (!coachId || !hours || !game || !finalPrice || !coachName) {
+            console.error('Incomplete coaching order data:', orderData);
+            await connection.rollback();
+            return res.status(400).json({ error: 'Incomplete coaching order data' });
+          }
+          const [coachRows] = await connection.query('SELECT id, username FROM users WHERE id = ? AND role = "coach"', [coachId]);
+          if (!coachRows.length) {
+            console.error('Coach not found:', coachId);
+            await connection.rollback();
+            return res.status(400).json({ error: 'Coach not found' });
+          }
           await connection.query(
-            'UPDATE orders SET current_rank = ?, desired_rank = ?, current_lp = ?, desired_lp = ?, price = ?, status = ?, cashback = ?, game_type = ?, extras = ? WHERE order_id = ? AND user_id = ?',
-            [
-              currentRank,
-              desiredRank,
-              parseInt(orderData.currentLP) || 0,
-              parseInt(orderData.desiredLP) || 0,
-              price,
-              'Pending',
-              cashback,
-              gameType,
-              JSON.stringify(extras),
-              orderId,
-              parseInt(userId)
-            ]
+            `INSERT INTO coaching_orders (
+              user_id, coach_id, order_id, booked_hours, game_type, total_price, coach_name, status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [parseInt(userId), coachId, orderId, hours, game, finalPrice, coachName, 'completed']
           );
-          console.log(`Order ${orderId} updated for user ${userId}`);
+          console.log(`Coaching order ${orderId} created for user ${userId}, coach ${coachId}`);
+        } else if (orderData.type === 'boost') {
+          const { currentRank, desiredRank, currentDivision, desiredDivision, currentLP, desiredLP, finalPrice, game, extras } = orderData;
+          const leagueRanks = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Emerald', 'Diamond', 'Master', 'Grandmaster', 'Challenger'];
+          const valorantRanks = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal', 'Radiant'];
+          const leagueDivisions = ['I', 'II', 'III', 'IV'];
+          const valorantDivisions = ['I', 'II', 'III'];
+          const gameType = game || 'League of Legends';
+          const validRanks = gameType === 'Valorant' ? valorantRanks : leagueRanks;
+          const validDivisions = gameType === 'Valorant' ? valorantDivisions : leagueDivisions;
+
+          let normalizedCurrentRank = currentRank?.includes(' ') ? currentRank.split(' ')[0] : currentRank;
+          let normalizedDesiredRank = desiredRank?.includes(' ') ? desiredRank.split(' ')[0] : desiredRank;
+          if (!normalizedCurrentRank || !validRanks.includes(normalizedCurrentRank)) {
+            console.error('Invalid currentRank:', normalizedCurrentRank);
+            await connection.rollback();
+            return res.status(400).json({ error: 'Invalid current rank' });
+          }
+          if (!normalizedDesiredRank || !validRanks.includes(normalizedDesiredRank)) {
+            console.error('Invalid desiredRank:', normalizedDesiredRank);
+            await connection.rollback();
+            return res.status(400).json({ error: 'Invalid desired rank' });
+          }
+          let validatedCurrentDivision = currentDivision || '';
+          let validatedDesiredDivision = desiredDivision || '';
+          if (!['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedCurrentRank) && validatedCurrentDivision && !validDivisions.includes(validatedCurrentDivision)) {
+            console.warn('Invalid currentDivision:', validatedCurrentDivision);
+            validatedCurrentDivision = '';
+          }
+          if (!['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedDesiredRank) && validatedDesiredDivision && !validDivisions.includes(validatedDesiredDivision)) {
+            console.warn('Invalid desiredDivision:', validatedDesiredDivision);
+            validatedDesiredDivision = '';
+          }
+          const currentRankFull = ['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedCurrentRank)
+            ? normalizedCurrentRank
+            : `${normalizedCurrentRank} ${validatedCurrentDivision}`.trim().slice(0, 50);
+          const desiredRankFull = ['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedDesiredRank)
+            ? normalizedDesiredRank
+            : `${normalizedDesiredRank} ${validatedDesiredDivision}`.trim().slice(0, 50);
+          const cashback = (finalPrice || 0) * 0.03;
+          const extrasArray = Array.isArray(extras) ? extras : [];
+
+          const [existingRows] = await connection.query('SELECT order_id FROM orders WHERE order_id = ?', [orderId]);
+          if (existingRows.length > 0) {
+            await connection.query(
+              'UPDATE orders SET current_rank = ?, desired_rank = ?, current_lp = ?, desired_lp = ?, price = ?, status = ?, cashback = ?, game_type = ?, extras = ? WHERE order_id = ? AND user_id = ?',
+              [
+                currentRankFull,
+                desiredRankFull,
+                parseInt(currentLP) || 0,
+                parseInt(desiredLP) || 0,
+                parseFloat(finalPrice) || 0,
+                'Pending',
+                cashback,
+                gameType,
+                JSON.stringify(extrasArray),
+                orderId,
+                parseInt(userId)
+              ]
+            );
+            console.log(`Boost order ${orderId} updated for user ${userId}`);
+          } else {
+            await connection.query(
+              'INSERT INTO orders (order_id, user_id, current_rank, desired_rank, current_lp, desired_lp, price, status, cashback, payout_status, game_type, extras, order_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+              [
+                orderId,
+                parseInt(userId),
+                currentRankFull,
+                desiredRankFull,
+                parseInt(currentLP) || 0,
+                parseInt(desiredLP) || 0,
+                parseFloat(finalPrice) || 0,
+                'Pending',
+                cashback,
+                'Pending',
+                gameType,
+                JSON.stringify(extrasArray),
+                'boost'
+              ]
+            );
+            console.log(`Boost order ${orderId} created for user ${userId}`);
+          }
+          await connection.query(
+            'UPDATE users SET account_balance = account_balance + ? WHERE id = ?',
+            [cashback, parseInt(userId)]
+          );
         } else {
-          await connection.query(
-            'INSERT INTO orders (order_id, user_id, current_rank, desired_rank, current_lp, desired_lp, price, status, cashback, payout_status, game_type, extras) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [
-              orderId,
-              parseInt(userId),
-              currentRank,
-              desiredRank,
-              parseInt(orderData.currentLP) || 0,
-              parseInt(orderData.desiredLP) || 0,
-              price,
-              'Pending',
-              cashback,
-              'Pending',
-              gameType,
-              JSON.stringify(extras)
-            ]
-          );
-          console.log(`Order ${orderId} created for user ${userId}`);
+          console.error('Invalid order type:', orderData.type);
+          await connection.rollback();
+          return res.status(400).json({ error: 'Invalid order type' });
         }
-        await connection.query(
-          'UPDATE users SET account_balance = account_balance + ? WHERE id = ?',
-          [cashback, parseInt(userId)]
-        );
+
         await connection.commit();
         console.log(`Transaction committed for orderId: ${orderId}`);
       } catch (err) {
@@ -782,25 +801,50 @@ app.post('/api/create-checkout-session', async (req, res) => {
 app.get('/api/user-orders', authenticate, async (req, res) => {
   try {
     console.log(`Fetching orders for userId: ${req.user.id}`);
-    const [rows] = await pool.query(
-      'SELECT order_id, current_rank, desired_rank, current_lp, desired_lp, price, status, cashback, DATE_FORMAT(created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at, extras, game_type FROM orders WHERE user_id = ?',
+    // Fetch boost orders
+    const [boostRows] = await pool.query(
+      `SELECT order_id, current_rank, desired_rank, current_lp, desired_lp, price, status, cashback, 
+              DATE_FORMAT(created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at, extras, game_type, 'boost' AS order_type
+       FROM orders 
+       WHERE user_id = ?`,
       [req.user.id]
     );
-    const orders = rows.map(row => {
-      const parseRank = (rank, gameType) => {
-        const highRanks = gameType === 'Valorant' ? ['Immortal', 'Radiant'] : ['Master', 'Grandmaster', 'Challenger'];
-        if (highRanks.includes(rank)) {
-          return { rank, division: '' };
-        }
-        const [baseRank, division] = rank.split(' ');
-        return { rank: baseRank || rank, division: division || '' };
-      };
+    // Fetch coaching orders
+    const [coachingRows] = await pool.query(
+      `SELECT order_id, NULL AS current_rank, NULL AS desired_rank, NULL AS current_lp, NULL AS desired_lp, 
+              total_price AS price, status, 0 AS cashback, 
+              DATE_FORMAT(created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at, 
+              JSON_OBJECT('coach_name', coach_name, 'hours', booked_hours) AS extras, 
+              game_type, 'coaching' AS order_type
+       FROM coaching_orders 
+       WHERE user_id = ?`,
+      [req.user.id]
+    );
+    // Combine and normalize orders
+    const orders = [...boostRows, ...coachingRows].map(row => {
+      if (row.order_type === 'boost') {
+        const parseRank = (rank, gameType) => {
+          const highRanks = gameType === 'Valorant' ? ['Immortal', 'Radiant'] : ['Master', 'Grandmaster', 'Challenger'];
+          if (highRanks.includes(rank)) {
+            return { rank, division: '' };
+          }
+          const [baseRank, division] = rank ? rank.split(' ') : [rank, ''];
+          return { rank: baseRank || rank, division: division || '' };
+        };
+        return {
+          ...row,
+          currentRank: parseRank(row.current_rank, row.game_type).rank,
+          currentDivision: parseRank(row.current_rank, row.game_type).division,
+          desiredRank: parseRank(row.desired_rank, row.game_type).rank,
+          desiredDivision: parseRank(row.desired_rank, row.game_type).division
+        };
+      }
       return {
         ...row,
-        currentRank: parseRank(row.current_rank, row.game_type).rank,
-        currentDivision: parseRank(row.current_rank, row.game_type).division,
-        desiredRank: parseRank(row.desired_rank, row.game_type).rank,
-        desiredDivision: parseRank(row.desired_rank, row.game_type).division
+        currentRank: null,
+        currentDivision: null,
+        desiredRank: null,
+        desiredDivision: null
       };
     });
     console.log(`Orders found for userId ${req.user.id}: ${orders.length}`, orders);
@@ -1220,6 +1264,24 @@ app.get('/api/coach-profile', authenticate, async (req, res) => {
   } catch (error) {
     console.error('Error fetching coach profile:', error);
     res.status(500).json({ error: 'Failed to fetch profile' });
+  }
+});
+app.get('/api/my-coaching-orders', authenticate, checkRole(['coach', 'admin']), async (req, res) => {
+  try {
+    const userId = req.user.id;
+    console.log(`Fetching coaching orders for coachId: ${userId}`);
+    const [rows] = await pool.query(
+      `SELECT order_id, user_id, booked_hours, game_type, total_price, coach_name, status, 
+              DATE_FORMAT(created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at
+       FROM coaching_orders
+       WHERE coach_id = ?`,
+      [userId]
+    );
+    console.log(`Coaching orders found for coachId ${userId}: ${rows.length}`, rows);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching coaching orders:', error.message);
+    res.status(500).json({ error: 'Failed to fetch coaching orders', details: error.message });
   }
 });
 app.post('/api/coach-profile', authenticate, async (req, res) => {
