@@ -451,20 +451,35 @@ editProfileForm.addEventListener('submit', async (e) => {
         editMyProfileBtn.addEventListener('click', () => showEditProfileModal({ user_id: userId }));
     }
 
-   coachesContainer.addEventListener('click', async (e) => {
+  coachesContainer.addEventListener('click', async (e) => {
   if (e.target.classList.contains('purchase-coach-btn')) {
     const coachId = e.target.dataset.id;
     const hoursSelect = e.target.parentElement.querySelector('.session-hours');
     const hours = parseInt(hoursSelect?.value);
     const coachCard = e.target.closest('.coach-card');
-    const coachName = coachCard?.querySelector('.username-wrapper h3')?.textContent?.trim();
-    const gameType = coachCard?.querySelector('.game-icon')?.alt?.trim();
-    const pricePerHourText = coachCard?.querySelector('.rate-value')?.textContent?.replace('$', '').replace('/hr', '').trim();
+    const coachNameElement = coachCard?.querySelector('.username-wrapper h3');
+    const coachName = coachNameElement?.textContent?.trim();
+    const gameTypeElement = coachCard?.querySelector('.game-icon');
+    const gameType = gameTypeElement?.alt?.trim();
+    const pricePerHourElement = coachCard?.querySelector('.rate-value');
+    const pricePerHourText = pricePerHourElement?.textContent?.replace('$', '').replace('/hr', '').trim();
     const pricePerHour = parseFloat(pricePerHourText);
     const totalPrice = hours * pricePerHour;
+    const userId = parseInt(localStorage.getItem('userId'));
 
     // Log extracted values for debugging
-    console.log('Extracted checkout data:', { coachId, hours, coachName, gameType, pricePerHour, totalPrice });
+    console.log('Extracted checkout data:', { 
+      coachId, 
+      hours, 
+      coachName, 
+      gameType, 
+      pricePerHour, 
+      totalPrice, 
+      userId,
+      coachNameElement: coachNameElement?.outerHTML,
+      gameTypeElement: gameTypeElement?.outerHTML,
+      pricePerHourElement: pricePerHourElement?.outerHTML
+    });
 
     // Validate inputs
     if (!coachId || isNaN(parseInt(coachId))) {
@@ -472,27 +487,31 @@ editProfileForm.addEventListener('submit', async (e) => {
       alert('Invalid coach selected.');
       return;
     }
-    if (isNaN(hours) || hours < 1 || hours > 4) {
-      console.error('Invalid hours:', hours);
+    if (!hoursSelect || isNaN(hours) || hours < 1 || hours > 4) {
+      console.error('Invalid hours:', hours, 'Hours select:', hoursSelect?.outerHTML);
       alert('Please select 1–4 hours.');
       return;
     }
-    if (!gameType || !['League of Legends', 'Valorant'].includes(gameType)) {
-      console.error('Invalid gameType:', gameType);
-      alert('Invalid game type.');
-      return;
-    }
-    if (isNaN(totalPrice) || totalPrice <= 0 || isNaN(pricePerHour)) {
-      console.error('Invalid price:', { pricePerHour, totalPrice });
-      alert('Invalid price.');
-      return;
-    }
-    if (!coachName) {
-      console.error('Invalid coachName:', coachName);
+    if (!coachName || coachName === '') {
+      console.error('Invalid coachName:', coachName, 'Element:', coachNameElement?.outerHTML);
       alert('Coach name not found.');
       return;
     }
-    const userId = parseInt(localStorage.getItem('userId'));
+    if (!gameType || !['League of Legends', 'Valorant'].includes(gameType)) {
+      console.error('Invalid gameType:', gameType, 'Element:', gameTypeElement?.outerHTML);
+      alert('Invalid game type.');
+      return;
+    }
+    if (!pricePerHourText || isNaN(pricePerHour) || pricePerHour <= 0) {
+      console.error('Invalid pricePerHour:', pricePerHourText, 'Element:', pricePerHourElement?.outerHTML);
+      alert('Invalid price.');
+      return;
+    }
+    if (isNaN(totalPrice) || totalPrice <= 0) {
+      console.error('Invalid totalPrice:', totalPrice);
+      alert('Invalid total price.');
+      return;
+    }
     if (!userId || isNaN(userId)) {
       console.error('Invalid userId:', userId);
       alert('You must be logged in to book a coaching session.');
@@ -520,11 +539,16 @@ editProfileForm.addEventListener('submit', async (e) => {
         body: JSON.stringify(requestBody)
       });
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+        const errorData = await response.json();
+        throw new Error(`HTTP ${response.status}: ${JSON.stringify(errorData)}`);
       }
       const { id: sessionId } = await response.json();
-      const stripe = Stripe('pk_test_your_stripe_publishable_key');
-      await stripe.redirectToCheckout({ sessionId });
+      const stripe = Stripe('pk_test_51RQDfjPPazfqaVG5QhEgsle6jH6ohhSrqObHzyzOUk6sbh3nERA6impvrDL0judz7e7d0ylipgmgv1sTATWT6ylj00kTO65wlC');
+      const { error } = await stripe.redirectToCheckout({ sessionId });
+      if (error) {
+        console.error('Stripe redirectToCheckout error:', error.message);
+        alert(`Payment error: ${error.message}. Please try again or contact support.`);
+      }
     } catch (error) {
       console.error('Error initiating checkout:', error.message);
       alert(`Failed to book coaching session: ${error.message}`);
