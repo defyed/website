@@ -871,6 +871,24 @@ app.get('/api/available-orders', authenticate, checkRole(['booster', 'admin']), 
     res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 });
+app.get('/api/coaching-order-details', authenticate, async (req, res) => {
+    const { orderId, userId } = req.query;
+    try {
+        const [rows] = await pool.query(
+            `SELECT order_id, user_id, coach_id, booked_hours, game_type, total_price, coach_name, status, created_at, extras
+             FROM coaching_orders
+             WHERE order_id = ? AND (user_id = ? OR coach_id = ?)`,
+            [orderId, userId, userId]
+        );
+        if (!rows.length) {
+            return res.status(404).json({ error: 'Coaching order not found' });
+        }
+        res.json(rows[0]);
+    } catch (error) {
+        console.error('Error fetching coaching order details:', error.message);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
 
 app.post('/api/claim-order', authenticate, checkRole(['booster', 'admin']), async (req, res) => {
   const { orderId } = req.body;
