@@ -800,66 +800,66 @@ function renderCoachingOrders(orders, containerId) {
         });
     }
 
-   function parseRank(rankStr, gameType = 'League of Legends') {
-    if (!rankStr || typeof rankStr !== 'string' || rankStr.trim().toLowerCase() === 'null' || rankStr.trim().toLowerCase() === 'unknown') {
-        console.log('Skipping rank parsing for null/undefined/unknown rank:', rankStr, 'GameType:', gameType);
-        return { rank: null, division: null, displayRank: 'N/A' }; // Use 'N/A' for coaching orders
-    }
-    rankStr = rankStr.trim();
-    const leagueRanks = ['iron', 'bronze', 'silver', 'gold', 'platinum', 'emerald', 'diamond', 'master', 'grandmaster', 'challenger'];
-    const valorantRanks = ['iron', 'bronze', 'silver', 'gold', 'platinum', 'diamond', 'ascendant', 'immortal', 'radiant'];
-    const leagueDivisions = ['I', 'II', 'III', 'IV'];
-    const valorantDivisions = ['I', 'II', 'III'];
-    const validGameTypes = ['League of Legends', 'Valorant'];
-    const normalizedGameType = validGameTypes.includes(gameType) ? gameType : 'League of Legends';
-    const validRanks = normalizedGameType === 'Valorant' ? valorantRanks : leagueRanks;
-    const validDivisions = normalizedGameType === 'Valorant' ? valorantDivisions : leagueDivisions;
-    const tierlessRanks = normalizedGameType === 'Valorant' ? ['immortal', 'radiant'] : ['master', 'grandmaster', 'challenger'];
-
-    console.log('Parsing rank:', rankStr, 'GameType:', normalizedGameType);
-
-    const rankLower = rankStr.toLowerCase();
-    if (tierlessRanks.includes(rankLower)) {
-        if (validRanks.includes(rankLower)) {
-            const displayRank = rankLower.charAt(0).toUpperCase() + rankLower.slice(1);
-            console.log('Parsed tierless rank:', { rank: rankLower, division: '', displayRank });
-            return { rank: rankLower, division: '', displayRank };
+    function parseRank(rankStr, gameType = 'League of Legends') {
+        if (!rankStr || typeof rankStr !== 'string') {
+            console.warn('Invalid rank string:', rankStr, 'GameType:', gameType);
+            return { rank: 'default', division: '', displayRank: 'Unknown' };
         }
-        console.warn('Invalid tierless rank:', rankLower, 'Original:', rankStr, 'Game:', normalizedGameType);
-        return { rank: null, division: null, displayRank: 'N/A' };
+        rankStr = rankStr.trim();
+        const leagueRanks = ['iron', 'bronze', 'silver', 'gold', 'platinum', 'emerald', 'diamond', 'master', 'grandmaster', 'challenger'];
+        const valorantRanks = ['iron', 'bronze', 'silver', 'gold', 'platinum', 'diamond', 'ascendant', 'immortal', 'radiant'];
+        const leagueDivisions = ['I', 'II', 'III', 'IV'];
+        const valorantDivisions = ['I', 'II', 'III'];
+        const validGameTypes = ['League of Legends', 'Valorant'];
+        const normalizedGameType = validGameTypes.includes(gameType) ? gameType : 'League of Legends';
+        const validRanks = normalizedGameType === 'Valorant' ? valorantRanks : leagueRanks;
+        const validDivisions = normalizedGameType === 'Valorant' ? valorantDivisions : leagueDivisions;
+        const tierlessRanks = normalizedGameType === 'Valorant' ? ['immortal', 'radiant'] : ['master', 'grandmaster', 'challenger'];
+
+        console.log('Parsing rank:', rankStr, 'GameType:', normalizedGameType);
+
+        const rankLower = rankStr.toLowerCase();
+        if (tierlessRanks.includes(rankLower)) {
+            if (validRanks.includes(rankLower)) {
+                const displayRank = rankLower.charAt(0).toUpperCase() + rankLower.slice(1);
+                console.log('Parsed tierless rank:', { rank: rankLower, division: '', displayRank });
+                return { rank: rankLower, division: '', displayRank };
+            }
+            console.warn('Invalid tierless rank:', rankLower, 'Original:', rankStr, 'Game:', normalizedGameType);
+            return { rank: 'default', division: '', displayRank: 'Unknown' };
+        }
+
+        let normalizedRankStr = rankStr;
+        if (normalizedGameType === 'Valorant') {
+            normalizedRankStr = rankStr.replace(/(\d)$/i, match => {
+                const map = { '1': 'I', '2': 'II', '3': 'III' };
+                return map[match] || match;
+            });
+        }
+
+        const match = normalizedRankStr.match(/^([\w\s]+?)\s*(I|II|III|IV)?$/i);
+        if (!match) {
+            console.warn('Rank parse failed for:', rankStr, 'Normalized:', normalizedRankStr, 'Game:', normalizedGameType);
+            return { rank: 'default', division: '', displayRank: 'Unknown' };
+        }
+
+        const rankName = match[1].trim().toLowerCase().replace(/\s+/g, '');
+        const division = match[2] || '';
+
+        if (!validRanks.includes(rankName)) {
+            console.warn('Invalid rank name:', rankName, 'Original:', rankStr, 'Game:', normalizedGameType);
+            return { rank: 'default', division: '', displayRank: 'Unknown' };
+        }
+
+        if (division && !validDivisions.includes(division)) {
+            console.warn('Invalid division:', division, 'Original:', rankStr, 'Game:', normalizedGameType);
+            return { rank: 'default', division: '', displayRank: 'Unknown' };
+        }
+
+        const displayRank = rankName.charAt(0).toUpperCase() + rankName.slice(1);
+        console.log('Parsed rank:', { rank: rankName, division, displayRank });
+        return { rank: rankName, division, displayRank };
     }
-
-    let normalizedRankStr = rankStr;
-    if (normalizedGameType === 'Valorant') {
-        normalizedRankStr = rankStr.replace(/(\d)$/i, match => {
-            const map = { '1': 'I', '2': 'II', '3': 'III' };
-            return map[match] || match;
-        });
-    }
-
-    const match = normalizedRankStr.match(/^([\w\s]+?)\s*(I|II|III|IV)?$/i);
-    if (!match) {
-        console.warn('Rank parse failed for:', rankStr, 'Normalized:', normalizedRankStr, 'Game:', normalizedGameType);
-        return { rank: null, division: null, displayRank: 'N/A' };
-    }
-
-    const rankName = match[1].trim().toLowerCase().replace(/\s+/g, '');
-    const division = match[2] || '';
-
-    if (!validRanks.includes(rankName)) {
-        console.warn('Invalid rank name:', rankName, 'Original:', rankStr, 'Game:', normalizedGameType);
-        return { rank: null, division: null, displayRank: 'N/A' };
-    }
-
-    if (division && !validDivisions.includes(division)) {
-        console.warn('Invalid division:', division, 'Original:', rankStr, 'Game:', normalizedGameType);
-        return { rank: null, division: null, displayRank: 'N/A' };
-    }
-
-    const displayRank = rankName.charAt(0).toUpperCase() + rankName.slice(1);
-    console.log('Parsed rank:', { rank: rankName, division, displayRank });
-    return { rank: rankName, division, displayRank };
-}
 
     function parseExtras(extras) {
         let parsedExtras = [];
@@ -1199,194 +1199,161 @@ function renderCoachingOrders(orders, containerId) {
     }
 
     function renderOrders(orders, containerId, isAvailable = false, isWorking = false, isCompleted = false) {
-    const ordersDiv = document.getElementById(containerId);
-    if (!ordersDiv) {
-        console.error(`Error: ${containerId} div not found`);
-        return;
-    }
-
-    if (orders.length === 0) {
-        ordersDiv.innerHTML = '<p>No orders found.</p>';
-        return;
-    }
-
-    const table = document.createElement('table');
-    table.className = 'orders-table';
-    let headers = '';
-    if (isAvailable) {
-        headers = `
-            <tr>
-                <th>Current Rank</th>
-                <th>Desired Rank</th>
-                <th>Details</th>
-                <th>Ordered On</th>
-                <th>Payout</th>
-                <th>Action</th>
-            </tr>
-        `;
-    } else if (isWorking) {
-        headers = `
-            <tr>
-                <th>Order ID</th>
-                <th>Details</th>
-                <th>Current Rank</th>
-                <th>Desired Rank</th>
-                <th>Ordered On</th>
-                <th>Payout</th>
-                <th>Action</th>
-            </tr>
-        `;
-    } else if (isCompleted) {
-        headers = `
-            <tr>
-                <th>Customer</th>
-                <th>Booster/Coach</th>
-                <th>Current Rank</th>
-                <th>Desired Rank</th>
-                <th>Price</th>
-                <th>Ordered On</th>
-                <th>Extras</th>
-                <th>Payout Status</th>
-                <th>Action</th>
-            </tr>
-        `;
-    } else {
-        headers = `
-            <tr>
-                <th>Order ID</th>
-                <th>Details</th>
-                <th>Current Rank</th>
-                <th>Desired Rank</th>
-                <th>Price</th>
-                <th>Status</th>
-                <th>Ordered On</th>
-                <th>Cashback</th>
-            </tr>
-        `;
-    }
-    table.innerHTML = `<thead>${headers}</thead><tbody></tbody>`;
-    const tbody = table.querySelector('tbody');
-
-    orders.forEach(order => {
-        if (!order || !order.order_id) {
-            console.warn('Skipping invalid order:', order);
+        const ordersDiv = document.getElementById(containerId);
+        if (!ordersDiv) {
+            console.error(`Error: ${containerId} div not found`);
             return;
         }
-        console.log('Processing order:', order.order_id, 'OrderType:', order.order_type, 'GameType:', order.game_type, 'CurrentRank:', order.current_rank, 'DesiredRank:', order.desired_rank);
 
-        let rowData = '';
-        const orderIdHtml = `<button class="order-id-button" data-order-id="${order.order_id}">?</button>`;
-        const detailsHtml = `<button class="info-button" data-order-id="${order.order_id}">Info</button>`;
+        if (orders.length === 0) {
+            ordersDiv.innerHTML = '<p>No orders found.</p>';
+            return;
+        }
 
-        if (order.order_type === 'coaching') {
-            // Handle coaching orders
-            const coachName = order.coach_name || 'N/A';
-            const bookedHours = order.booked_hours || 'N/A';
-            const extras = parseExtras(order.extras);
-
-            if (isAvailable || isWorking) {
-                console.warn('Coaching orders should not appear in available or working orders:', order.order_id);
-                return; // Skip rendering coaching orders in these panels
-            } else if (isCompleted) {
-                rowData = `
-                    <td>${order.customer_username || 'N/A'} (${order.user_id})</td>
-                    <td>${coachName} (${order.coach_id || 'N/A'})</td>
-                    <td>N/A</td>
-                    <td>N/A</td>
-                    <td>$${parseFloat(order.total_price || order.price || 0).toFixed(2)}</td>
-                    <td>${new Date(order.created_at).toLocaleDateString()}</td>
-                    <td>Hours: ${bookedHours}, ${extras}</td>
-                    <td>${order.payout_status || 'Pending'}</td>
-                    <td>
-                        <button class="approve-btn" data-order-id="${order.order_id}" ${order.payout_status === 'Paid' ? 'disabled' : ''}>
-                            Approve Payout ($${parseFloat(order.total_price || order.price * 0.85 || 0).toFixed(2)})
-                        </button>
-                    </td>
-                `;
-            } else {
-                rowData = `
-                    <td>${orderIdHtml}</td>
-                    <td>${detailsHtml}</td>
-                    <td>N/A</td>
-                    <td>N/A</td>
-                    <td>$${parseFloat(order.total_price || order.price || 0).toFixed(2)}</td>
-                    <td>${order.status || 'Pending'}</td>
-                    <td>${new Date(order.created_at).toLocaleDateString()}</td>
-                    <td>$${parseFloat(order.cashback || 0).toFixed(2)}</td>
-                `;
-            }
+        const table = document.createElement('table');
+        table.className = 'orders-table';
+        let headers = '';
+        if (isAvailable) {
+            headers = `
+                <tr>
+                    <th>Current Rank</th>
+                    <th>Desired Rank</th>
+                    <th>Details</th>
+                    <th>Ordered On</th>
+                    <th>Payout</th>
+                    <th>Action</th>
+                </tr>
+            `;
+        } else if (isWorking) {
+            headers = `
+                <tr>
+                    <th>Order ID</th>
+                    <th>Details</th>
+                    <th>Current Rank</th>
+                    <th>Desired Rank</th>
+                    <th>Ordered On</th>
+                    <th>Payout</th>
+                    <th>Action</th>
+                </tr>
+            `;
+        } else if (isCompleted) {
+            headers = `
+                <tr>
+                    <th>Customer</th>
+                    <th>Booster</th>
+                    <th>Current Rank</th>
+                    <th>Desired Rank</th>
+                    <th>Price</th>
+                    <th>Ordered On</th>
+                    <th>Extras</th>
+                    <th>Payout Status</th>
+                    <th>Action</th>
+                </tr>
+            `;
         } else {
-            // Handle boost orders
-            const current = order.currentRank && order.currentDivision !== undefined
-                ? {
-                    rank: order.currentRank.toLowerCase(),
-                    division: order.currentDivision || '',
-                    displayRank: order.currentRank.charAt(0).toUpperCase() + order.currentRank.slice(1)
-                }
-                : parseRank(order.current_rank || 'Unknown', order.game_type || 'League of Legends');
-            const desired = order.desiredRank && order.desiredDivision !== undefined
-                ? {
-                    rank: order.desiredRank.toLowerCase(),
-                    division: order.desiredDivision || '',
-                    displayRank: order.desiredRank.charAt(0).toUpperCase() + order.desiredRank.slice(1)
-                }
-                : parseRank(order.desired_rank || 'Unknown', order.game_type || 'League of Legends');
-
-            const isValorant = (order.game_type || 'League of Legends') === 'Valorant';
-            let currentRankImgSrc, desiredRankImgSrc;
-            if (isValorant) {
-                const divisionMap = { 'I': '1', 'II': '2', 'III': '3', '': '' };
-                const currentDivision = divisionMap[current.division] || '';
-                const desiredDivision = divisionMap[desired.division] || '';
-                const currentRankCapitalized = current.displayRank;
-                const desiredRankCapitalized = desired.displayRank;
-                currentRankImgSrc = `/images/${currentRankCapitalized}_${currentDivision}_Rank.png`;
-                desiredRankImgSrc = `/images/${desiredRankCapitalized}_${desiredDivision}_Rank.png`;
-            } else {
-                currentRankImgSrc = `/images/${current.rank || 'fallback'}.png`;
-                desiredRankImgSrc = `/images/${desired.rank || 'fallback'}.png`;
-            }
-
-            console.log('Image paths:', { current: currentRankImgSrc, desired: desiredRankImgSrc });
-
-            const currentRankImg = `
-                <img src="${currentRankImgSrc}" alt="${current.displayRank || 'N/A'} ${current.division || ''}" class="order-logo" onerror="console.warn('Image failed:', '${currentRankImgSrc}'); this.src='/images/fallback.png'">
-                ${current.displayRank || 'N/A'} ${current.division || ''}
+            headers = `
+                <tr>
+                    <th>Order ID</th>
+                    <th>Details</th>
+                    <th>Current Rank</th>
+                    <th>Desired Rank</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                    <th>Ordered On</th>
+                    <th>Cashback</th>
+                </tr>
             `;
-            const desiredRankHtml = `
-                <img src="${desiredRankImgSrc}" alt="${desired.displayRank || 'N/A'} ${desired.division || ''}" class="order-logo" onerror="console.warn('Image failed:', '${desiredRankImgSrc}'); this.src='/images/fallback.png'">
-                ${desired.displayRank || 'N/A'} ${desired.division || ''}
-            `;
+        }
+        table.innerHTML = `<thead>${headers}</thead><tbody></tbody>`;
+        const tbody = table.querySelector('tbody');
+
+       orders.forEach(order => {
+    if (!order || !order.order_id) {
+        console.warn('Skipping invalid order:', order);
+        return;
+    }
+    console.log('Processing order:', order.order_id, 'GameType:', order.game_type, 'CurrentRank:', order.currentRank, 'CurrentRankRaw:', order.current_rank, 'DesiredRank:', order.desiredRank, 'DesiredRankRaw:', order.desired_rank);
+
+    // Use API-provided split fields if available; otherwise, parse raw rank strings
+    const current = order.currentRank && order.currentDivision !== undefined
+        ? {
+            rank: order.currentRank.toLowerCase(),
+            division: order.currentDivision || '',
+            displayRank: order.currentRank.charAt(0).toUpperCase() + order.currentRank.slice(1)
+        }
+        : parseRank(order.current_rank || 'Unknown', order.game_type || 'League of Legends');
+    const desired = order.desiredRank && order.desiredDivision !== undefined
+        ? {
+            rank: order.desiredRank.toLowerCase(),
+            division: order.desiredDivision || '',
+            displayRank: order.desiredRank.charAt(0).toUpperCase() + order.desiredRank.slice(1)
+        }
+        : parseRank(order.desired_rank || 'Unknown', order.game_type || 'League of Legends');
+
+    const isValorant = (order.game_type || 'League of Legends') === 'Valorant';
+    let currentRankImgSrc, desiredRankImgSrc;
+    if (isValorant) {
+        const divisionMap = { 'I': '1', 'II': '2', 'III': '3', '': '0' };
+        const currentDivision = divisionMap[current.division] || '0';
+        const desiredDivision = divisionMap[desired.division] || '0';
+        const currentRankCapitalized = current.displayRank;
+        const desiredRankCapitalized = desired.displayRank;
+        currentRankImgSrc = `/images/${currentRankCapitalized}_${currentDivision}_Rank.png`;
+        desiredRankImgSrc = `/images/${desiredRankCapitalized}_${desiredDivision}_Rank.png`;
+    } else {
+        currentRankImgSrc = `/images/${current.rank}.png`;
+        desiredRankImgSrc = `/images/${desired.rank}.png`;
+    }
+
+    console.log('Image paths:', { current: currentRankImgSrc, desired: desiredRankImgSrc });
+
+    const currentRankImg = `
+        <img src="${currentRankImgSrc}" alt="${current.displayRank} ${current.division}" class="rank-logo" onerror="console.warn('Image failed:', '${currentRankImgSrc}'); this.src='/images/fallback.png'">
+        ${current.displayRank} ${current.division ? current.division : ''}
+    `;
+    const desiredRankHtml = `
+        <img src="${desiredRankImgSrc}" alt="${desired.displayRank} ${desired.division}" class="rank-logo" onerror="console.warn('Image failed:', '${desiredRankImgSrc}'); this.src='/images/fallback.png'">
+        ${desired.displayRank} ${desired.division ? desired.division : ''}
+    `;
+    const orderIdHtml = `
+        <button class="order-id-button" data-order-id="${order.order_id}">?</button>
+    `;
+    const detailsHtml = `
+        <button class="info-button" data-order-id="${order.order_id}">Info</button>
+    `;
+            const row = document.createElement('tr');
+            row.dataset.orderId = order.order_id;
+            let rowData = '';
             if (isAvailable) {
                 rowData = `
                     <td>${currentRankImg}</td>
                     <td>${desiredRankHtml}</td>
                     <td>${detailsHtml}</td>
                     <td>${new Date(order.created_at).toLocaleDateString()}</td>
-                    <td>$${parseFloat(order.booster_payout || (order.price * 0.85)).toFixed(2)}</td>
-                    <td><button class="order-btn" data-order-id="${order.order_id}">Accept</button></td>
+                    <td>$${order.booster_payout || (order.price * 0.85).toFixed(2)}</td>
+                    <td><button class="claim-btn" data-order-id="${order.order_id}">Claim</button></td>
                 `;
             } else if (isWorking) {
-                const isCompletedOrders = order.status === 'completed';
+                const isCompleted = order.status === 'Completed';
                 rowData = `
                     <td>${orderIdHtml}</td>
                     <td>${detailsHtml}</td>
                     <td>${currentRankImg}</td>
                     <td>${desiredRankHtml}</td>
                     <td>${new Date(order.created_at).toLocaleDateString()}</td>
-                    <td>$${parseFloat(order.booster_payout || (order.price * 0.85)).toFixed(2)}</td>
+                    <td>$${order.booster_payout || (order.price * 0.85).toFixed(2)}</td>
                     <td>
-                        <button class="cancel-btn" data-order-id="${order.order_id}" ${isCompletedOrders ? 'disabled' : ''}>Cancel</button>
+                        <button class="cancel-btn" data-order-id="${order.order_id}" ${isCompleted ? 'disabled' : ''}>Cancel</button>
                         <br>
-                        <button class="complete-btn" data-order-id="${order.order_id}" ${isCompletedOrders ? 'disabled' : ''}>Complete</button>
+                        <button class="complete-btn" data-order-id="${order.order_id}" ${isCompleted ? 'disabled' : ''}>Complete</button>
                     </td>
                 `;
-                if (isCompletedOrders) {
+                if (isCompleted) {
                     row.classList.add('completed-order');
                 }
             } else if (isCompleted) {
                 const extras = parseExtras(order.extras);
-                const payout = parseFloat(order.booster_payout || (order.price * 0.85)).toFixed(2);
+                const payout = order.booster_payout || (order.price * 0.85).toFixed(2);
                 rowData = `
                     <td>${order.customer_username || 'N/A'} (${order.user_id})</td>
                     <td>${order.booster_username || 'N/A'} (${order.booster_id || 'N/A'})</td>
@@ -1417,175 +1384,169 @@ function renderCoachingOrders(orders, containerId) {
                     row.classList.add('customer-completed-order');
                 }
             }
-        }
-
-        const row = document.createElement('tr');
-        row.dataset.orderId = order.order_id;
-        row.innerHTML = rowData;
-        tbody.appendChild(row);
-    });
-
-    ordersDiv.innerHTML = '';
-    ordersDiv.appendChild(table);
-
-    // Event listeners for buttons
-    document.querySelectorAll('.info-button').forEach(button => {
-        button.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const orderId = button.getAttribute('data-order-id');
-            console.log('Info button clicked for orderId:', orderId);
-            const order = orders.find(o => String(o.order_id) === String(orderId));
-            console.log('Found order:', order);
-            showOrderDetailsModal(order);
+            row.innerHTML = rowData;
+            tbody.appendChild(row);
         });
-    });
 
-    if (isAvailable) {
-        document.querySelectorAll('.order-btn').forEach(button => {
-            button.addEventListener('click', async (e) => {
+        ordersDiv.innerHTML = '';
+        ordersDiv.appendChild(table);
+
+        document.querySelectorAll('.info-button').forEach(button => {
+            button.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const orderId = button.getAttribute('data-order-id');
-                try {
-                    console.log('Claiming orderId:', orderId, 'with userId:', userId);
-                    const response = await fetch('/api/claim-order', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ userId, orderId })
-                    });
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || 'Failed to claim order');
-                    }
-                    alert('Order claimed successfully!');
-                    await fetchAvailableOrders();
-                    await fetchWorkingOrders();
-                } catch (error) {
-                    console.error('Error claiming order:', error.message);
-                    alert('Failed to claim order. Please try again.');
-                }
+                console.log('Info button clicked for orderId:', orderId);
+                const order = orders.find(o => String(o.order_id) === String(orderId));
+                console.log('Found order:', order);
+                showOrderDetailsModal(order);
             });
         });
-    }
 
-    if (isWorking) {
-        document.querySelectorAll('.cancel-btn').forEach(button => {
-            button.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                const orderId = button.getAttribute('data-order-id');
-                if (confirm('Are you sure you want to cancel this order?')) {
+        if (isAvailable) {
+            document.querySelectorAll('.claim-btn').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const orderId = button.getAttribute('data-order-id');
                     try {
-                        console.log('Cancelling orderId:', orderId, 'with userId:', userId);
-                        const response = await fetch('/api/unclaim-order', {
+                        console.log('Claiming orderId:', orderId, 'with userId:', userId);
+                        const response = await fetch('/api/claim-order', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ userId, orderId })
                         });
                         if (!response.ok) {
                             const errorData = await response.json();
-                            throw new Error(errorData.error || 'Failed to cancel order');
+                            throw new Error(errorData.error || 'Failed to claim order');
                         }
-                        alert('Order cancelled successfully!');
+                        alert('Order claimed successfully!');
                         await fetchAvailableOrders();
                         await fetchWorkingOrders();
                     } catch (error) {
-                        console.error('Error cancelling order:', error.message);
-                        alert('Failed to cancel order. Please try again.');
+                        console.error('Error claiming order:', error.message);
+                        alert('Failed to claim order. Please try again.');
                     }
-                }
-            });
-        });
-
-        document.querySelectorAll('.complete-btn').forEach(button => {
-            button.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                const orderId = button.getAttribute('data-order-id');
-                if (confirm('Are you sure you want to mark this order as completed?')) {
-                    try {
-                        console.log('Completing orderId:', orderId, 'with userId:', userId);
-                        const response = await fetch('/api/complete-order', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ userId, orderId })
-                        });
-                        if (!response.ok) {
-                            const errorData = await response.json();
-                            throw new Error(errorData.error || 'Failed to complete order');
-                        }
-                        alert('Order marked as completed!');
-                        await fetchWorkingOrders();
-                        await fetchCompletedOrders();
-                    } catch (error) {
-                        console.error('Error completing order:', error.message);
-                        alert('Failed to complete order. Please try again.');
-                    }
-                }
-            });
-        });
-    }
-
-    if (isCompleted) {
-        document.querySelectorAll('.approve-btn').forEach(button => {
-            button.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                const orderId = button.getAttribute('data-order-id');
-                if (confirm(`Are you sure you want to approve the payout for order ${orderId}?`)) {
-                    try {
-                        console.log('Approving payout for orderId:', orderId, 'with userId:', userId);
-                        const response = await fetch('/api/approve-payout', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ userId, orderId })
-                        });
-                        if (!response.ok) {
-                            const errorData = await response.json();
-                            throw new Error(errorData.error || 'Failed to approve payout');
-                        }
-                        alert('Payout approved successfully!');
-                        await fetchCompletedOrders();
-                    } catch (error) {
-                        console.error('Error approving payout:', error.message);
-                        alert('Failed to approve payout. Please try again.');
-                    }
-                }
-            });
-        });
-    }
-
-    document.querySelectorAll('.order-id-button').forEach(button => {
-        button.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const orderId = button.getAttribute('data-order-id');
-            showOrderIdModal(orderId);
-        });
-    });
-
-    if (!isAvailable) {
-        table.querySelectorAll('tbody tr').forEach(row => {
-            const orderId = row.dataset.orderId;
-            if (!orderId) {
-                console.warn(`Skipping row with missing or invalid orderId in container: ${containerId}`, row.outerHTML);
-                row.style.cursor = 'not-allowed';
-                return;
-            }
-            const order = orders.find(o => String(o.order_id) === String(orderId));
-            if (!order) {
-                console.warn(`No order found for orderId: ${orderId} in container: ${containerId}`);
-                row.style.cursor = 'not-allowed';
-                return;
-            }
-            if (!(isWorking && order.status === 'Completed')) {
-                row.addEventListener('click', async () => {
-                    const userRole = await checkUserRole();
-                    console.log('Row clicked for orderId:', orderId, 'Role:', userRole, 'Status:', order.status);
-                    showOrderFormModal(order, userRole);
                 });
-            } else {
-                console.log('Skipping click handler for completed orderId:', orderId, 'in working orders');
-                row.style.cursor = 'not-allowed';
-            }
+            });
+        }
+
+        if (isWorking) {
+            document.querySelectorAll('.cancel-btn').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const orderId = button.getAttribute('data-order-id');
+                    if (confirm('Are you sure you want to cancel this order?')) {
+                        try {
+                            console.log('Cancelling orderId:', orderId, 'with userId:', userId);
+                            const response = await fetch('/api/unclaim-order', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ userId, orderId })
+                            });
+                            if (!response.ok) {
+                                const errorData = await response.json();
+                                throw new Error(errorData.error || 'Failed to cancel order');
+                            }
+                            alert('Order cancelled successfully!');
+                            await fetchAvailableOrders();
+                            await fetchWorkingOrders();
+                        } catch (error) {
+                            console.error('Error cancelling order:', error.message);
+                            alert('Failed to cancel order. Please try again.');
+                        }
+                    }
+                });
+            });
+
+            document.querySelectorAll('.complete-btn').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const orderId = button.getAttribute('data-order-id');
+                    if (confirm('Are you sure you want to mark this order as completed?')) {
+                        try {
+                            console.log('Completing orderId:', orderId, 'with userId:', userId);
+                            const response = await fetch('/api/complete-order', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ userId, orderId })
+                            });
+                            if (!response.ok) {
+                                const errorData = await response.json();
+                                throw new Error(errorData.error || 'Failed to complete order');
+                            }
+                            alert('Order marked as completed!');
+                            await fetchWorkingOrders();
+                        } catch (error) {
+                            console.error('Error completing order:', error.message);
+                            alert('Failed to complete order. Please try again.');
+                        }
+                    }
+                });
+            });
+        }
+
+        if (isCompleted) {
+            document.querySelectorAll('.approve-btn').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const orderId = button.getAttribute('data-order-id');
+                    if (confirm(`Are you sure you want to approve the payout for order ${orderId}?`)) {
+                        try {
+                            console.log('Approving payout for orderId:', orderId, 'with userId:', userId);
+                            const response = await fetch('/api/approve-payout', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ userId, orderId })
+                            });
+                            if (!response.ok) {
+                                const errorData = await response.json();
+                                throw new Error(errorData.error || 'Failed to approve payout');
+                            }
+                            alert('Payout approved successfully!');
+                            await fetchCompletedOrders();
+                        } catch (error) {
+                            console.error('Error approving payout:', error.message);
+                            alert('Failed to approve payout. Please try again.');
+                        }
+                    }
+                });
+            });
+        }
+
+        document.querySelectorAll('.order-id-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const orderId = button.getAttribute('data-order-id');
+                showOrderIdModal(orderId);
+            });
         });
+
+        if (!isAvailable) {
+            table.querySelectorAll('tbody tr').forEach(row => {
+                const orderId = row.dataset.orderId;
+                if (!orderId) {
+                    console.warn(`Skipping row with missing or invalid orderId in container: ${containerId}`, row.outerHTML);
+                    row.style.cursor = 'not-allowed';
+                    return;
+                }
+                const order = orders.find(o => String(o.order_id) === String(orderId));
+                if (!order) {
+                    console.warn(`No order found for orderId: ${orderId} in container: ${containerId}`);
+                    row.style.cursor = 'not-allowed';
+                    return;
+                }
+                if (!(isWorking && order.status === 'Completed')) {
+                    row.addEventListener('click', async () => {
+                        const userRole = await checkUserRole();
+                        console.log('Row clicked for orderId:', orderId, 'Role:', userRole, 'Status:', order.status);
+                        showOrderFormModal(order, userRole);
+                    });
+                } else {
+                    console.log('Skipping click handler for completed orderId:', orderId, 'in working orders');
+                    row.style.cursor = 'not-allowed';
+                }
+            });
+        }
     }
-}
 
     function showPanel(panelId) {
         console.log(`Showing panel: ${panelId}`);
