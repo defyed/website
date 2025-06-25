@@ -177,114 +177,125 @@
     }
 
     async function fetchCoachingOrders() {
-        try {
-            console.log('Fetching coaching orders for userId:', userId);
-            const response = await fetch(`/api/user-orders?user_id=${encodeURIComponent(userId)}&type=coaching`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                credentials: 'include'
-            });
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`);
-            }
-            const orders = await response.json();
-            console.log('Coaching orders received:', orders);
-            renderCoachingOrders(orders, 'coaching-orders');
-        } catch (error) {
-            console.error('Error fetching coaching orders:', error.message);
-            document.getElementById('coaching-orders').innerHTML = `<p style="color: red;">Failed to load coaching orders: ${error.message}</p>`;
+    try {
+        console.log('Fetching coaching orders for userId:', userId);
+        const response = await fetch(`/api/user-orders?userId=${encodeURIComponent(userId)}&type=coaching`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            credentials: 'include'
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`);
+        }
+        const orders = await response.json();
+        console.log('Coaching orders received:', orders);
+        renderCoachingOrders(orders, 'coaching-orders');
+    } catch (error) {
+        console.error('Error fetching coaching orders:', error.message);
+        const container = document.getElementById('coaching-orders');
+        if (container) {
+            container.innerHTML = `<p style="color: red;">Failed to load coaching orders: ${error.message}. Please check your login status or try again later.</p>`;
         }
     }
+}
 
-    function renderCoachingOrders(orders, containerId) {
-        const container = document.getElementById(containerId);
-        if (!container) {
-            console.error(`Error: ${containerId} container not found`);
+function renderCoachingOrders(orders, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) {
+        console.error(`Error: ${containerId} container not found`);
+        return;
+    }
+
+    if (!Array.isArray(orders) || orders.length === 0) {
+        container.innerHTML = '<p>No coaching orders found.</p>';
+        return;
+    }
+
+    const table = document.createElement('table');
+    table.className = 'orders-table';
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Booster</th>
+                <th>Game</th>
+                <th>Hours</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    `;
+    const tbody = table.querySelector('tbody');
+
+    orders.forEach(order => {
+        if (!order || !order.order_id) {
+            console.warn('Skipping invalid coaching order:', order);
             return;
         }
-
-        if (orders.length === 0) {
-            container.innerHTML = '<p>No coaching orders found.</p>';
-            return;
-        }
-
-        const table = document.createElement('table');
-        table.className = 'orders-table';
-        table.innerHTML = `
-            <thead>
-                <tr>
-                    <th>Order ID</th>
-                    <th>Customer</th>
-                    <th>Booster</th>
-                    <th>Game</th>
-                    <th>Hours</th>
-                    <th>Price</th>
-                    <th>Status</th>
-                    <th>Created</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
+        const row = document.createElement('tr');
+        row.dataset.orderId = order.order_id;
+        row.innerHTML = `
+            <td><button class="order-id-button" data-order-id="${order.order_id}">?</button></td>
+            <td>${order.customer_username || 'Unknown Customer'} (${order.user_id || 'N/A'})</td>
+            <td>${order.booster_username || 'Unassigned Booster'}</td>
+            <td>${order.game || 'N/A'}</td>
+            <td>${order.booked_hours || 'N/A'}</td>
+            <td>$${parseFloat(order.total_price || 0).toFixed(2)}</td>
+            <td>${order.order_status || 'pending'}</td>
+            <td>${order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}</td>
+            <td><button class="complete-btn" data-order-id="${order.order_id}" ${order.order_status === 'completed' ? 'disabled' : ''}>Complete</button></td>
         `;
-        const tbody = table.querySelector('tbody');
+        tbody.appendChild(row);
+    });
 
-        orders.forEach(order => {
-            const row = document.createElement('tr');
-            row.dataset.orderId = order.order_id;
-            row.innerHTML = `
-                <td><button class="order-id-button" data-order-id="${order.order_id}">?</button></td>
-                <td>${order.customer_username || 'Unknown Customer'} (${order.user_id})</td>
-                <td>${order.booster_username || 'Unassigned Booster'}</td>
-                <td>${order.game || 'N/A'}</td>
-                <td>${order.booked_hours || 'N/A'}</td>
-                <td>$${parseFloat(order.total_price || 0).toFixed(2)}</td>
-                <td>${order.order_status || 'pending'}</td>
-                <td>${new Date(order.created_at).toLocaleDateString()}</td>
-                <td><button class="complete-btn" data-order-id="${order.order_id}" ${order.order_status === 'completed' ? 'disabled' : ''}>Complete</button></td>
-            `;
-            tbody.appendChild(row);
+    container.innerHTML = '';
+    container.appendChild(table);
+
+    document.querySelectorAll('.order-id-button').forEach(button => {
+        button.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const orderId = button.getAttribute('data-order-id');
+            showOrderIdModal(orderId);
         });
+    });
 
-        container.innerHTML = '';
-        container.appendChild(table);
-
-        document.querySelectorAll('.order-id-button').forEach(button => {
-            button.addEventListener('click', function (e) {
-                e.stopPropagation();
-                const orderId = button.getAttribute('data-order-id');
-                showOrderIdModal(orderId);
-            });
-        });
-
-        document.querySelectorAll('.complete-btn').forEach(button => {
-            button.addEventListener('click', async function (e) {
-                e.stopPropagation();
-                const orderId = button.getAttribute('data-order-id');
-                if (confirm(`Mark coaching order ${orderId} as completed?`)) {
-                    try {
-                        const response = await fetch('/api/complete-order', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ userId, orderId })
-                        });
-                        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-                        alert('Coaching order marked as completed!');
-                        fetchCoachingOrders();
-                        fetchCompletedOrders();
-                    } catch (error) {
-                        console.error('Error completing coaching order:', error.message);
-                        alert('Failed to complete coaching order.');
+    document.querySelectorAll('.complete-btn').forEach(button => {
+        button.addEventListener('click', async function (e) {
+            e.stopPropagation();
+            const orderId = button.getAttribute('data-order-id');
+            if (confirm(`Mark coaching order ${orderId} as completed?`)) {
+                try {
+                    const response = await fetch('/api/complete-order', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({ userId, orderId })
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
                     }
+                    alert('Coaching order marked as completed!');
+                    fetchCoachingOrders();
+                    fetchCompletedOrders();
+                } catch (error) {
+                    console.error('Error completing coaching order:', error.message);
+                    alert(`Failed to complete coaching order: ${error.message}`);
                 }
-            });
+            }
         });
-    }
+    });
+}
 
     async function fetchCompletedOrders() {
         try {
