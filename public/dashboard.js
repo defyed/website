@@ -278,6 +278,92 @@ function renderCoachingOrders(orders, containerId) {
         });
     });
 }
+async function fetchCoachProfile() {
+  try {
+    const response = await fetch('/api/coach-profile', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        // Add 'Authorization': `Bearer ${localStorage.getItem('token')}` if using JWT
+      },
+      credentials: 'include'
+    });
+    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+    const profile = await response.json();
+    renderCoachProfile(profile);
+  } catch (error) {
+    console.error('Error fetching coach profile:', error);
+    const profileDiv = document.getElementById('coach-profile');
+    if (profileDiv) {
+      profileDiv.innerHTML = `<p style="color: red;">Failed to load profile: ${error.message}</p>`;
+    }
+  }
+}
+
+function renderCoachProfile(profile) {
+  const profileDiv = document.getElementById('coach-profile');
+  if (!profileDiv) {
+    console.error('coach-profile div not found');
+    return;
+  }
+  if (!profile || Object.keys(profile).length === 0) {
+    profileDiv.innerHTML = `
+      <p>No profile found.</p>
+      <button onclick="showEditProfileForm()">Edit My Profile</button>
+    `;
+    return;
+  }
+  profileDiv.innerHTML = `
+    <div class="profile-card">
+      <h3>Your Coaching Profile</h3>
+      <p><strong>Game:</strong> ${profile.game_type}</p>
+      <p><strong>Bio:</strong> ${profile.bio || 'Not provided'}</p>
+      <p><strong>Hourly Rate:</strong> $${profile.price_per_hour}</p>
+      <button onclick="showEditProfileForm()">Edit My Profile</button>
+    </div>
+  `;
+}
+
+function showEditProfileForm() {
+  const profileDiv = document.getElementById('coach-profile');
+  if (!profileDiv) return;
+  profileDiv.innerHTML = `
+    <div class="profile-form">
+      <h3>Edit Coaching Profile</h3>
+      <label>Game:</label>
+      <input id="coach-game-type" type="text" required>
+      <label>Bio:</label>
+      <textarea id="coach-bio"></textarea>
+      <label>Hourly Rate ($):</label>
+      <input id="coach-price-per-hour" type="number" step="0.01" required>
+      <button onclick="saveCoachProfile()">Save</button>
+    </div>
+  `;
+}
+
+async function saveCoachProfile() {
+  const game_type = document.getElementById('coach-game-type').value;
+  const bio = document.getElementById('coach-bio').value;
+  const price_per_hour = document.getElementById('coach-price-per-hour').value;
+  try {
+    const response = await fetch('/api/coach-profile', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // Add 'Authorization': `Bearer ${localStorage.getItem('token')}` if using JWT
+      },
+      credentials: 'include',
+      body: JSON.stringify({ game_type, bio, price_per_hour: parseFloat(price_per_hour) })
+    });
+    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+    const result = await response.json();
+    alert(result.message);
+    await fetchCoachProfile(); // Refresh profile
+  } catch (error) {
+    console.error('Error saving profile:', error);
+    alert('Failed to save profile: ' + error.message);
+  }
+}
 
     async function fetchCompletedOrders() {
         try {

@@ -1323,31 +1323,57 @@ app.delete('/api/coupons/:id', authenticate, checkRole(['admin']), async (req, r
   }
 });
 
-// Get coach profile
+// Fetch coach profile
 app.get('/api/coach-profile', authenticate, async (req, res) => {
   const userId = req.user.id;
   const role = req.user.role;
   if (role !== 'coach') return res.status(403).json({ error: 'Forbidden' });
-
-  const [[profile]] = await pool.query('SELECT * FROM coach_profiles WHERE user_id = ?', [userId]);
-  res.json(profile || {});
+  try {
+    const [rows] = await pool.query('SELECT * FROM coach_profiles WHERE user_id = ?', [userId]);
+    res.json(rows[0] || {});
+  } catch (error) {
+    console.error('Error fetching coach profile:', error);
+    res.status(500).json({ error: 'Failed to fetch profile' });
+  }
 });
 
-// Update coach profile
+// Save or update coach profile
 app.post('/api/coach-profile', authenticate, async (req, res) => {
   const userId = req.user.id;
   const role = req.user.role;
   const { game_type, bio, price_per_hour } = req.body;
 
   if (role !== 'coach') return res.status(403).json({ error: 'Forbidden' });
+  if (!game_type || !price_per_hour || isNaN(parseFloat(price_per_hour))) {
+    return res.status(400).json({ error: 'Missing or invalid required fields' });
+  }
 
-  await pool.query(`
-    UPDATE coach_profiles
-    SET game_type = ?, bio = ?, price_per_hour = ?
-    WHERE user_id = ?
-  `, [game_type, bio, parseFloat(price_per_hour), userId]);
-
-  res.json({ success: true });
+  try {
+    const [existing] = await pool.query('SELECT * FROM coach_profiles WHERE user_id = ?', [userId]);
+    if (existing.length > 0) {
+      // Update existing profile
+      const [result] = await pool.query(
+        'UPDATE coach_profiles SET game_type = ?, bio = ?, price_per_hour = ?, updated_at = NOW() WHERE user_id = ?',
+        [game_type, bio || '', parseFloat(price_per_hour), userId]
+      );
+      if (result.affectedRows === 0) {
+        return res.status(500).json({ error: 'Failed to update profile' });
+      }
+    } else {
+      // Create new profile
+      const [result] = await pool.query(
+        'INSERT INTO coach_profiles (user_id, game_type, bio, price_per_hour, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW())',
+        [userId, game_type, bio || '', parseFloat(price_per_hour)]
+      );
+      if (result.affectedRows === 0) {
+        return res.status(500).json({ error: 'Failed to create profile' });
+      }
+    }
+    res.json({ message: 'Profile saved successfully' });
+  } catch (error) {
+    console.error('Error saving coach profile:', error);
+    res.status(500).json({ error: 'Failed to save profile' });
+  }
 });
 
 
