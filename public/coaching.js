@@ -5,6 +5,31 @@ document.addEventListener('DOMContentLoaded', function () {
     const editForm = document.getElementById('edit-coach-form');
     const logoutLink = document.getElementById('logout-link');
     let currentCoachId = null;
+    const editMyProfileBtn = document.getElementById('edit-my-profile-btn');
+const userRole = localStorage.getItem('userRole');
+const userId = localStorage.getItem('userId');
+
+if (['coach', 'admin'].includes(userRole)) {
+    editMyProfileBtn.style.display = 'inline-block';
+    editMyProfileBtn.addEventListener('click', async () => {
+        currentCoachId = userId;
+        try {
+            const response = await fetch(`/api/coach-profile?userId=${userId}`);
+            const coach = await response.json();
+
+            document.getElementById('coach-name').value = coach.name || '';
+            document.getElementById('coach-game').value = coach.game_type || 'League of Legends';
+            document.getElementById('coach-bio').value = coach.bio || '';
+            document.getElementById('coach-rate').value = coach.price_per_hour || '';
+
+            editModal.style.display = 'block';
+        } catch (err) {
+            console.error('Error loading your coach profile:', err.message);
+            alert('Could not load your coach profile.');
+        }
+    });
+}
+
 
     async function fetchCoaches() {
         try {
