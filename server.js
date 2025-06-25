@@ -512,6 +512,7 @@ app.post('/api/create-coaching-session', async (req, res) => {
     res.status(500).json({ error: 'Failed to create checkout session' });
   }
 });
+
 app.get('/api/my-coaching-orders', authenticate, async (req, res) => {
   try {
     const userId = req.user.id;

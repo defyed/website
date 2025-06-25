@@ -174,13 +174,27 @@
 
     async function fetchCoachingOrders() {
     try {
-        const response = await fetch(`/api/my-coaching-orders?userId=${userId}`);
+        const userId = localStorage.getItem('userId');
+        if (!userId) throw new Error('No user ID found in localStorage');
+
+        const response = await fetch(`/api/my-coaching-orders?userId=${encodeURIComponent(userId)}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+                // Add auth headers if needed, e.g., 'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            credentials: 'include' // Include cookies for session-based auth
+        });
+
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const orders = await response.json();
-        renderCoachingOrders(orders, 'coaching-orders');
+        renderCoachingOrders(orders);
     } catch (error) {
         console.error('Error fetching coaching orders:', error.message);
-        document.getElementById('coaching-orders').innerHTML = '<p>Error loading coaching orders.</p>';
+        const coachingOrdersDiv = document.getElementById('coaching-orders');
+        if (coachingOrdersDiv) {
+            coachingOrdersDiv.innerHTML = `<p style="color: red;">Failed to load coaching orders: ${error.message}</p>`;
+        }
     }
 }
 function renderCoachingOrders(orders, containerId) {
