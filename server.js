@@ -410,26 +410,23 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
           );
           console.log(`Order ${orderId} updated for user ${userId}`);
         } else {
-        await connection.query(
-  'INSERT INTO orders (order_id, user_id, current_rank, current_division, desired_rank, desired_division, current_lp, desired_lp, price, status, cashback, payout_status, game_type, extras) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-  [
-    orderId,
-    parseInt(userId),
-    normalizedCurrentRank,
-    orderData.currentDivision || '',
-    normalizedDesiredRank,
-    orderData.desiredDivision || '',
-    parseInt(orderData.currentLP) || 0,
-    parseInt(orderData.desiredLP) || 0,
-    price,
-    'Pending',
-    cashback,
-    'Pending',
-    gameType,
-    JSON.stringify(extras)
-  ]
-);
-
+          await connection.query(
+            'INSERT INTO orders (order_id, user_id, current_rank, desired_rank, current_lp, desired_lp, price, status, cashback, payout_status, game_type, extras) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [
+              orderId,
+              parseInt(userId),
+              currentRank,
+              desiredRank,
+              parseInt(orderData.currentLP) || 0,
+              parseInt(orderData.desiredLP) || 0,
+              price,
+              'Pending',
+              cashback,
+              'Pending',
+              gameType,
+              JSON.stringify(extras)
+            ]
+          );
           console.log(`Order ${orderId} created for user ${userId}`);
         }
         await connection.query(
@@ -776,7 +773,6 @@ app.post('/api/create-checkout-session', async (req, res) => {
     res.status(500).json({ error: 'Error creating checkout session', details: error.message });
   }
 });
-
 app.get('/api/user-orders', authenticate, async (req, res) => {
   try {
     console.log(`Fetching orders for userId: ${req.user.id}`);
