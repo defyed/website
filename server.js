@@ -538,6 +538,8 @@ app.get('/api/my-coaching-orders', authenticate, async (req, res) => {
     query += ` ORDER BY o.created_at DESC`;
 
     const [rows] = await pool.query(query, params);
+    console.log(`Fetched ${rows.length} coaching orders for userId ${userId} (${role})`);
+
     res.json(rows);
   } catch (err) {
     console.error('Error fetching coaching orders:', err.message);
