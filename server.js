@@ -655,12 +655,11 @@ app.post('/api/create-checkout-session', async (req, res) => {
         })
       };
     } else if (type === 'boost') {
-      // ... existing boost order logic (unchanged) ...
-      const { currentRank, desiredRank, finalPrice, game, currentDivision, desiredDivision, currentLP, desiredLP, extras } = orderData;
-      if (!currentRank || !desiredRank || !finalPrice) {
-        console.error('Incomplete boost orderData:', orderData);
-        return res.status(400).json({ error: 'Incomplete boost orderData' });
-      }
+     const { currentRank, desiredRank, finalPrice, game, currentDivision, desiredDivision, currentLP, desiredLP, extras } = orderData;
+  if (!currentRank || !desiredRank || !finalPrice) {
+    console.error('Incomplete boost orderData:', orderData);
+    return res.status(400).json({ error: 'Incomplete boost orderData' });
+  }
       const leagueRanks = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Emerald', 'Diamond', 'Master', 'Grandmaster', 'Challenger'];
       const valorantRanks = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal', 'Radiant'];
       const leagueDivisions = ['I', 'II', 'III', 'IV'];
