@@ -224,30 +224,87 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function showEditProfileModal(coach) {
-        try {
-            const response = await fetch(`/api/coach-profile?userId=${userId}`, {
-                credentials: 'include'
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${await response.text()}`);
-            }
-            const profile = await response.json();
-            document.getElementById('coach-name').value = profile.name || '';
-            document.getElementById('coach-game').value = profile.game_type || 'League of Legends';
-            document.getElementById('lol-highest-rank').value = profile.lol_highest_rank || '';
-            document.getElementById('valorant-highest-rank').value = profile.valorant_highest_rank || '';
-            document.getElementById('coach-rate').value = profile.price_per_hour || '';
-            document.getElementById('coach-bio').value = profile.bio || '';
-            updateLaneButtons(profile.lol_preferred_lanes);
-            updateSearchableDropdown('lol-preferred-champions', profile.lol_preferred_champions, 'champions');
-            updateRoleButtons(profile.valorant_preferred_roles);
-            updateSearchableDropdown('valorant-preferred-agents', profile.valorant_preferred_agents, 'agents');
-            editProfileModal.style.display = 'block';
-        } catch (error) {
-            console.error('Error loading coach profile:', error);
-            alert(`Failed to load profile: ${error.message}`);
+    try {
+        const userId = parseInt(localStorage.getItem('userId'));
+        if (!userId || isNaN(userId)) {
+            console.error('No userId found in localStorage');
+            alert('You must be logged in to edit your profile.');
+            return;
         }
+
+        const response = await fetch(`https://chboosting.com/api/coach-profile?userId=${userId}`, {
+            credentials: 'include'
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+        }
+        const profile = await response.json();
+
+        // Display username
+        const usernameDisplay = document.getElementById('coach-name-display');
+        usernameDisplay.textContent = `Username: ${profile.username || 'Unknown'}`;
+
+        // Populate form fields
+        document.getElementById('coach-game').value = profile.game_type || 'League of Legends';
+        document.getElementById('lol-highest-rank').value = profile.lol_highest_rank || '';
+        document.getElementById('valorant-highest-rank').value = profile.valorant_highest_rank || '';
+        document.getElementById('coach-rate').value = profile.price_per_hour || '';
+        document.getElementById('coach-bio').value = profile.bio || '';
+        updateLaneButtons(profile.lol_preferred_lanes);
+        updateSearchableDropdown('lol-preferred-champions', profile.lol_preferred_champions, 'champions');
+        updateRoleButtons(profile.valorant_preferred_roles);
+        updateSearchableDropdown('valorant-preferred-agents', profile.valorant_preferred_agents, 'agents');
+
+        editProfileModal.style.display = 'block';
+    } catch (error) {
+        console.error('Error loading coach profile:', error);
+        alert(`Failed to load profile: ${error.message}`);
     }
+}
+
+editProfileForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const userId = parseInt(localStorage.getItem('userId'));
+    if (!userId || isNaN(userId)) {
+        console.error('No userId found in localStorage');
+        alert('You must be logged in to save your profile.');
+        return;
+    }
+
+    try {
+        const profileData = {
+            game_type: document.getElementById('coach-game').value,
+            lol_highest_rank: document.getElementById('lol-highest-rank').value || null,
+            valorant_highest_rank: document.getElementById('valorant-highest-rank').value || null,
+            lol_preferred_lanes: getSelectedValues('lol-preferred-lanes') || null,
+            lol_preferred_champions: getSelectedValues('lol-preferred-champions') || null,
+            valorant_preferred_roles: getSelectedValues('valorant-preferred-roles') || null,
+            valorant_preferred_agents: getSelectedValues('valorant-preferred-agents') || null,
+            price_per_hour: parseFloat(document.getElementById('coach-rate').value) || null,
+            bio: document.getElementById('coach-bio').value.trim() || null
+        };
+
+        if (!profileData.game_type || !profileData.price_per_hour || profileData.price_per_hour <= 0) {
+            alert('Please fill in all required fields with valid values.');
+            return;
+        }
+
+        const response = await fetch(`https://chboosting.com/api/coach-profile?userId=${userId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(profileData)
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+        }
+        alert('Profile saved successfully');
+        editProfileModal.style.display = 'none';
+        fetchCoaches();
+    } catch (error) {
+        console.error('Error saving profile:', error);
+        alert(`Failed to save profile: ${error.message}`);
+    }
+});
 
     function updateLaneButtons(selectedLanes) {
         const buttons = document.querySelectorAll('#lol-preferred-lanes-buttons .lane-button');
@@ -394,42 +451,57 @@ document.addEventListener('DOMContentLoaded', async () => {
         editMyProfileBtn.addEventListener('click', () => showEditProfileModal({ user_id: userId }));
     }
 
-    coachesContainer.addEventListener('click', async (e) => {
-        if (e.target.classList.contains('purchase-coach-btn')) {
-            const coachId = e.target.dataset.id;
-            const hoursSelect = e.target.parentElement.querySelector('.session-hours');
-            const hours = parseInt(hoursSelect.value);
-            const coachCard = e.target.closest('.coach-card');
-            const coachName = coachCard.querySelector('.username-wrapper h3').textContent;
-            const gameType = coachCard.querySelector('.game-icon').alt;
-            const pricePerHour = parseFloat(coachCard.querySelector('.rate-value').textContent.replace('$', '').replace('/hr', ''));
-            const totalPrice = hours * pricePerHour;
-            try {
-                const response = await fetch('/api/create-checkout-session', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-                    body: JSON.stringify({
-                        coach_id: parseInt(coachId),
-                        hours,
-                        total_price: totalPrice,
-                        customer_id: parseInt(userId),
-                        coach_name: coachName,
-                        game_type: gameType,
-                        customer_rank: localStorage.getItem('userRank') || 'Unknown'
-                    })
-                });
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${await response.text()}`);
-                }
-                const { sessionId } = await response.json();
-                const stripe = Stripe('pk_test_your_stripe_publishable_key');
-                await stripe.redirectToCheckout({ sessionId });
-            } catch (error) {
-                console.error('Error initiating checkout:', error.message);
-                alert(`Failed to book coaching session: ${error.message}`);
-            }
-        }
-    });
+   coachesContainer.addEventListener('click', async (e) => {
+  if (e.target.classList.contains('purchase-coach-btn')) {
+    const coachId = e.target.dataset.id;
+    const hoursSelect = e.target.parentElement.querySelector('.session-hours');
+    const hours = parseInt(hoursSelect.value);
+    const coachCard = e.target.closest('.coach-card');
+    const coachName = coachCard.querySelector('.username-wrapper h3').textContent;
+    const gameType = coachCard.querySelector('.game-icon').alt;
+    const pricePerHour = parseFloat(coachCard.querySelector('.rate-value').textContent.replace('$', '').replace('/hr', ''));
+    const totalPrice = hours * pricePerHour;
+
+    // Validate inputs
+    if (!coachId || isNaN(hours) || hours < 1 || hours > 4 || !gameType || !['League of Legends', 'Valorant'].includes(gameType) || isNaN(totalPrice) || totalPrice <= 0 || !coachName) {
+      console.error('Invalid checkout data:', { coachId, hours, gameType, totalPrice, coachName });
+      alert('Please select a valid coach, game, and number of hours (1–4).');
+      return;
+    }
+    if (!userId || isNaN(parseInt(userId))) {
+      console.error('Invalid userId:', userId);
+      alert('You must be logged in to book a coaching session.');
+      return;
+    }
+
+    try {
+      const response = await fetch('https://chboosting.com/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }, // Remove Authorization if not used by server
+        body: JSON.stringify({
+          userId: parseInt(userId),
+          type: 'coaching',
+          orderData: {
+            coachId: parseInt(coachId),
+            hours,
+            game: gameType,
+            totalPrice,
+            coachName
+          }
+        })
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+      }
+      const { id: sessionId } = await response.json();
+      const stripe = Stripe('pk_test_your_stripe_publishable_key');
+      await stripe.redirectToCheckout({ sessionId });
+    } catch (error) {
+      console.error('Error initiating checkout:', error.message);
+      alert(`Failed to book coaching session: ${error.message}`);
+    }
+  }
+});
 
     editProfileForm.addEventListener('submit', async (e) => {
         e.preventDefault();

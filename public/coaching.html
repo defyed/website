@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -27,13 +26,10 @@
         <div id="coaches-list"></div>
         <div id="edit-coach-modal" class="modal">
             <div class="modal-content">
-                <span class="close">&times;</span>
+                <span class="close">×</span>
                 <h2>Edit Coach Profile</h2>
+                <span id="coach-name-display">Username: Loading...</span>
                 <form id="edit-coach-form">
-                    <div class="form-group">
-                        <label for="coach-name">Name:</label>
-                        <input type="text" id="coach-name" maxlength="50" required>
-                    </div>
                     <div class="form-group">
                         <label for="coach-game">Game:</label>
                         <select id="coach-game" required>

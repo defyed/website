@@ -581,13 +581,15 @@ app.post('/api/create-checkout-session', async (req, res) => {
   try {
     const { orderData, userId, type } = req.body;
     console.log('Checkout request received:', { orderData, userId, type });
+
+    // Validate required fields
     if (!orderData || !userId || isNaN(userId) || !type) {
       console.error('Invalid checkout request:', { orderData, userId, type });
       return res.status(400).json({ error: 'Missing or invalid orderData, userId, or type' });
     }
 
     const parsedUserId = parseInt(userId);
-    const [userRows] = await pool.query('SELECT id, username FROM users WHERE id = ?', [userId]);
+    const [userRows] = await pool.query('SELECT id, username FROM users WHERE id = ?', [parsedUserId]);
     if (!userRows.length) {
       console.error('User not found:', parsedUserId);
       return res.status(400).json({ error: 'User not found' });
@@ -597,30 +599,35 @@ app.post('/api/create-checkout-session', async (req, res) => {
     let sessionParams, orderId, fullOrderData;
 
     if (type === 'coaching') {
-      const { coachId, hours, game, totalPrice, coachName } = orderData;
-      if (!coachId || !hours || !totalPrice || !game || !coachName) {
+      // Normalize field names (accept both camelCase and snake_case)
+      const { coachId, coach_id, hours, game, game_type, totalPrice, total_price, coachName, coach_name } = orderData;
+      const validatedCoachId = coachId || coach_id;
+      const validatedGame = game || game_type;
+      const validatedTotalPrice = totalPrice || total_price;
+      const validatedCoachName = coachName || coach_name;
+
+      if (!validatedCoachId || !hours || !validatedTotalPrice || !validatedGame || !validatedCoachName) {
         console.error('Incomplete coaching orderData:', orderData);
         return res.status(400).json({ error: 'Missing coaching order fields' });
       }
-      if (!['League of Legends', 'Valorant'].includes(game)) {
-        console.error('Invalid game:', game);
+      if (!['League of Legends', 'Valorant'].includes(validatedGame)) {
+        console.error('Invalid game:', validatedGame);
         return res.status(400).json({ error: 'Invalid game type' });
       }
-      if (isNaN(totalPrice) || totalPrice <= 0 || isNaN(hours) || hours < 1 || hours > 4) {
-        console.error('Invalid totalPrice or hours:', { totalPrice, hours });
+      if (isNaN(validatedTotalPrice) || validatedTotalPrice <= 0 || isNaN(hours) || hours < 1 || hours > 4) {
+        console.error('Invalid totalPrice or hours:', { totalPrice: validatedTotalPrice, hours });
         return res.status(400).json({ error: 'Invalid total price or hours' });
       }
 
       orderId = uuidv4();
-
       fullOrderData = {
         type: 'coaching',
-        coachId,
+        coachId: validatedCoachId,
         hours,
-        game,
-        finalPrice: totalPrice,
+        game: validatedGame,
+        finalPrice: validatedTotalPrice,
         customerName,
-        coachName
+        coachName: validatedCoachName
       };
 
       sessionParams = {
@@ -628,8 +635,8 @@ app.post('/api/create-checkout-session', async (req, res) => {
         line_items: [{
           price_data: {
             currency: 'usd',
-            product_data: { name: `Coaching Session with ${coachName}` },
-            unit_amount: Math.round(totalPrice * 100),
+            product_data: { name: `Coaching Session with ${validatedCoachName}` },
+            unit_amount: Math.round(validatedTotalPrice * 100),
           },
           quantity: 1,
         }],
@@ -643,58 +650,53 @@ app.post('/api/create-checkout-session', async (req, res) => {
         },
         client_reference_id: JSON.stringify({
           type: 'coaching',
-          game,
-          finalPrice: totalPrice
+          game: validatedGame,
+          finalPrice: validatedTotalPrice
         })
       };
     } else if (type === 'boost') {
-      if (!orderData.currentRank || !orderData.desiredRank || !orderData.finalPrice) {
+      // ... existing boost order logic (unchanged) ...
+      const { currentRank, desiredRank, finalPrice, game, currentDivision, desiredDivision, currentLP, desiredLP, extras } = orderData;
+      if (!currentRank || !desiredRank || !finalPrice) {
         console.error('Incomplete boost orderData:', orderData);
         return res.status(400).json({ error: 'Incomplete boost orderData' });
       }
-
       const leagueRanks = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Emerald', 'Diamond', 'Master', 'Grandmaster', 'Challenger'];
       const valorantRanks = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal', 'Radiant'];
       const leagueDivisions = ['I', 'II', 'III', 'IV'];
       const valorantDivisions = ['I', 'II', 'III'];
-
-      const gameType = orderData.game || 'League of Legends';
+      const gameType = game || 'League of Legends';
       if (!['League of Legends', 'Valorant'].includes(gameType)) {
         console.error('Invalid gameType:', gameType);
         return res.status(400).json({ error: 'Invalid game type' });
       }
       const validRanks = gameType === 'Valorant' ? valorantRanks : leagueRanks;
       const validDivisions = gameType === 'Valorant' ? valorantDivisions : leagueDivisions;
-
-      let normalizedCurrentRank = orderData.currentRank.includes(' ') ? orderData.currentRank.split(' ')[0] : orderData.currentRank;
-      let normalizedDesiredRank = orderData.desiredRank.includes(' ') ? orderData.desiredRank.split(' ')[0] : orderData.desiredRank;
+      let normalizedCurrentRank = currentRank.includes(' ') ? currentRank.split(' ')[0] : currentRank;
+      let normalizedDesiredRank = desiredRank.includes(' ') ? desiredRank.split(' ')[0] : desiredRank;
       if (!validRanks.includes(normalizedCurrentRank) || !validRanks.includes(normalizedDesiredRank)) {
         console.error('Invalid ranks:', { currentRank: normalizedCurrentRank, desiredRank: normalizedDesiredRank, gameType });
         return res.status(400).json({ error: 'Invalid rank' });
       }
-
-      if (!['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedCurrentRank) && orderData.currentDivision && !validDivisions.includes(orderData.currentDivision)) {
-        console.warn('Invalid currentDivision:', orderData.currentDivision, 'Setting to default');
-        orderData.currentDivision = '';
+      if (!['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedCurrentRank) && currentDivision && !validDivisions.includes(currentDivision)) {
+        console.warn('Invalid currentDivision:', currentDivision, 'Setting to default');
+        currentDivision = '';
       }
-      if (!['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedDesiredRank) && orderData.desiredDivision && !validDivisions.includes(orderData.desiredDivision)) {
-        console.warn('Invalid desiredDivision:', orderData.desiredDivision, 'Setting to default');
-        orderData.currentDivision = '';
+      if (!['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedDesiredRank) && desiredDivision && !validDivisions.includes(desiredDivision)) {
+        console.warn('Invalid desiredDivision:', desiredDivision, 'Setting to default');
+        desiredDivision = '';
       }
-
-      const finalPrice = parseFloat(orderData.finalPrice);
-      if (isNaN(finalPrice) || finalPrice <= 0) {
-        console.error('Invalid finalPrice:', orderData.finalPrice);
+      const finalPriceParsed = parseFloat(finalPrice);
+      if (isNaN(finalPriceParsed) || finalPriceParsed <= 0) {
+        console.error('Invalid finalPrice:', finalPrice);
         return res.status(400).json({ error: 'Invalid final price' });
       }
-
       if (['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedCurrentRank)) {
-        orderData.currentDivision = '';
+        currentDivision = '';
       }
       if (['Master', 'Grandmaster', 'Challenger', 'Immortal', 'Radiant'].includes(normalizedDesiredRank)) {
-        orderData.desiredDivision = '';
+        desiredDivision = '';
       }
-
       const abbreviateRank = (rank) => {
         const abbreviations = {
           'Ascendant': 'Asc', 'Immortal': 'Imm', 'Radiant': 'Rad',
@@ -703,52 +705,46 @@ app.post('/api/create-checkout-session', async (req, res) => {
         };
         return abbreviations[rank] || rank.slice(0, 4);
       };
-
       let clientReference = {
         currentRank: normalizedCurrentRank.slice(0, 10),
         desiredRank: normalizedDesiredRank.slice(0, 10),
-        finalPrice,
+        finalPrice: finalPriceParsed,
         game: gameType,
-        currentDiv: (orderData.currentDivision || '').slice(0, 3),
-        desiredDiv: (orderData.desiredDivision || '').slice(0, 3)
+        currentDiv: (currentDivision || '').slice(0, 3),
+        desiredDiv: (desiredDivision || '').slice(0, 3)
       };
-
       let clientReferenceString = JSON.stringify(clientReference);
       if (clientReferenceString.length > 190) {
         clientReference.currentRank = abbreviateRank(normalizedCurrentRank);
         clientReference.desiredRank = abbreviateRank(normalizedDesiredRank);
         clientReferenceString = JSON.stringify(clientReference);
       }
-
       if (clientReferenceString.length > 200) {
         console.error('client_reference_id too long:', clientReferenceString.length);
         return res.status(400).json({ error: 'Order data too long' });
       }
-
       orderId = uuidv4();
-      const extrasMetadata = Array.isArray(orderData.extras) ? orderData.extras.map(e => e.label || '').join(', ') : '';
-
+      const extrasMetadata = Array.isArray(extras) ? extras.map(e => e.label || '').join(', ') : '';
       fullOrderData = {
         type: 'boost',
         currentRank: normalizedCurrentRank,
         desiredRank: normalizedDesiredRank,
-        currentLP: orderData.currentLP || 0,
-        desiredLP: orderData.desiredLP || 0,
-        finalPrice,
+        currentLP: currentLP || 0,
+        desiredLP: desiredLP || 0,
+        finalPrice: finalPriceParsed,
         game: gameType,
-        extras: orderData.extras || []
+        extras: extras || []
       };
-
       sessionParams = {
         payment_method_types: ['card'],
         line_items: [{
           price_data: {
             currency: 'usd',
             product_data: {
-              name: `Rank Boost: ${normalizedCurrentRank} ${orderData.currentDivision || ''} to ${normalizedDesiredRank} ${orderData.desiredDivision || ''}`,
+              name: `Rank Boost: ${normalizedCurrentRank} ${currentDivision || ''} to ${normalizedDesiredRank} ${desiredDivision || ''}`,
               description: extrasMetadata || undefined
             },
-            unit_amount: Math.round(finalPrice * 100)
+            unit_amount: Math.round(finalPriceParsed * 100)
           },
           quantity: 1
         }],
@@ -777,7 +773,6 @@ app.post('/api/create-checkout-session', async (req, res) => {
     res.status(500).json({ error: 'Error creating checkout session', details: error.message });
   }
 });
-
 app.get('/api/user-orders', authenticate, async (req, res) => {
   try {
     console.log(`Fetching orders for userId: ${req.user.id}`);
@@ -1246,7 +1241,6 @@ app.post('/api/coach-profile', authenticate, async (req, res) => {
           userId
         ]
       );
-      console.log('Update result:', result);
       if (result.affectedRows === 0) {
         return res.status(500).json({ error: 'Failed to update profile' });
       }
@@ -1266,7 +1260,6 @@ app.post('/api/coach-profile', authenticate, async (req, res) => {
           valorant_preferred_roles || null, valorant_preferred_agents || null
         ]
       );
-      console.log('Insert result:', result);
       if (result.affectedRows === 0) {
         return res.status(500).json({ error: 'Failed to create profile' });
       }
@@ -1276,23 +1269,6 @@ app.post('/api/coach-profile', authenticate, async (req, res) => {
   } catch (error) {
     console.error('Error saving coach profile:', error);
     res.status(500).json({ error: 'Failed to save profile' });
-  }
-});
-
-app.get('/api/order-messages', authenticate, async (req, res) => {
-  const { orderId } = req.query;
-  try {
-    const [rows] = await pool.query(`
-      SELECT om.id, om.order_id, om.sender_id, u.username AS sender_username, om.message, om.created_at
-      FROM order_messages om
-      JOIN users u ON om.sender_id = u.id
-      WHERE om.order_id = ?
-      ORDER BY om.created_at ASC
-    `, [orderId]);
-    res.json(rows);
-  } catch (error) {
-    console.error('Error fetching order messages:', error.message);
-    res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 });
 
