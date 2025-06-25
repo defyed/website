@@ -1,8 +1,9 @@
-
 document.addEventListener('DOMContentLoaded', async () => {
     const userId = localStorage.getItem('userId');
     const userRole = localStorage.getItem('userRole');
-    if (!userId || isNaN(userId)) {
+    const username = localStorage.getItem('username');
+    if (!userId || isNaN(userId) || !username) {
+        console.error('Missing userId or username in localStorage');
         window.location.href = '/login.html';
         return;
     }
@@ -23,6 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     throw new Error(`HTTP ${response.status}: ${await response.text()}`);
                 }
                 const coaches = await response.json();
+                console.log('Fetched coaches:', coaches);
                 renderCoaches(coaches);
                 return;
             } catch (error) {
@@ -57,13 +59,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             header.className = 'card-header';
             const usernameWrapper = document.createElement('div');
             usernameWrapper.className = 'username-wrapper';
-            const username = document.createElement('h3');
-            username.textContent = coach.name || 'Unnamed Coach';
+            const usernameEl = document.createElement('h3');
+            usernameEl.textContent = coach.username || 'Unnamed Coach';
             const gameIcon = document.createElement('img');
             gameIcon.src = `/images/${coach.game_type.toLowerCase().replace(/\s+/g, '-')}.png`;
             gameIcon.alt = coach.game_type;
             gameIcon.className = 'game-icon';
-            usernameWrapper.appendChild(username);
+            usernameWrapper.appendChild(usernameEl);
             usernameWrapper.appendChild(gameIcon);
             const statusDot = document.createElement('span');
             statusDot.className = 'status-dot online';
@@ -125,15 +127,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const champsImages = document.createElement('div');
                     champsImages.className = 'images';
                     const championNameToFile = {
-                        "Bel'Veth": "bel-veth",
-                        "Cho'Gath": "cho-gath",
-                        "Kai'Sa": "kai-sa",
-                        "Kha'Zix": "kha-zix",
-                        "LeBlanc": "leblanc",
-                        "Nunu & Willump": "nunu-&-willump",
-                        "Renata Glasc": "renata-glasc",
-                        "Vel'Koz": "vel-koz",
-                        "Wukong": "wukong"
+                        "Bel'Veth": "bel-veth", "Cho'Gath": "cho-gath", "Kai'Sa": "kai-sa",
+                        "Kha'Zix": "kha-zix", "LeBlanc": "leblanc", "Nunu & Willump": "nunu-&-willump",
+                        "Renata Glasc": "renata-glasc", "Vel'Koz": "vel-koz", "Wukong": "wukong"
                     };
                     coach.lol_preferred_champions.split(',').forEach(champion => {
                         const img = document.createElement('img');
@@ -225,14 +221,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function showEditProfileModal(coach) {
         try {
-            const response = await fetch(`/api/coach-profile?userId=${userId}`, {
+            console.log('Fetching profile for userId:', userId);
+            const response = await fetch('/api/coach-profile', {
                 credentials: 'include'
             });
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${await response.text()}`);
             }
             const profile = await response.json();
-            document.getElementById('coach-name').value = profile.name || '';
+            console.log('Profile data:', profile);
             document.getElementById('coach-game').value = profile.game_type || 'League of Legends';
             document.getElementById('lol-highest-rank').value = profile.lol_highest_rank || '';
             document.getElementById('valorant-highest-rank').value = profile.valorant_highest_rank || '';
@@ -405,23 +402,28 @@ document.addEventListener('DOMContentLoaded', async () => {
             const pricePerHour = parseFloat(coachCard.querySelector('.rate-value').textContent.replace('$', '').replace('/hr', ''));
             const totalPrice = hours * pricePerHour;
             try {
+                console.log('Booking session:', { coachId, hours, totalPrice, userId, coachName, gameType, customerName: username });
                 const response = await fetch('/api/create-checkout-session', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({
-                        coach_id: parseInt(coachId),
-                        hours,
-                        total_price: totalPrice,
-                        customer_id: parseInt(userId),
-                        coach_name: coachName,
-                        game_type: gameType,
-                        customer_rank: localStorage.getItem('userRank') || 'Unknown'
+                        type: 'coaching',
+                        userId: parseInt(userId),
+                        orderData: {
+                            coachId: parseInt(coachId),
+                            hours,
+                            totalPrice,
+                            gameType,
+                            coachName,
+                            customerName: username
+                        }
                     })
                 });
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${await response.text()}`);
                 }
-                const { sessionId } = await response.json();
+                const { id: sessionId } = await response.json();
                 const stripe = Stripe('pk_test_your_stripe_publishable_key');
                 await stripe.redirectToCheckout({ sessionId });
             } catch (error) {
@@ -433,9 +435,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     editProfileForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        console.log('editProfileForm submit triggered');
         try {
             const profileData = {
-                name: document.getElementById('coach-name').value.trim(),
                 game_type: document.getElementById('coach-game').value,
                 lol_highest_rank: document.getElementById('lol-highest-rank').value || null,
                 valorant_highest_rank: document.getElementById('valorant-highest-rank').value || null,
@@ -446,18 +448,26 @@ document.addEventListener('DOMContentLoaded', async () => {
                 price_per_hour: parseFloat(document.getElementById('coach-rate').value) || null,
                 bio: document.getElementById('coach-bio').value.trim() || null
             };
-            if (!profileData.name || !profileData.game_type || !profileData.price_per_hour || profileData.price_per_hour <= 0) {
-                alert('Please fill in all required fields with valid values.');
+            console.log('Profile data:', profileData);
+            if (!profileData.game_type || !profileData.price_per_hour || profileData.price_per_hour <= 0) {
+                console.error('Validation failed:', profileData);
+                alert('Please fill in Game and Hourly Rate with valid values.');
                 return;
             }
-            const response = await fetch(`/api/coach-profile?userId=${userId}`, {
+            console.log('Sending POST /api/coach-profile');
+            const response = await fetch('/api/coach-profile', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify(profileData)
             });
+            console.log('Response status:', response.status);
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+                const errorData = await response.json();
+                throw new Error(`HTTP ${response.status}: ${JSON.stringify(errorData)}`);
             }
+            const result = await response.json();
+            console.log('Response:', result);
             alert('Profile saved successfully');
             editProfileModal.style.display = 'none';
             fetchCoaches();
@@ -482,7 +492,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.preventDefault();
         localStorage.removeItem('userId');
         localStorage.removeItem('userRole');
-        localStorage.removeItem('token');
+        localStorage.removeItem('username');
         window.location.href = '/league-services.html';
     });
 
