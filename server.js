@@ -234,6 +234,7 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
     const session = event.data.object;
     const { userId, orderId } = session.metadata || {};
     let orderData = {};
+
     try {
       if (session.metadata && session.metadata.fullOrderData) {
         orderData = JSON.parse(session.metadata.fullOrderData);
@@ -247,13 +248,9 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
       return res.status(400).json({ error: 'Invalid order data format' });
     }
 
-    if (!userId || !orderId) {
-      console.error('Missing metadata:', { userId, orderId });
-      return res.status(400).json({ error: 'Missing metadata' });
-    }
-    if (isNaN(userId)) {
-      console.error('Invalid userId:', userId);
-      return res.status(400).json({ error: 'Invalid userId' });
+    if (!userId || !orderId || isNaN(userId)) {
+      console.error('Invalid or missing userId/orderId:', { userId, orderId });
+      return res.status(400).json({ error: 'Invalid metadata' });
     }
 
     try {
@@ -265,34 +262,37 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
 
       const gameType = orderData.game || 'League of Legends';
       const cashback = (orderData.finalPrice || 0) * 0.03;
-      const extras = Array.isArray(orderData.extras) ? orderData.extras : [];
       const price = parseFloat(orderData.finalPrice) || 0;
-
+      const extras = JSON.stringify(orderData.extras || []);
       const currentRank = orderData.currentRank || 'Unranked';
       const desiredRank = orderData.desiredRank || 'Unranked';
+      const currentLP = orderData.currentLP || 0;
+      const desiredLP = orderData.desiredLP || 0;
 
       const connection = await pool.getConnection();
       try {
         await connection.beginTransaction();
 
         const [existingRows] = await connection.query('SELECT order_id FROM orders WHERE order_id = ?', [orderId]);
-        if (existingRows.length > 0) {
-         await connection.query(
-    'UPDATE orders SET current_rank = ?, desired_rank = ?, current_lp = ?, desired_lp = ?, price = ?, status = ?, cashback = ?, game_type = ?, extras = ? WHERE order_id = ? AND user_id = ?',
-    );
-        } else {
-         await connection.query(
-    'INSERT INTO orders (order_id, user_id, current_rank, desired_rank, current_lp, desired_lp, price, status, cashback, payout_status, game_type, extras) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
 
-    );
+        if (existingRows.length > 0) {
+          await connection.query(
+            'UPDATE orders SET current_rank = ?, desired_rank = ?, current_lp = ?, desired_lp = ?, price = ?, status = ?, cashback = ?, game_type = ?, extras = ? WHERE order_id = ? AND user_id = ?',
+            [currentRank, desiredRank, currentLP, desiredLP, price, 'Paid', cashback, gameType, extras, orderId, userId]
+          );
+        } else {
+          await connection.query(
+            'INSERT INTO orders (order_id, user_id, current_rank, desired_rank, current_lp, desired_lp, price, status, cashback, payout_status, game_type, extras, order_type, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
+            [orderId, userId, currentRank, desiredRank, currentLP, desiredLP, price, 'Paid', cashback, 'Pending', gameType, extras, gameType === 'Coaching' ? 'coaching' : 'boost']
+          );
         }
 
-        if (orderData.game === 'Coaching' && orderData.coachId && orderData.hours) {
+        if (gameType === 'Coaching' && orderData.coachId && orderData.hours) {
           await connection.query(
             'INSERT INTO coaching_orders (order_id, coach_id, booked_hours) VALUES (?, ?, ?)',
             [orderId, parseInt(orderData.coachId), parseInt(orderData.hours)]
           );
-          console.log(`Coaching order recorded: orderId=${orderId}, coachId=${orderData.coachId}, hours=${orderData.hours}`);
+          console.log(`✅ Coaching order recorded: ${orderId}`);
         }
 
         await connection.query(
@@ -301,22 +301,23 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
         );
 
         await connection.commit();
-        console.log(`Transaction committed for orderId: ${orderId}`);
+        console.log(`✅ Transaction committed for orderId: ${orderId}`);
       } catch (err) {
         await connection.rollback();
-        console.error('Transaction error:', err.message);
+        console.error('❌ Transaction error:', err.message);
         throw err;
       } finally {
         connection.release();
       }
     } catch (error) {
-      console.error('Webhook processing error:', error.message);
+      console.error('❌ Webhook processing error:', error.message);
       return res.status(500).json({ error: 'Database error', details: error.message });
     }
   }
 
   res.json({ received: true });
 });
+
 
 app.use(express.static(path.join(__dirname, 'public')));
 
