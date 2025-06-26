@@ -186,9 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         updateUserInterface(data.username);
                         console.log('Token just before redirect:', localStorage.getItem('token'));
 
-                        setTimeout(() => {
-    window.location.href = '/dashboard.html';
-}, 300); // delay by 300 milliseconds to ensure localStorage is written
+                        
                     } else {
                         loginError.textContent = data.message || 'Login failed';
                         console.log('Login failed:', data.message);
