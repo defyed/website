@@ -696,3 +696,14 @@ body {
         font-size: 20px;
     }
 }
+.orders-table {
+    margin-bottom: 20px;
+}
+.orders-table-header {
+    margin: 10px 0;
+    font-size: 1.5em;
+}
+hr.divider {
+    border: 1px solid #ccc;
+    margin: 20px 0;
+}
