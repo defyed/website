@@ -1580,9 +1580,9 @@ function renderOrders(orders, containerId, isAvailable = false, isWorking = fals
                     const response = await fetch('/api/claim-order', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
                         body: JSON.stringify({ userId, orderId })
                     });
                     if (!response.ok) {
