@@ -223,14 +223,21 @@
 }
 
 
- async function fetchCoachingOrders() {
+async function fetchCoachingOrders() {
+    const userId = localStorage.getItem('userId');
+    const role = localStorage.getItem('role');
+    if (!userId || !role) {
+        console.error('No userId or role found in localStorage');
+        alert('Please log in to view coaching orders.');
+        window.location.href = '/league-services.html';
+        return;
+    }
     try {
-      
-        const response = await fetch(`/api/user-orders?userId=${encodeURIComponent(userId)}&type=coaching`, {
+        console.log('Fetching coaching orders for userId:', userId, 'role:', role);
+        const response = await fetch(`/api/user-orders?userId=${encodeURIComponent(userId)}&role=${encodeURIComponent(role)}&type=coaching&status=claimed`, {
             method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             credentials: 'include'
         });
@@ -253,6 +260,7 @@
         }
     }
 }
+
 
 async function showOrderIdModal(orderId) {
     const modal = document.createElement('div');
