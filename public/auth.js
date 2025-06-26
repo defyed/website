@@ -99,7 +99,7 @@ async function handleLogin(e) {
                     localStorage.setItem('role', data.role);
                     closeForm();
                     updateUserInterface(username);
-                    
+                    window.location.href = '/dashboard.html';
                     return;
                 } else {
                     loginError.textContent = data.message || 'Invalid username or password.';
@@ -166,7 +166,7 @@ async function handleRegister(e) {
                     localStorage.setItem('role', data.role);
                     closeForm();
                     updateUserInterface(username);
-                    
+                    window.location.href = '/dashboard.html';
                     return;
                 } else {
                     registerError.textContent = data.message || 'Username or email already exists.';
