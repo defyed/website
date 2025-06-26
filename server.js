@@ -526,6 +526,8 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
+const jwt = require('jsonwebtoken'); // make sure this is at the top
+
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
   try {
@@ -536,22 +538,24 @@ app.post('/api/login', async (req, res) => {
     if (results.length === 0) {
       return res.status(401).json({ message: 'Invalid username or password' });
     }
+
     const user = results[0];
     const isMatch = await bcrypt.compare(password, user.password);
+
     if (isMatch) {
-  const token = jwt.sign(
-    { userId: user.id, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: '12h' }
-  );
-  res.json({
-    userId: user.id,
-    username: user.username,
-    role: user.role,
-    token
-  });
-}
- else {
+      const token = jwt.sign(
+        { userId: user.id, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: '12h' }
+      );
+
+      res.json({
+        userId: user.id,
+        username: user.username,
+        role: user.role,
+        token // 🔥 MUST be included!
+      });
+    } else {
       res.status(401).json({ message: 'Invalid username or password' });
     }
   } catch (err) {
@@ -559,6 +563,7 @@ app.post('/api/login', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 app.post('/api/forgot-password', async (req, res) => {
   const { email } = req.body;
