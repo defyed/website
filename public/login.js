@@ -181,6 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         localStorage.setItem('userId', data.userId);
                         localStorage.setItem('username', data.username);
                         localStorage.setItem('role', data.role);
+                        localStorage.setItem('token', data.token);
                         hideAllPopups();
                         updateUserInterface(data.username);
                         window.location.href = '/dashboard.html';
