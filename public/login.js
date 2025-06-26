@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Removed baseUrl for relative paths
     console.log('login.js loaded at:', new Date().toISOString());
 
     // Create popup containers dynamically
@@ -125,6 +126,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderRegisterPopup();
                 registerPopup.style.display = 'flex';
             });
+        } else {
+            console.warn('Show register link not found');
         }
 
         // Show login link
@@ -137,6 +140,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderLoginPopup();
                 loginPopup.style.display = 'flex';
             });
+        } else {
+            console.warn('Show login link not found');
         }
 
         // Forgot password button
@@ -149,6 +154,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderForgotPasswordPopup();
                 forgotPasswordPopup.style.display = 'flex';
             });
+        } else {
+            console.error('Forgot password button not found in login popup');
         }
 
         // Login form submission
@@ -162,42 +169,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 const loginError = document.getElementById('login-error');
 
                 try {
-                    console.log('Sending login request for username:', username);
                     const response = await fetch(`/api/login`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ username, password })
                     });
                     const data = await response.json();
-                    console.log('Login response:', data);
 
                     if (response.ok) {
-                        if (!data.token) {
-                            console.error('No token in login response');
-                            loginError.textContent = 'Login failed: No token received from server';
-                            return;
-                        }
+                        console.log('Login successful:', data);
                         localStorage.setItem('userId', data.userId);
                         localStorage.setItem('username', data.username);
                         localStorage.setItem('role', data.role);
-                        localStorage.setItem('token', data.token);
-                        console.log("✅ Saved userId:", localStorage.getItem('userId'));
-                        console.log("✅ Saved username:", localStorage.getItem('username'));
-                        console.log("✅ Saved role:", localStorage.getItem('role'));
-                        console.log("✅ Saved token:", localStorage.getItem('token'));
                         hideAllPopups();
                         updateUserInterface(data.username);
-                        alert('Login successful! Welcome, ' + data.username);
+                        window.location.href = '/dashboard.html';
                     } else {
-                        //localStorage.clear(); // Clear stale data
                         loginError.textContent = data.message || 'Login failed';
                         console.log('Login failed:', data.message);
                     }
                 } catch (error) {
-                    console.error('Login error:', error.message);
                     loginError.textContent = 'Server error. Please try again later.';
+                    console.error('Login error:', error);
                 }
             });
+        } else {
+            console.error('Login form not found');
         }
 
         // Register form submission
@@ -226,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         localStorage.setItem('role', data.role);
                         hideAllPopups();
                         updateUserInterface(data.username);
-                        alert('Registration successful! Welcome, ' + data.username);
+                        window.location.href = '/dashboard.html';
                     } else {
                         registerError.textContent = data.message || 'Registration failed';
                         console.log('Registration failed:', data.message);
@@ -236,6 +233,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error('Register error:', error);
                 }
             });
+        } else {
+            console.warn('Register form not found');
         }
 
         // Forgot password form submission
@@ -269,6 +268,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error('Forgot password error:', error);
                 }
             });
+        } else {
+            console.warn('Forgot password form not found');
         }
 
         // Reset password form submission
@@ -316,6 +317,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error('Reset password error:', error);
                 }
             });
+        } else {
+            console.warn('Reset password form not found');
         }
     };
 
@@ -355,7 +358,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 profileDropdown.querySelector('.logout-link').addEventListener('click', (e) => {
                     e.preventDefault();
                     console.log('Logout link clicked');
-                    logout();
+                    logout(); // From utils.js
                 });
 
                 document.addEventListener('click', (e) => {
@@ -375,6 +378,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     };
+
+    // Initialize sign-in buttons
+    const signInButtons = document.querySelectorAll('.sign-in-btn');
+    if (signInButtons.length === 0) {
+        console.warn('No .sign-in-btn elements found in DOM');
+    } else {
+        console.log(`Found ${signInButtons.length} .sign-in-btn elements`);
+    }
+    signInButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            console.log('Sign In button clicked');
+            hideAllPopups();
+            renderLoginPopup();
+            loginPopup.style.display = 'flex';
+        });
+    });
 
     // Check login status
     const userId = localStorage.getItem('userId');
@@ -396,9 +415,3 @@ document.addEventListener('DOMContentLoaded', () => {
         resetPasswordPopup.style.display = 'flex';
     }
 });
-
-function logout() {
-    console.log('Logging out, clearing localStorage');
-  //  localStorage.clear();
-    window.location.href = '/league-services.html';
-}

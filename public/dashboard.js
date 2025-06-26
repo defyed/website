@@ -1,11 +1,9 @@
 (function () {
     console.log('dashboard.js loaded');
     const userId = localStorage.getItem('userId');
-    const token = localStorage.getItem('token');
     console.log('userId from localStorage:', userId);
-    console.log('token from localStorage:', token);
-    if (!userId || isNaN(userId) || !token) {
-        console.error('No valid userId or token found, redirecting to login');
+    if (!userId || isNaN(userId)) {
+        console.error('No valid userId found, redirecting to login');
         alert('Please log in to view your dashboard.');
         window.location.href = '/league-services.html';
         return;
@@ -1582,9 +1580,9 @@ function renderOrders(orders, containerId, isAvailable = false, isWorking = fals
                     const response = await fetch('/api/claim-order', {
                         method: 'POST',
                         headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
                         body: JSON.stringify({ userId, orderId })
                     });
                     if (!response.ok) {
