@@ -204,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         hideAllPopups();
         updateUserInterface(data.username);
-        window.location.href = '/dashboard.html'; // Add explicit redirect
+       
     }, 200); // Short delay to ensure storage
 } else {
     loginError.textContent = data.message || 'Login failed';
@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         localStorage.setItem('role', data.role);
                         hideAllPopups();
                         updateUserInterface(data.username);
-                        window.location.href = '/dashboard.html';
+                        
                     } else {
                         registerError.textContent = data.message || 'Registration failed';
                         console.log('Registration failed:', data.message);
