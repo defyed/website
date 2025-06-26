@@ -1,9 +1,9 @@
 
 document.addEventListener('DOMContentLoaded', async () => {
     const userId = localStorage.getItem('userId');
-    const userRole = localStorage.getItem('userRole');
+    const role = localStorage.getItem('role');
     if (!userId || isNaN(userId)) {
-        window.location.href = '/login.html';
+        window.location.href = 'login.html';
         return;
     }
 
@@ -451,7 +451,7 @@ editProfileForm.addEventListener('submit', async (e) => {
         editMyProfileBtn.addEventListener('click', () => showEditProfileModal({ user_id: userId }));
     }
 
-  coachesContainer.addEventListener('click', async (e) => {
+coachesContainer.addEventListener('click', async (e) => {
   if (e.target.classList.contains('purchase-coach-btn')) {
     const coachId = e.target.dataset.id;
     const hoursSelect = e.target.parentElement.querySelector('.session-hours');
@@ -465,6 +465,7 @@ editProfileForm.addEventListener('submit', async (e) => {
     const pricePerHourText = pricePerHourElement?.textContent?.replace('$', '').replace('/hr', '').trim();
     const pricePerHour = parseFloat(pricePerHourText);
     const totalPrice = hours * pricePerHour;
+    const cashback = totalPrice * 0.03; // Calculate cashback as 3% of totalPrice
     const userId = parseInt(localStorage.getItem('userId'));
 
     // Log extracted values for debugging
@@ -475,6 +476,7 @@ editProfileForm.addEventListener('submit', async (e) => {
       gameType, 
       pricePerHour, 
       totalPrice, 
+      cashback, // Include cashback in debug log
       userId,
       coachNameElement: coachNameElement?.outerHTML,
       gameTypeElement: gameTypeElement?.outerHTML,
@@ -526,7 +528,8 @@ editProfileForm.addEventListener('submit', async (e) => {
         coachId: parseInt(coachId),
         hours,
         game: gameType,
-        totalPrice,
+        totalPrice: totalPrice.toFixed(2), // Format to two decimal places
+        cashback: cashback.toFixed(2), // Include cashback, formatted to two decimal places
         coachName
       }
     };
@@ -608,7 +611,7 @@ editProfileForm.addEventListener('submit', async (e) => {
         localStorage.removeItem('userId');
         localStorage.removeItem('userRole');
         localStorage.removeItem('token');
-        window.location.href = '/league-services.html';
+        window.location.href = '/';
     });
 
     setupLaneButtons();
