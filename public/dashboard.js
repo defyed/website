@@ -111,70 +111,118 @@
         }
     }
 
-    async function fetchUserOrders() {
-        try {
-            console.log('Fetching orders for userId:', userId);
-            const response = await fetch(`/api/user-orders?userId=${userId}`);
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`);
-            }
-            const orders = await response.json();
-            console.log('My Orders received:', orders);
-            renderOrders(orders, 'my-orders');
-        } catch (error) {
-            console.error('Error fetching orders:', error.message);
-            document.getElementById('my-orders').innerHTML = '<p>Error loading orders. Please try again later.</p>';
+  async function fetchUserOrders() {
+    const userRole = localStorage.getItem('userRole');
+    if (userRole === 'coach') {
+        console.log('Skipping user orders for coach role');
+        const container = document.getElementById('my-orders');
+        if (container) {
+            container.innerHTML = '<p>Orders panel is not available for coaches. See My Coaching Orders.</p>';
+        }
+        return;
+    }
+    try {
+        const token = localStorage.getItem('token');
+        console.log('Fetching orders for userId:', userId, 'Role:', userRole, 'Token:', token ? 'Present' : 'Missing');
+        const response = await fetch(`/api/user-orders?userId=${encodeURIComponent(userId)}&type=boost`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            credentials: 'include'
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`);
+        }
+        const orders = await response.json();
+        console.log('My Orders received:', orders);
+        if (!Array.isArray(orders)) {
+            console.warn('Unexpected response format for user orders:', orders);
+            throw new Error('Invalid response format from server');
+        }
+        renderOrders(orders, 'my-orders');
+    } catch (error) {
+        console.error('Error fetching orders:', error.message);
+        const container = document.getElementById('my-orders');
+        if (container) {
+            container.innerHTML = `<p style="color: red;">Failed to load orders: ${error.message}. Please contact support.</p>`;
         }
     }
+}
 
-    async function fetchAvailableOrders() {
-        if (isFetchingAvailableOrders) {
-            console.log('fetchAvailableOrders already in progress, skipping');
-            return;
+  async function fetchAvailableOrders() {
+    const userRole = localStorage.getItem('userRole');
+    if (userRole !== 'booster' && userRole !== 'admin') {
+        console.log('Skipping available orders for non-booster/admin role:', userRole);
+        const container = document.getElementById('available-orders');
+        if (container) {
+            container.innerHTML = '<p>Available orders are only for boosters and admins.</p>';
         }
-        isFetchingAvailableOrders = true;
-        try {
-            console.log('Fetching available orders for userId:', userId);
-            const response = await fetch(`/api/available-orders?userId=${userId}`, {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-            });
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`);
-            }
-            const orders = await response.json();
-            console.log('Available orders received:', orders);
-            orders.forEach(order => {
-                console.log(`Order ${order.order_id}: current_rank=${order.current_rank}, desired_rank=${order.desired_rank}, game_type=${order.game_type}`);
-            });
-            renderOrders(orders, 'available-orders', true);
-        } catch (error) {
-            console.error('Error fetching available orders:', error.message);
-            document.getElementById('available-orders').innerHTML = '<p>Error loading available orders. Please try again later.</p>';
-        } finally {
-            isFetchingAvailableOrders = false;
-        }
+        return;
     }
+    if (isFetchingAvailableOrders) {
+        console.log('fetchAvailableOrders already in progress, skipping');
+        return;
+    }
+    isFetchingAvailableOrders = true;
+    try {
+        console.log('Fetching available orders for userId:', userId);
+        const response = await fetch(`/api/available-orders?userId=${userId}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`);
+        }
+        const orders = await response.json();
+        console.log('Available orders received:', orders);
+        orders.forEach(order => {
+            console.log(`Order ${order.order_id}: current_rank=${order.current_rank}, desired_rank=${order.desired_rank}, game_type=${order.game_type}`);
+        });
+        renderOrders(orders, 'available-orders', true);
+    } catch (error) {
+        console.error('Error fetching available orders:', error.message);
+        const container = document.getElementById('available-orders');
+        if (container) {
+            container.innerHTML = `<p style="color: red;">Error loading available orders: ${error.message}. Please try again later.</p>`;
+        }
+    } finally {
+        isFetchingAvailableOrders = false;
+    }
+}
 
-    async function fetchWorkingOrders() {
-        try {
-            console.log('Fetching working orders for userId:', userId);
-            const response = await fetch(`/api/working-orders?userId=${userId}`, {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-            });
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`);
-            }
-            const orders = await response.json();
-            console.log('Working orders received for userId:', userId, 'Orders:', orders);
-            renderOrders(orders, 'working-orders', false, true);
-        } catch (error) {
-            console.error('Error fetching working orders for userId:', userId, 'Error:', error.message);
-            document.getElementById('working-orders').innerHTML = '<p>Error loading working orders. Please try again later.</p>';
+  async function fetchWorkingOrders() {
+    const userRole = localStorage.getItem('userRole');
+    if (userRole !== 'booster' && userRole !== 'admin') {
+        console.log('Skipping working orders for non-booster/admin role:', userRole);
+        const container = document.getElementById('working-orders');
+        if (container) {
+            container.innerHTML = '<p>Working orders are only for boosters and admins.</p>';
+        }
+        return;
+    }
+    try {
+        console.log('Fetching working orders for userId:', userId);
+        const response = await fetch(`/api/working-orders?userId=${userId}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`);
+        }
+        const orders = await response.json();
+        console.log('Working orders received for userId:', userId, 'Orders:', orders);
+        renderOrders(orders, 'working-orders', false, true);
+    } catch (error) {
+        console.error('Error fetching working orders for userId:', userId, 'Error:', error.message);
+        const container = document.getElementById('working-orders');
+        if (container) {
+            container.innerHTML = `<p style="color: red;">Error loading working orders: ${error.message}. Please try again later.</p>`;
         }
     }
+}
 
  async function fetchCoachingOrders() {
     try {
@@ -214,12 +262,12 @@ function renderCoachingOrders(orders, containerId) {
         console.error(`Error: ${containerId} container not found`);
         return;
     }
-
+    const userRole = localStorage.getItem('userRole');
+    const currentUserId = parseInt(userId);
     if (!Array.isArray(orders) || orders.length === 0) {
         container.innerHTML = '<p>No coaching orders found. Please check if orders exist or contact support.</p>';
         return;
     }
-
     const table = document.createElement('table');
     table.className = 'orders-table';
     table.innerHTML = `
@@ -239,13 +287,13 @@ function renderCoachingOrders(orders, containerId) {
         <tbody></tbody>
     `;
     const tbody = table.querySelector('tbody');
-
     orders.forEach(order => {
         if (!order || !order.order_id) {
             console.warn('Skipping invalid coaching order:', order);
             return;
         }
         console.log('Rendering coaching order:', order);
+        const isOwnOrder = userRole === 'coach' && order.coach_id === currentUserId;
         const row = document.createElement('tr');
         row.dataset.orderId = order.order_id;
         row.innerHTML = `
@@ -257,14 +305,12 @@ function renderCoachingOrders(orders, containerId) {
             <td>$${parseFloat(order.price || order.total_price || 0).toFixed(2)}</td>
             <td>${order.status || 'pending'}</td>
             <td>${order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}</td>
-            <td><button class="complete-btn" data-order-id="${order.order_id}" ${order.status === 'completed' ? 'disabled' : ''}>Complete</button></td>
+            <td><button class="complete-btn" data-order-id="${order.order_id}" ${order.status === 'completed' || !isOwnOrder ? 'disabled' : ''}>Complete</button></td>
         `;
         tbody.appendChild(row);
     });
-
     container.innerHTML = '';
     container.appendChild(table);
-
     document.querySelectorAll('.order-id-button').forEach(button => {
         button.addEventListener('click', function (e) {
             e.stopPropagation();
@@ -272,7 +318,6 @@ function renderCoachingOrders(orders, containerId) {
             showOrderIdModal(orderId);
         });
     });
-
     document.querySelectorAll('.complete-btn').forEach(button => {
         button.addEventListener('click', async function (e) {
             e.stopPropagation();

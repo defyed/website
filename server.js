@@ -341,25 +341,25 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
       try {
         await connection.beginTransaction();
 
-        if (orderData.type === 'coaching') {
-          const { coachId, hours, game, finalPrice, coachName } = orderData;
-          if (!coachId || !hours || !game || !finalPrice || !coachName) {
-            console.error('Incomplete coaching order data:', orderData);
-            await connection.rollback();
-            return res.status(400).json({ error: 'Incomplete coaching order data' });
-          }
-          const [coachRows] = await connection.query('SELECT id, username FROM users WHERE id = ? AND role = "coach"', [coachId]);
-          if (!coachRows.length) {
-            console.error('Coach not found:', coachId);
-            await connection.rollback();
-            return res.status(400).json({ error: 'Coach not found' });
-          }
-          await connection.query(
-            `INSERT INTO coaching_orders (
-              user_id, coach_id, order_id, booked_hours, game_type, total_price, coach_name, status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [parseInt(userId), coachId, orderId, hours, game, finalPrice, coachName, 'completed']
-          );
+       if (orderData.type === 'coaching') {
+  const { coachId, hours, game, finalPrice, coachName } = orderData;
+  if (!coachId || !hours || !game || !finalPrice || !coachName) {
+    console.error('Incomplete coaching order data:', orderData);
+    await connection.rollback();
+    return res.status(400).json({ error: 'Incomplete coaching order data' });
+  }
+  const [coachRows] = await connection.query('SELECT id, username FROM users WHERE id = ? AND role = "coach"', [coachId]);
+  if (!coachRows.length) {
+    console.error('Coach not found:', coachId);
+    await connection.rollback();
+    return res.status(400).json({ error: 'Coach not found' });
+  }
+  await connection.query(
+    `INSERT INTO coaching_orders (
+      user_id, coach_id, order_id, booked_hours, game_type, total_price, coach_name, status
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [parseInt(userId), coachId, orderId, hours, game, finalPrice, coachName, 'pending']
+  );
           console.log(`Coaching order ${orderId} created for user ${userId}, coach ${coachId}`);
         } else if (orderData.type === 'boost') {
           const { currentRank, desiredRank, currentDivision, desiredDivision, currentLP, desiredLP, finalPrice, game, extras } = orderData;
@@ -801,11 +801,11 @@ app.post('/api/create-checkout-session', async (req, res) => {
 app.get('/api/user-orders', authenticate, async (req, res) => {
   try {
     const { type } = req.query;
-    console.log(`Fetching orders for userId: ${req.user.id}, type: ${type || 'all'}`);
+    console.log(`Fetching orders for userId: ${req.user.id}, role: ${req.user.role}, type: ${type || 'all'}`);
     let orders = [];
 
-    if (!type || type === 'boost') {
-      // Fetch boost orders
+    if (req.user.role === 'user' && (!type || type === 'boost')) {
+      // Fetch boost orders for customers
       const [boostRows] = await pool.query(
         `SELECT o.order_id, o.current_rank, o.desired_rank, o.current_lp, o.desired_lp, o.price, o.status, o.cashback, 
                 DATE_FORMAT(o.created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at, o.extras, o.game_type, 'boost' AS order_type,
@@ -836,14 +836,15 @@ app.get('/api/user-orders', authenticate, async (req, res) => {
 
     if (!type || type === 'coaching') {
       // Fetch coaching orders for customers or coaches
+      const whereClause = req.user.role === 'coach' ? 'co.coach_id = ?' : 'co.user_id = ?';
       const [coachingRows] = await pool.query(
         `SELECT co.order_id, co.user_id, co.coach_id, co.booked_hours, co.game_type, co.total_price AS price, co.coach_name, co.status, 
                 DATE_FORMAT(co.created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at, 'coaching' AS order_type,
                 u.username AS customer_username
          FROM coaching_orders co
          LEFT JOIN users u ON co.user_id = u.id
-         WHERE co.user_id = ? OR co.coach_id = ?`,
-        [req.user.id, req.user.id]
+         WHERE ${whereClause}`,
+        [req.user.id]
       );
       orders.push(...coachingRows.map(row => ({
         ...row,
@@ -851,7 +852,7 @@ app.get('/api/user-orders', authenticate, async (req, res) => {
         currentDivision: null,
         desiredRank: null,
         desiredDivision: null,
-        coach_username: row.coach_name // Use coach_name as coach_username
+        coach_username: row.coach_name
       })));
     }
 
