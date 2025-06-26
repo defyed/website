@@ -321,7 +321,7 @@ function renderCoachingOrders(orders, containerId) {
         row.dataset.orderId = order.order_id;
         row.innerHTML = `
             <td><button class="order-id-button" data-order-id="${order.order_id}">?</button></td>
-            <td>${order.customer_username || 'Unknown Customer'} (${order.user_id || 'N/A'})</td>
+            <td>${order.customer_username || 'Unknown Customer'}</td>
             <td>${order.coach_username || order.coach_name || 'Unknown Coach'}</td>
             <td>${order.game_type || 'N/A'}</td>
             <td>${order.booked_hours || 'N/A'}</td>
