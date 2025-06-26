@@ -949,83 +949,16 @@ function renderCoachingOrders(orders, containerId) {
         }
     }
 
-    async function showOrderDetailsModal(order) {
-        if (!order) {
-            console.error('No order provided to showOrderDetailsModal');
-            const modal = document.createElement('div');
-            modal.className = 'modal';
-            modal.innerHTML = `
-                <div class="modal-content">
-                    <span class="modal-close">×</span>
-                    <h3>Order Details</h3>
-                    <p><strong>Error:</strong> Unable to load order details.</p>
-                </div>
-            `;
-            document.getElementById('modal-container').appendChild(modal);
-            modal.style.display = 'block';
-
-            modal.querySelector('.modal-close').addEventListener('click', () => {
-                modal.remove();
-            });
-
-            window.addEventListener('click', function(event) {
-                if (event.target === modal) {
-                    modal.remove();
-                }
-            }, { once: true });
-            return;
-        }
-
-        console.log('Displaying details for order:', order);
-        const extras = parseExtras(order.extras);
-        const userRole = await checkUserRole();
-        const isCustomer = userRole !== 'booster' && userRole !== 'admin';
-
-        let modalContent = `
-            <div class="modal-content">
-                <span class="modal-close">×</span>
-                <h3>Order Details</h3>
-                <p><strong>Order ID:</strong> ${order.order_id}</p>
-                <p><strong>Current Rank:</strong> ${order.current_rank}</p>
-                <p><strong>Desired Rank:</strong> ${order.desired_rank}</p>
-                <p><strong>Current LP:</strong> ${order.current_lp || 0}</p>
-                <p><strong>Extra Options:</strong> ${extras}</p>
-                <p><strong>Ordered On:</strong> ${new Date(order.created_at).toLocaleDateString()}</p>
-        `;
-        if (isCustomer) {
-            modalContent += `
-                <p><strong>Price:</strong> $${parseFloat(order.price || 0).toFixed(2)}</p>
-                <p><strong>Status:</strong> ${order.status || 'Pending'}</p>
-                <p><strong>Cashback:</strong> $${parseFloat(order.cashback || 0).toFixed(2)}</p>
-            `;
-        }
-        modalContent += `</div>`;
-
-        const modal = document.createElement('div');
-        modal.className = 'modal';
-        modal.innerHTML = modalContent;
-        document.getElementById('modal-container').appendChild(modal);
-        modal.style.display = 'block';
-
-        modal.querySelector('.modal-close').addEventListener('click', () => {
-            modal.remove();
-        });
-
-        window.addEventListener('click', function(event) {
-            if (event.target === modal) {
-                modal.remove();
-            }
-        }, { once: true });
-    }
-
-    async function showOrderIdModal(orderId) {
+   async function showOrderDetailsModal(order) {
+    if (!order) {
+        console.error('No order provided to showOrderDetailsModal');
         const modal = document.createElement('div');
         modal.className = 'modal';
         modal.innerHTML = `
-            <div class="modal-content order-id-modal">
+            <div class="modal-content">
                 <span class="modal-close">×</span>
-                <h3>Order ID</h3>
-                <p><strong>${orderId}</strong></p>
+                <h3>Order Details</h3>
+                <p><strong>Error:</strong> Unable to load order details.</p>
             </div>
         `;
         document.getElementById('modal-container').appendChild(modal);
@@ -1040,7 +973,71 @@ function renderCoachingOrders(orders, containerId) {
                 modal.remove();
             }
         }, { once: true });
+        return;
     }
+
+    console.log('Displaying details for order:', order);
+    const userRole = await checkUserRole();
+    const isCustomer = userRole !== 'booster' && userRole !== 'admin';
+    const isCoachingOrder = order.order_type === 'coaching';
+
+    let modalContent = `
+        <div class="modal-content">
+            <span class="modal-close">×</span>
+            <h3>Order Details</h3>
+            <p><strong>Order ID:</strong> ${order.order_id}</p>
+            <p><strong>Game Type:</strong> ${order.game_type || 'N/A'}</p>
+            <p><strong>Current Rank:</strong> ${order.current_rank || 'N/A'}</p>
+    `;
+
+    if (isCoachingOrder) {
+        // For coaching orders, show relevant fields, excluding Desired Rank, Current LP, Extras, Account Username, Account Password
+        modalContent += `
+            <p><strong>Booked Hours:</strong> ${order.booked_hours || 'N/A'}</p>
+            <p><strong>Coach Name:</strong> ${order.coach_name || order.coach_username || 'N/A'}</p>
+        `;
+    } else {
+        // For boost orders, include all fields
+        modalContent += `
+            <p><strong>Desired Rank:</strong> ${order.desired_rank || 'N/A'}</p>
+            <p><strong>Current LP:</strong> ${order.current_lp || 0}</p>
+            <p><strong>Extra Options:</strong> ${parseExtras(order.extras)}</p>
+            <p><strong>Account Username:</strong> ${order.account_username || 'N/A'}</p>
+            <p><strong>Account Password:</strong> ${order.plaintext_password ? '********' : 'N/A'}</p>
+        `;
+    }
+
+    // Common fields for both order types
+    modalContent += `
+        <p><strong>Ordered On:</strong> ${order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}</p>
+    `;
+
+    if (isCustomer) {
+        modalContent += `
+            <p><strong>Price:</strong> $${parseFloat(order.price || order.total_price || 0).toFixed(2)}</p>
+            <p><strong>Status:</strong> ${order.status || 'Pending'}</p>
+            <p><strong>Cashback:</strong> $${parseFloat(order.cashback || 0).toFixed(2)}</p>
+        `;
+    }
+
+    modalContent += `</div>`;
+
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = modalContent;
+    document.getElementById('modal-container').appendChild(modal);
+    modal.style.display = 'block';
+
+    modal.querySelector('.modal-close').addEventListener('click', () => {
+        modal.remove();
+    });
+
+    window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            modal.remove();
+        }
+    }, { once: true });
+}
 
     async function showOrderFormModal(order, userRole) {
         const modal = document.createElement('div');
