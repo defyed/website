@@ -526,7 +526,7 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
-const jwt = require('jsonwebtoken'); // make sure this is at the top
+
 
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
