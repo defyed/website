@@ -1040,12 +1040,13 @@ function renderCoachingOrders(orders, containerId) {
 }
 
     async function showOrderFormModal(order, userRole) {
-        const modal = document.createElement('div');
-        modal.className = 'modal order-form-modal';
-        const isCustomer = userRole !== 'booster' && userRole !== 'admin';
-        const extras = parseExtras(order.extras);
+    const modal = document.createElement('div');
+    modal.className = 'modal order-form-modal';
+    const isCustomer = userRole !== 'booster' && userRole !== 'admin';
+    const isCoachingOrder = order.order_type === 'coaching';
 
-        let credentials = { account_username: '', summoner_name: '', plaintext_password: '' };
+    let credentials = { account_username: '', summoner_name: '', plaintext_password: '' };
+    if (!isCoachingOrder) {
         try {
             console.log('Fetching credentials for orderId:', order.order_id, 'userId:', userId);
             const response = await fetch(`/api/order-credentials?orderId=${order.order_id}&userId=${userId}`);
@@ -1068,195 +1069,217 @@ function renderCoachingOrders(orders, containerId) {
         } catch (error) {
             console.error('Error fetching credentials:', error.message);
         }
+    }
 
-        let messages = [];
-        try {
-            console.log('Fetching messages for orderId:', order.order_id, 'userId:', userId);
-            const response = await fetch(`/api/order-messages?orderId=${order.order_id}&userId=${userId}`);
-            if (response.ok) {
-                messages = await response.json();
-                console.log('Messages received:', messages);
-            }
-        } catch (error) {
-            console.error('Error fetching messages:', error.message);
+    let messages = [];
+    try {
+        console.log('Fetching messages for orderId:', order.order_id, 'userId:', userId);
+        const response = await fetch(`/api/order-messages?orderId=${order.order_id}&userId=${userId}`);
+        if (response.ok) {
+            messages = await response.json();
+            console.log('Messages received:', messages);
         }
+    } catch (error) {
+        console.error('Error fetching messages:', error.message);
+    }
 
-        let orderDetailsHtml = `
-            <h3>Order #${order.order_id}</h3>
-            <p><strong>Current Rank:</strong> ${order.current_rank}</p>
-            <p><strong>Desired Rank:</strong> ${order.desired_rank}</p>
+    let orderDetailsHtml = `
+        <h3>Order #${order.order_id}</h3>
+        <p><strong>Game Type:</strong> ${order.game_type || 'N/A'}</p>
+        <p><strong>Current Rank:</strong> ${order.current_rank || 'N/A'}</p>
+    `;
+
+    if (isCoachingOrder) {
+        orderDetailsHtml += `
+            <p><strong>Booked Hours:</strong> ${order.booked_hours || 'N/A'}</p>
+            <p><strong>Coach Name:</strong> ${order.coach_name || order.coach_username || 'N/A'}</p>
+        `;
+    } else {
+        orderDetailsHtml += `
+            <p><strong>Desired Rank:</strong> ${order.desired_rank || 'N/A'}</p>
             <p><strong>Current LP:</strong> ${order.current_lp || 0}</p>
-            <p><strong>Extras:</strong> ${extras}</p>
-            <p><strong>Ordered On:</strong> ${new Date(order.created_at).toLocaleDateString()}</p>
+            <p><strong>Extras:</strong> ${parseExtras(order.extras)}</p>
         `;
-        if (isCustomer) {
-            orderDetailsHtml += `
-                <p><strong>Price:</strong> $${parseFloat(order.price).toFixed(2)}</p>
-                <p><strong>Status:</strong> ${order.status}</p>
-                <p><strong>Cashback:</strong> $${parseFloat(order.cashback || 0).toFixed(2)}</p>
-            `;
-        }
+    }
 
-        let accountDetailsHtml = `
-            <label>Account Username:</label>
-            <input type="text" id="account-username" value="${credentials.account_username || ''}" ${isCustomer ? '' : 'disabled'}>
-            <label>Summoner Name:</label>
-            <input type="text" id="summoner-name" value="${credentials.summoner_name || ''}" ${isCustomer ? '' : 'disabled'}>
+    orderDetailsHtml += `
+        <p><strong>Ordered On:</strong> ${new Date(order.created_at).toLocaleDateString()}</p>
+    `;
+
+    if (isCustomer) {
+        orderDetailsHtml += `
+            <p><strong>Price:</strong> $${parseFloat(order.price || order.total_price || 0).toFixed(2)}</p>
+            <p><strong>Status:</strong> ${order.status || 'Pending'}</p>
+            <p><strong>Cashback:</strong> $${parseFloat(order.cashback || 0).toFixed(2)}</p>
         `;
-        if (isCustomer) {
-            accountDetailsHtml += `
+    }
+
+    let accountDetailsHtml = '';
+    if (!isCoachingOrder && isCustomer) {
+        accountDetailsHtml = `
+            <h4>Account Details</h4>
+            <div class="account-details-form">
+                <label>Account Username:</label>
+                <input type="text" id="account-username" value="${credentials.account_username || ''}">
+                <label>Summoner Name:</label>
+                <input type="text" id="summoner-name" value="${credentials.summoner_name || ''}">
                 <label>Account Password: Encrypted and hidden after entry.</label>
                 <input type="password" id="account-password" value="">
                 <button id="submit-credentials">Submit Credentials</button>
-            `;
-        } else {
-            accountDetailsHtml += `
+            </div>
+        `;
+    } else if (!isCoachingOrder) {
+        accountDetailsHtml = `
+            <h4>Account Details</h4>
+            <div class="account-details-form">
+                <label>Account Username:</label>
+                <input type="text" id="account-username" value="${credentials.account_username || ''}" disabled>
+                <label>Summoner Name:</label>
+                <input type="text" id="summoner-name" value="${credentials.summoner_name || ''}" disabled>
                 <label>Account Password:</label>
                 <div class="password-container">
                     <span id="password-field">********</span>
                     <button id="toggle-password">Show Password</button>
                 </div>
-            `;
-        }
+            </div>
+        `;
+    }
 
-        modal.innerHTML = `
-            <div class="modal-content order-form-content">
-                <span class="modal-close">×</span>
-                <div class="order-form-container">
-                    <div class="order-details-panel">
-                        ${orderDetailsHtml}
-                        <h4>Account Details</h4>
-                        <div class="account-details-form">
-                            ${accountDetailsHtml}
-                        </div>
-                    </div>
-                    <div class="chat-panel">
-                        <h4>Chat</h4>
-                        <div class="chat-messages" id="chat-messages-${order.order_id}"></div>
-                        <div class="chat-input">
-                            <input type="text" id="chat-input-${order.order_id}" placeholder="Type a message...">
-                            <button id="send-message-${order.order_id}">Send</button>
-                        </div>
+    modal.innerHTML = `
+        <div class="modal-content order-form-content">
+            <span class="modal-close">×</span>
+            <div class="order-form-container">
+                <div class="order-details-panel">
+                    ${orderDetailsHtml}
+                    ${accountDetailsHtml}
+                </div>
+                <div class="chat-panel">
+                    <h4>Chat</h4>
+                    <div class="chat-messages" id="chat-messages-${order.order_id}"></div>
+                    <div class="chat-input">
+                        <input type="text" id="chat-input-${order.order_id}" placeholder="Type a message...">
+                        <button id="send-message-${order.order_id}">Send</button>
                     </div>
                 </div>
             </div>
-        `;
-        document.getElementById('modal-container').appendChild(modal);
-        modal.style.display = 'block';
+        </div>
+    `;
+    document.getElementById('modal-container').appendChild(modal);
+    modal.style.display = 'block';
 
-        if (!isCustomer) {
-            modal.querySelector('#password-field').dataset.password = credentials.plaintext_password || 'N/A';
-        }
+    if (!isCoachingOrder && !isCustomer) {
+        modal.querySelector('#password-field').dataset.password = credentials.plaintext_password || 'N/A';
+    }
 
-        const chatMessages = modal.querySelector(`#chat-messages-${order.order_id}`);
-        messages.forEach(msg => {
-            const messageEl = document.createElement('div');
-            messageEl.className = `chat-message ${msg.sender_id === parseInt(userId) ? 'sent' : 'received'}`;
-            messageEl.innerHTML = `
-                <p><strong>${msg.sender_username}</strong> (${new Date(msg.created_at).toLocaleTimeString()}): ${msg.message}</p>`;
-            chatMessages.appendChild(messageEl);
-        });
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+    const chatMessages = modal.querySelector(`#chat-messages-${order.order_id}`);
+    messages.forEach(msg => {
+        const messageEl = document.createElement('div');
+        messageEl.className = `chat-message ${msg.sender_id === parseInt(userId) ? 'sent' : 'received'}`;
+        messageEl.innerHTML = `
+            <p><strong>${msg.sender_username}</strong> (${new Date(msg.created_at).toLocaleTimeString()}): ${msg.message}</p>`;
+        chatMessages.appendChild(messageEl);
+    });
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        if (isCustomer) {
-            modal.querySelector('#submit-credentials').addEventListener('click', async () => {
-                const accountUsername = modal.querySelector('#account-username').value.trim();
-                const accountPassword = modal.querySelector('#account-password').value.trim();
-                const summonerName = modal.querySelector('#summoner-name').value.trim();
-                if (!accountUsername || !accountPassword || !summonerName) {
-                    alert('Please fill in all fields');
-                    return;
-                }
-                try {
-                    console.log('Submitting credentials for orderId:', order.order_id, 'userId:', userId);
-                    const response = await fetch('/api/submit-credentials', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            orderId: order.order_id,
-                            userId: parseInt(userId),
-                            accountUsername,
-                            password: accountPassword,
-                            summonerName
-                        })
-                    });
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || 'Failed to submit credentials');
-                    }
-                    alert('Credentials submitted successfully!');
-                    console.log('Credentials submitted successfully for orderId:', order.order_id);
-                } catch (error) {
-                    console.error('Error submitting credentials:', error.message);
-                    alert(`Failed to submit credentials: ${error.message}`);
-                }
-            });
-        } else {
-            modal.querySelector('#toggle-password').addEventListener('click', () => {
-                const passwordField = modal.querySelector('#password-field');
-                const toggleButton = modal.querySelector('#toggle-password');
-                if (passwordField.textContent === '********') {
-                    passwordField.textContent = passwordField.dataset.password;
-                    toggleButton.textContent = 'Hide Password';
-                    console.log('Password revealed for orderId:', order.order_id);
-                } else {
-                    passwordField.textContent = '********';
-                    toggleButton.textContent = 'Show Password';
-                    console.log('Password hidden for orderId:', order.order_id);
-                }
-            });
-        }
-
-        modal.querySelector(`#send-message-${order.order_id}`).addEventListener('click', async () => {
-            const input = modal.querySelector(`#chat-input-${order.order_id}`);
-            const message = input.value.trim();
-            if (!message) return;
+    if (!isCoachingOrder && isCustomer) {
+        modal.querySelector('#submit-credentials').addEventListener('click', async () => {
+            const accountUsername = modal.querySelector('#account-username').value.trim();
+            const accountPassword = modal.querySelector('#account-password').value.trim();
+            const summonerName = modal.querySelector('#summoner-name').value.trim();
+            if (!accountUsername || !accountPassword || !summonerName) {
+                alert('Please fill in all fields');
+                return;
+            }
             try {
-                console.log('Sending message for orderId:', order.order_id, 'userId:', userId, 'Message:', message);
-                const response = await fetch('/api/send-message', {
+                console.log('Submitting credentials for orderId:', order.order_id, 'userId:', userId);
+                const response = await fetch('/api/submit-credentials', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ orderId: order.order_id, userId, message })
+                    body: JSON.stringify({
+                        orderId: order.order_id,
+                        userId: parseInt(userId),
+                        accountUsername,
+                        password: accountPassword,
+                        summonerName
+                    })
                 });
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to send message');
+                    throw new Error(errorData.error || 'Failed to submit credentials');
                 }
-                input.value = '';
-                const msgResponse = await fetch(`/api/order-messages?orderId=${order.order_id}&userId=${userId}`);
-                if (msgResponse.ok) {
-                    const newMessages = await msgResponse.json();
-                    console.log('New messages fetched:', newMessages);
-                    chatMessages.innerHTML = '';
-                    newMessages.forEach(msg => {
-                        const messageEl = document.createElement('div');
-                        messageEl.className = `chat-message ${msg.sender_id === parseInt(userId) ? 'sent' : 'received'}`;
-                        messageEl.innerHTML = `
-                            <p><strong>${msg.sender_username}</strong> (${new Date(msg.created_at).toLocaleTimeString()}): ${msg.message}</p>`;
-                        chatMessages.appendChild(msgEl);
-                    });
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }
+                alert('Credentials submitted successfully!');
+                console.log('Credentials submitted successfully for orderId:', order.order_id);
             } catch (error) {
-                console.error('Error sending message:', error.message);
-                alert('Failed to send message. Please try again.');
+                console.error('Error submitting credentials:', error.message);
+                alert(`Failed to submit credentials: ${error.message}`);
             }
         });
-
-        modal.querySelector('.modal-close').addEventListener('click', () => {
-            modal.remove();
-            console.log('Modal closed for orderId:', order.order_id);
-        });
-
-        window.addEventListener('click', function(event) {
-            if (event.target === modal) {
-                modal.remove();
-                console.log('Modal closed via click outside for orderId:', order.order_id);
+    } else if (!isCoachingOrder) {
+        modal.querySelector('#toggle-password').addEventListener('click', () => {
+            const passwordField = modal.querySelector('#password-field');
+            const toggleButton = modal.querySelector('#toggle-password');
+            if (passwordField.textContent === '********') {
+                passwordField.textContent = passwordField.dataset.password;
+                toggleButton.textContent = 'Hide Password';
+                console.log('Password revealed for orderId:', order.order_id);
+            } else {
+                passwordField.textContent = '********';
+                toggleButton.textContent = 'Show Password';
+                console.log('Password hidden for orderId:', order.order_id);
             }
-        }, { once: true });
+        });
     }
 
-   function renderOrders(orders, containerId, isAvailable = false, isWorking = false, isCompleted = false) {
+    modal.querySelector(`#send-message-${order.order_id}`).addEventListener('click', async () => {
+        const input = modal.querySelector(`#chat-input-${order.order_id}`);
+        const message = input.value.trim();
+        if (!message) return;
+        try {
+            console.log('Sending message for orderId:', order.order_id, 'userId:', userId, 'Message:', message);
+            const response = await fetch('/api/send-message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId: order.order_id, userId, message })
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to send message');
+            }
+            input.value = '';
+            const msgResponse = await fetch(`/api/order-messages?orderId=${order.order_id}&userId=${userId}`);
+            if (msgResponse.ok) {
+                const newMessages = await msgResponse.json();
+                console.log('New messages fetched:', newMessages);
+                chatMessages.innerHTML = '';
+                newMessages.forEach(msg => {
+                    const messageEl = document.createElement('div');
+                    messageEl.className = `chat-message ${msg.sender_id === parseInt(userId) ? 'sent' : 'received'}`;
+                    messageEl.innerHTML = `
+                        <p><strong>${msg.sender_username}</strong> (${new Date(msg.created_at).toLocaleTimeString()}): ${msg.message}</p>`;
+                    chatMessages.appendChild(msgEl);
+                });
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        } catch (error) {
+            console.error('Error sending message:', error.message);
+            alert('Failed to send message. Please try again.');
+        }
+    });
+
+    modal.querySelector('.modal-close').addEventListener('click', () => {
+        modal.remove();
+        console.log('Modal closed for orderId:', order.order_id);
+    });
+
+    window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            modal.remove();
+            console.log('Modal closed via click outside for orderId:', order.order_id);
+        }
+    }, { once: true });
+}
+
+function renderOrders(orders, containerId, isAvailable = false, isWorking = false, isCompleted = false) {
     const ordersDiv = document.getElementById(containerId);
     if (!ordersDiv) {
         console.error(`Error: ${containerId} div not found`);
@@ -1335,25 +1358,29 @@ function renderCoachingOrders(orders, containerId) {
         }
         console.log('Processing order:', order.order_id, 'GameType:', order.game_type, 'OrderType:', order.order_type, 'CurrentRank:', order.currentRank, 'CurrentRankRaw:', order.current_rank, 'DesiredRank:', order.desiredRank, 'DesiredRankRaw:', order.desired_rank);
 
-        // Use API-provided split fields if available; otherwise, parse raw rank strings
-        const current = order.currentRank && order.currentDivision !== undefined
-            ? {
-                rank: order.currentRank.toLowerCase(),
-                division: order.currentDivision || '',
-                displayRank: order.currentRank.charAt(0).toUpperCase() + order.currentRank.slice(1)
-            }
-            : parseRank(order.current_rank || 'Unknown', order.game_type || 'League of Legends');
-        const desired = order.desiredRank && order.desiredDivision !== undefined
-            ? {
-                rank: order.desiredRank.toLowerCase(),
-                division: order.desiredDivision || '',
-                displayRank: order.desiredRank.charAt(0).toUpperCase() + order.desiredRank.slice(1)
-            }
-            : parseRank(order.desired_rank || 'Unknown', order.game_type || 'League of Legends');
+        // Handle ranks for coaching orders
+        const current = order.order_type === 'coaching'
+            ? { rank: '', division: '', displayRank: 'N/A' }
+            : (order.currentRank && order.currentDivision !== undefined
+                ? {
+                    rank: order.currentRank.toLowerCase(),
+                    division: order.currentDivision || '',
+                    displayRank: order.currentRank.charAt(0).toUpperCase() + order.currentRank.slice(1)
+                }
+                : parseRank(order.current_rank || 'Unknown', order.game_type || 'League of Legends'));
+        const desired = order.order_type === 'coaching'
+            ? { rank: '', division: '', displayRank: 'N/A' }
+            : (order.desiredRank && order.desiredDivision !== undefined
+                ? {
+                    rank: order.desiredRank.toLowerCase(),
+                    division: order.desiredDivision || '',
+                    displayRank: order.desiredRank.charAt(0).toUpperCase() + order.desiredRank.slice(1)
+                }
+                : parseRank(order.desired_rank || 'Unknown', order.game_type || 'League of Legends'));
 
         const isValorant = (order.game_type || 'League of Legends') === 'Valorant';
         let currentRankImgSrc, desiredRankImgSrc;
-        if (isValorant) {
+        if (isValorant && order.order_type !== 'coaching') {
             const divisionMap = { 'I': '1', 'II': '2', 'III': '3', '': '0' };
             const currentDivision = divisionMap[current.division] || '0';
             const desiredDivision = divisionMap[desired.division] || '0';
@@ -1361,12 +1388,10 @@ function renderCoachingOrders(orders, containerId) {
             const desiredRankCapitalized = desired.displayRank;
             currentRankImgSrc = `/images/${currentRankCapitalized}_${currentDivision}_Rank.png`;
             desiredRankImgSrc = `/images/${desiredRankCapitalized}_${desiredDivision}_Rank.png`;
-        } else {
+        } else if (order.order_type !== 'coaching') {
             currentRankImgSrc = `/images/${current.rank}.png`;
             desiredRankImgSrc = `/images/${desired.rank}.png`;
         }
-
-        console.log('Image paths:', { current: currentRankImgSrc, desired: desiredRankImgSrc });
 
         const currentRankImg = order.order_type === 'coaching'
             ? 'N/A'
@@ -1469,6 +1494,9 @@ function renderCoachingOrders(orders, containerId) {
             showOrderDetailsModal(order);
         });
     });
+
+    
+
 
     if (isAvailable) {
         document.querySelectorAll('.claim-btn').forEach(button => {
