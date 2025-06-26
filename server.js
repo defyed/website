@@ -529,40 +529,36 @@ app.post('/api/register', async (req, res) => {
 
 
 app.post('/api/login', async (req, res) => {
-  const { username, password } = req.body;
-  try {
-    const [results] = await pool.query(
-      'SELECT id, username, password, role FROM users WHERE username = ? OR email = ?',
-      [username, username]
-    );
-
-    if (results.length === 0) {
-      return res.status(401).json({ message: 'Invalid username or password' });
+    const { username, password } = req.body;
+    try {
+        const [results] = await pool.query(
+            'SELECT id, username, password, role FROM users WHERE username = ? OR email = ?',
+            [username, username]
+        );
+        if (results.length === 0) {
+            return res.status(401).json({ message: 'Invalid username or password' });
+        }
+        const user = results[0];
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (isMatch) {
+            const token = jwt.sign(
+                { userId: user.id, role: user.role },
+                process.env.JWT_SECRET,
+                { expiresIn: '12h' }
+            );
+            res.json({
+                userId: user.id,
+                username: user.username,
+                role: user.role,
+                token
+            });
+        } else {
+            res.status(401).json({ message: 'Invalid username or password' });
+        }
+    } catch (err) {
+        console.error('Login error:', err.message);
+        res.status(500).json({ message: 'Server error' });
     }
-
-    const user = results[0];
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (isMatch) {
-      const token = jwt.sign(
-        { userId: user.id, role: user.role },
-        process.env.JWT_SECRET,
-        { expiresIn: '12h' }
-      );
-
-      res.json({
-        userId: user.id,
-        username: user.username,
-        role: user.role,
-        token 
-      });
-    } else {
-      res.status(401).json({ message: 'Invalid username or password' });
-    }
-  } catch (err) {
-    console.error('Login error:', err.message);
-    res.status(500).json({ message: 'Server error' });
-  }
 });
 
 
