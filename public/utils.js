@@ -78,7 +78,7 @@ function logout() {
     localStorage.removeItem('token');
     sessionStorage.removeItem('orderData');
     console.log('localStorage and sessionStorage cleared');
-    window.location.href = '/league-services.html';
+    window.location.href = '/';
 }
 
 if (typeof module !== 'undefined' && module.exports) {
