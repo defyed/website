@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         updateUserInterface(data.username);
                         alert('Login successful! Welcome, ' + data.username);
                     } else {
-                        localStorage.clear(); // Clear stale data
+                        //localStorage.clear(); // Clear stale data
                         loginError.textContent = data.message || 'Login failed';
                         console.log('Login failed:', data.message);
                     }
@@ -399,6 +399,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function logout() {
     console.log('Logging out, clearing localStorage');
-    localStorage.clear();
+  //  localStorage.clear();
     window.location.href = '/league-services.html';
 }

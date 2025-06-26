@@ -71,14 +71,11 @@ function showMessagePopup(message) {
 }
 
 function logout() {
-    console.log('Logging out user at:', new Date().toISOString());
-    localStorage.removeItem('userId');
-    localStorage.removeItem('username');
-    localStorage.removeItem('role');
-    localStorage.removeItem('token');
-    sessionStorage.removeItem('orderData');
-    console.log('localStorage and sessionStorage cleared');
-    window.location.href = '/league-services.html';
+  localStorage.removeItem('userId');
+  localStorage.removeItem('username');
+  localStorage.removeItem('role');
+  localStorage.removeItem('token');
+  window.location.href = '/league-services.html';
 }
 
 if (typeof module !== 'undefined' && module.exports) {
