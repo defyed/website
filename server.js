@@ -539,8 +539,19 @@ app.post('/api/login', async (req, res) => {
     const user = results[0];
     const isMatch = await bcrypt.compare(password, user.password);
     if (isMatch) {
-      res.json({ userId: user.id, username: user.username, role: user.role });
-    } else {
+  const token = jwt.sign(
+    { userId: user.id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: '12h' }
+  );
+  res.json({
+    userId: user.id,
+    username: user.username,
+    role: user.role,
+    token
+  });
+}
+ else {
       res.status(401).json({ message: 'Invalid username or password' });
     }
   } catch (err) {
