@@ -1560,7 +1560,7 @@ function renderOrders(orders, containerId, isAvailable = false, isWorking = fals
     ordersDiv.innerHTML = '';
     ordersDiv.appendChild(table);
 
-   document.querySelectorAll('.info-button').forEach(button => {
+ document.querySelectorAll('.info-button').forEach(button => {
     button.addEventListener('click', (e) => {
         e.stopPropagation();
         const orderId = button.getAttribute('data-order-id');
