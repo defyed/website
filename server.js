@@ -348,17 +348,21 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
     await connection.rollback();
     return res.status(400).json({ error: 'Incomplete coaching order data' });
   }
+
   const [coachRows] = await connection.query('SELECT id, username FROM users WHERE id = ? AND role = "coach"', [coachId]);
   if (!coachRows.length) {
     console.error('Coach not found:', coachId);
     await connection.rollback();
     return res.status(400).json({ error: 'Coach not found' });
   }
+
+  const cashback = parseFloat((finalPrice * 0.10).toFixed(2)); // ← NEW LINE
+
   await connection.query(
     `INSERT INTO coaching_orders (
-      user_id, coach_id, order_id, booked_hours, game_type, total_price, coach_name, status
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    [parseInt(userId), coachId, orderId, hours, game, finalPrice, coachName, 'pending']
+      user_id, coach_id, order_id, booked_hours, game_type, total_price, coach_name, status, cashback
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [parseInt(userId), coachId, orderId, hours, game, finalPrice, coachName, 'pending', cashback]
   );
           console.log(`Coaching order ${orderId} created for user ${userId}, coach ${coachId}`);
         } else if (orderData.type === 'boost') {
