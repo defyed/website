@@ -222,6 +222,7 @@
     }
 }
 
+
  async function fetchCoachingOrders() {
     try {
         const token = localStorage.getItem('token');
@@ -252,6 +253,30 @@
             container.innerHTML = `<p style="color: red;">Failed to load coaching orders: ${error.message}. Please contact support.</p>`;
         }
     }
+}
+
+async function showOrderIdModal(orderId) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content order-id-modal">
+            <span class="modal-close">×</span>
+            <h3>Order ID</h3>
+            <p><strong>${orderId}</strong></p>
+        </div>
+    `;
+    document.getElementById('modal-container').appendChild(modal);
+    modal.style.display = 'block';
+
+    modal.querySelector('.modal-close').addEventListener('click', () => {
+        modal.remove();
+    });
+
+    window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            modal.remove();
+        }
+    }, { once: true });
 }
 
 function renderCoachingOrders(orders, containerId) {
@@ -303,12 +328,17 @@ function renderCoachingOrders(orders, containerId) {
             <td>$${parseFloat(order.price || order.total_price || 0).toFixed(2)}</td>
             <td>${order.status || 'pending'}</td>
             <td>${order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}</td>
-            <td><button class="complete-btn" data-order-id="${order.order_id}" ${order.status === 'completed' || !isOwnOrder ? 'disabled' : ''}>Complete</button></td>
+            <td>
+                <button class="info-button" data-order-id="${order.order_id}">Info</button>
+                <button class="complete-btn" data-order-id="${order.order_id}" ${order.status === 'completed' || !isOwnOrder ? 'disabled' : ''}>Complete</button>
+            </td>
         `;
         tbody.appendChild(row);
     });
     container.innerHTML = '';
     container.appendChild(table);
+
+    // Order ID button event listeners
     document.querySelectorAll('.order-id-button').forEach(button => {
         button.addEventListener('click', function (e) {
             e.stopPropagation();
@@ -316,6 +346,20 @@ function renderCoachingOrders(orders, containerId) {
             showOrderIdModal(orderId);
         });
     });
+
+    // Info button event listeners
+    document.querySelectorAll('.info-button').forEach(button => {
+        button.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const orderId = button.getAttribute('data-order-id');
+            console.log('Info button clicked for orderId:', orderId);
+            const order = orders.find(o => String(o.order_id) === String(orderId));
+            console.log('Found order:', order);
+            showOrderDetailsModal(order);
+        });
+    });
+
+    // Complete button event listeners
     document.querySelectorAll('.complete-btn').forEach(button => {
         button.addEventListener('click', async function (e) {
             e.stopPropagation();
@@ -343,6 +387,32 @@ function renderCoachingOrders(orders, containerId) {
                 }
             }
         });
+    });
+
+    // Row click event listeners
+    table.querySelectorAll('tbody tr').forEach(row => {
+        const orderId = row.dataset.orderId;
+        if (!orderId) {
+            console.warn(`Skipping row with missing or invalid orderId in container: ${containerId}`, row.outerHTML);
+            row.style.cursor = 'not-allowed';
+            return;
+        }
+        const order = orders.find(o => String(o.order_id) === String(orderId));
+        if (!order) {
+            console.warn(`No order found for orderId: ${orderId} in container: ${containerId}`);
+            row.style.cursor = 'not-allowed';
+            return;
+        }
+        if (order.status !== 'completed') {
+            row.addEventListener('click', async () => {
+                const userRole = await checkUserRole();
+                console.log('Row clicked for orderId:', orderId, 'Role:', userRole, 'Status:', order.status);
+                showOrderFormModal(order, userRole);
+            });
+        } else {
+            console.log('Skipping click handler for completed orderId:', orderId);
+            row.style.cursor = 'not-allowed';
+        }
     });
 }
 
