@@ -424,9 +424,7 @@ setTimeout(() => {
     if (urlParams.has('userId') && urlParams.has('token')) {
         console.log('Reset password params detected:', urlParams.toString());
         hideAllPopups();
-        renderResetPasswordPopup();
-        resetPasswordPopup.style.display = 'flex';
+        
     }
-    renderLoginPopup();
-loginPopup.style.display = 'flex';
+   
 });
