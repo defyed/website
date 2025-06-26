@@ -177,17 +177,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     const data = await response.json();
 
                     if (response.ok) {
-                        console.log('Login successful:', data);
-                        localStorage.setItem('userId', data.userId);
-                        localStorage.setItem('username', data.username);
-                        localStorage.setItem('role', data.role);
-                        localStorage.setItem('token', data.token);
-                        console.log("Saving token:", data.token);
+                    localStorage.setItem('userId', data.userId);
+localStorage.setItem('username', data.username);
+localStorage.setItem('role', data.role);
 localStorage.setItem('token', data.token);
-console.log("Token in localStorage now:", localStorage.getItem('token'));
 
-                        hideAllPopups();
-                        updateUserInterface(data.username);
+// Debug output
+console.log("✅ Saved userId:", localStorage.getItem('userId'));
+console.log("✅ Saved username:", localStorage.getItem('username'));
+console.log("✅ Saved role:", localStorage.getItem('role'));
+console.log("✅ Saved token:", localStorage.getItem('token'));
+
+// Add a short delay to ensure localStorage writes before redirect
+setTimeout(() => {
+    hideAllPopups();
+    updateUserInterface(data.username);
+    window.location.href = '/dashboard.html';
+}, 200); // short delay ensures storage is done
                         console.log('Token just before redirect:', localStorage.getItem('token'));
 
                         
