@@ -535,6 +535,7 @@ app.post('/api/login', async (req, res) => {
       'SELECT id, username, password, role FROM users WHERE username = ? OR email = ?',
       [username, username]
     );
+
     if (results.length === 0) {
       return res.status(401).json({ message: 'Invalid username or password' });
     }
@@ -553,7 +554,7 @@ app.post('/api/login', async (req, res) => {
         userId: user.id,
         username: user.username,
         role: user.role,
-        token // 🔥 MUST be included!
+        token // 🔥 This line is missing in your current code!
       });
     } else {
       res.status(401).json({ message: 'Invalid username or password' });
