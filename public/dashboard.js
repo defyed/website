@@ -1568,35 +1568,35 @@ function renderOrders(orders, containerId, isAvailable = false, isWorking = fals
 
 
     if (isAvailable) {
-        document.querySelectorAll('.claim-btn').forEach(button => {
-            button.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                const orderId = button.getAttribute('data-order-id');
-                try {
-                    console.log('Claiming orderId:', orderId, 'with userId:', userId);
-                    
-                    const response = await fetch('/api/claim-order', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ userId, orderId })
-                    });
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || 'Failed to claim order');
-                    }
-                    alert('Order claimed successfully!');
-                    await fetchAvailableOrders();
-                    await fetchWorkingOrders();
-                } catch (error) {
-                    console.error('Error claiming order:', error.message);
-                    alert('Failed to claim order: ' + error.message);
+    document.querySelectorAll('.claim-btn').forEach(button => {
+        button.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const orderId = button.getAttribute('data-order-id');
+            try {
+                console.log('Claiming orderId:', orderId, 'with userId:', userId);
+                
+                const response = await fetch('/api/claim-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ userId, orderId })
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to claim order');
                 }
-            });
+                alert('Order claimed successfully!');
+                await fetchAvailableOrders();
+                await fetchWorkingOrders();
+            } catch (error) {
+                console.error('Error claiming order:', error.message);
+                alert('Failed to claim order: ' + error.message);
+            }
         });
-    }
+    });
+}
 
     if (isWorking) {
         document.querySelectorAll('.cancel-btn').forEach(button => {
