@@ -225,8 +225,7 @@
 
  async function fetchCoachingOrders() {
     try {
-        const token = localStorage.getItem('token');
-        console.log('Fetching coaching orders for userId:', userId, 'Token:', token ? 'Present' : 'Missing');
+      
         const response = await fetch(`/api/user-orders?userId=${encodeURIComponent(userId)}&type=coaching`, {
             method: 'GET',
             headers: {
@@ -366,7 +365,7 @@ function renderCoachingOrders(orders, containerId) {
             const orderId = button.getAttribute('data-order-id');
             if (confirm(`Mark coaching order ${orderId} as completed?`)) {
                 try {
-                    const token = localStorage.getItem('token');
+                    
                     const response = await fetch('/api/complete-coaching-order', {
                         method: 'POST',
                         headers: {
@@ -1575,8 +1574,7 @@ function renderOrders(orders, containerId, isAvailable = false, isWorking = fals
                 const orderId = button.getAttribute('data-order-id');
                 try {
                     console.log('Claiming orderId:', orderId, 'with userId:', userId);
-                    const token = localStorage.getItem('token');
-                    if (!token) throw new Error('No authentication token found');
+                    
                     const response = await fetch('/api/claim-order', {
                         method: 'POST',
                         headers: {
@@ -1608,8 +1606,7 @@ function renderOrders(orders, containerId, isAvailable = false, isWorking = fals
                 if (confirm('Are you sure you want to cancel this order?')) {
                     try {
                         console.log('Cancelling orderId:', orderId, 'with userId:', userId);
-                        const token = localStorage.getItem('token');
-                        if (!token) throw new Error('No authentication token found');
+                     
                         const response = await fetch('/api/unclaim-order', {
                             method: 'POST',
                             headers: {
@@ -1640,8 +1637,7 @@ function renderOrders(orders, containerId, isAvailable = false, isWorking = fals
                 if (confirm('Are you sure you want to mark this order as completed?')) {
                     try {
                         console.log('Completing orderId:', orderId, 'with userId:', userId);
-                        const token = localStorage.getItem('token');
-                        if (!token) throw new Error('No authentication token found');
+                    
                         const response = await fetch('/api/complete-order', {
                             method: 'POST',
                             headers: {
@@ -1673,8 +1669,7 @@ function renderOrders(orders, containerId, isAvailable = false, isWorking = fals
                 if (confirm(`Are you sure you want to approve the payout for order ${orderId}?`)) {
                     try {
                         console.log('Approving payout for orderId:', orderId, 'with userId:', userId);
-                        const token = localStorage.getItem('token');
-                        if (!token) throw new Error('No authentication token found');
+                     
                         const response = await fetch('/api/approve-payout', {
                             method: 'POST',
                             headers: {
