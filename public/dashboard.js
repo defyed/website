@@ -1567,26 +1567,32 @@ function renderOrders(orders, containerId, isAvailable = false, isWorking = fals
     
 
 
-    if (isAvailable) {
+if (isAvailable) {
     document.querySelectorAll('.claim-btn').forEach(button => {
         button.addEventListener('click', async (e) => {
             e.stopPropagation();
             const orderId = button.getAttribute('data-order-id');
+            const userId = localStorage.getItem('userId'); // Get userId from localStorage
+            if (!userId) {
+                console.error('No userId found in localStorage');
+                alert('Please log in to claim orders.');
+                window.location.href = '/league-services.html';
+                return;
+            }
             try {
                 console.log('Claiming orderId:', orderId, 'with userId:', userId);
-                
                 const response = await fetch('/api/claim-order', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ userId, orderId })
                 });
+                const data = await response.json();
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to claim order');
+                    throw new Error(data.error || 'Failed to claim order');
                 }
+                console.log('Order claimed successfully:', data);
                 alert('Order claimed successfully!');
                 await fetchAvailableOrders();
                 await fetchWorkingOrders();
@@ -1599,99 +1605,117 @@ function renderOrders(orders, containerId, isAvailable = false, isWorking = fals
 }
 
     if (isWorking) {
-        document.querySelectorAll('.cancel-btn').forEach(button => {
-            button.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                const orderId = button.getAttribute('data-order-id');
-                if (confirm('Are you sure you want to cancel this order?')) {
-                    try {
-                        console.log('Cancelling orderId:', orderId, 'with userId:', userId);
-                     
-                        const response = await fetch('/api/unclaim-order', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`
-                            },
-                            body: JSON.stringify({ userId, orderId })
-                        });
-                        if (!response.ok) {
-                            const errorData = await response.json();
-                            throw new Error(errorData.error || 'Failed to cancel order');
-                        }
-                        alert('Order cancelled successfully!');
-                        await fetchAvailableOrders();
-                        await fetchWorkingOrders();
-                    } catch (error) {
-                        console.error('Error cancelling order:', error.message);
-                        alert('Failed to cancel order: ' + error.message);
+    document.querySelectorAll('.cancel-btn').forEach(button => {
+        button.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const orderId = button.getAttribute('data-order-id');
+            const userId = localStorage.getItem('userId');
+            if (!userId) {
+                console.error('No userId found in localStorage');
+                alert('Please log in to cancel orders.');
+                window.location.href = '/league-services.html';
+                return;
+            }
+            if (confirm('Are you sure you want to cancel this order?')) {
+                try {
+                    console.log('Cancelling orderId:', orderId, 'with userId:', userId);
+                    const response = await fetch('/api/unclaim-order', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ userId, orderId })
+                    });
+                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Failed to cancel order');
                     }
+                    console.log('Order cancelled successfully:', data);
+                    alert('Order cancelled successfully!');
+                    await fetchAvailableOrders();
+                    await fetchWorkingOrders();
+                } catch (error) {
+                    console.error('Error cancelling order:', error.message);
+                    alert('Failed to cancel order: ' + error.message);
                 }
-            });
+            }
         });
+    });
 
-        document.querySelectorAll('.complete-btn').forEach(button => {
-            button.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                const orderId = button.getAttribute('data-order-id');
-                if (confirm('Are you sure you want to mark this order as completed?')) {
-                    try {
-                        console.log('Completing orderId:', orderId, 'with userId:', userId);
-                    
-                        const response = await fetch('/api/complete-order', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`
-                            },
-                            body: JSON.stringify({ userId, orderId })
-                        });
-                        if (!response.ok) {
-                            const errorData = await response.json();
-                            throw new Error(errorData.error || 'Failed to complete order');
-                        }
-                        alert('Order marked as completed!');
-                        await fetchWorkingOrders();
-                    } catch (error) {
-                        console.error('Error completing order:', error.message);
-                        alert('Failed to complete order: ' + error.message);
+    document.querySelectorAll('.complete-btn').forEach(button => {
+        button.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const orderId = button.getAttribute('data-order-id');
+            const userId = localStorage.getItem('userId');
+            if (!userId) {
+                console.error('No userId found in localStorage');
+                alert('Please log in to complete orders.');
+                window.location.href = '/league-services.html';
+                return;
+            }
+            if (confirm('Are you sure you want to mark this order as completed?')) {
+                try {
+                    console.log('Completing orderId:', orderId, 'with userId:', userId);
+                    const response = await fetch('/api/complete-order', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ userId, orderId })
+                    });
+                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Failed to complete order');
                     }
+                    console.log('Order marked as completed:', data);
+                    alert('Order marked as completed!');
+                    await fetchWorkingOrders();
+                } catch (error) {
+                    console.error('Error completing order:', error.message);
+                    alert('Failed to complete order: ' + error.message);
                 }
-            });
+            }
         });
-    }
+    });
+}
 
-    if (isCompleted) {
-        document.querySelectorAll('.approve-btn').forEach(button => {
-            button.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                const orderId = button.getAttribute('data-order-id');
-                if (confirm(`Are you sure you want to approve the payout for order ${orderId}?`)) {
-                    try {
-                        console.log('Approving payout for orderId:', orderId, 'with userId:', userId);
-                     
-                        const response = await fetch('/api/approve-payout', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`
-                            },
-                            body: JSON.stringify({ userId, orderId })
-                        });
-                        if (!response.ok) {
-                            const errorData = await response.json();
-                            throw new Error(errorData.error || 'Failed to approve payout');
-                        }
-                        alert('Payout approved successfully!');
-                        await fetchCompletedOrders();
-                    } catch (error) {
-                        console.error('Error approving payout:', error.message);
-                        alert('Failed to approve payout: ' + error.message);
+if (isCompleted) {
+    document.querySelectorAll('.approve-btn').forEach(button => {
+        button.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const orderId = button.getAttribute('data-order-id');
+            const userId = localStorage.getItem('userId');
+            if (!userId) {
+                console.error('No userId found in localStorage');
+                alert('Please log in to approve payouts.');
+                window.location.href = '/league-services.html';
+                return;
+            }
+            if (confirm(`Are you sure you want to approve the payout for order ${orderId}?`)) {
+                try {
+                    console.log('Approving payout for orderId:', orderId, 'with userId:', userId);
+                    const response = await fetch('/api/approve-payout', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ userId, orderId })
+                    });
+                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Failed to approve payout');
                     }
+                    console.log('Payout approved successfully:', data);
+                    alert('Payout approved successfully!');
+                    await fetchCompletedOrders();
+                } catch (error) {
+                    console.error('Error approving payout:', error.message);
+                    alert('Failed to approve payout: ' + error.message);
                 }
-            });
+            }
         });
-    }
+    });
+}
 
     document.querySelectorAll('.order-id-button').forEach(button => {
         button.addEventListener('click', (e) => {
