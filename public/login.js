@@ -182,6 +182,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         localStorage.setItem('username', data.username);
                         localStorage.setItem('role', data.role);
                         localStorage.setItem('token', data.token);
+                        console.log("Saving token:", data.token);
+localStorage.setItem('token', data.token);
+console.log("Token in localStorage now:", localStorage.getItem('token'));
+
                         hideAllPopups();
                         updateUserInterface(data.username);
                         console.log('Token just before redirect:', localStorage.getItem('token'));
