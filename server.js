@@ -554,7 +554,7 @@ app.post('/api/login', async (req, res) => {
         userId: user.id,
         username: user.username,
         role: user.role,
-        token // 🔥 This line is missing in your current code!
+        token // ✅ THIS MUST BE INCLUDED
       });
     } else {
       res.status(401).json({ message: 'Invalid username or password' });
