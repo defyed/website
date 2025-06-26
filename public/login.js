@@ -427,4 +427,6 @@ setTimeout(() => {
         renderResetPasswordPopup();
         resetPasswordPopup.style.display = 'flex';
     }
+    renderLoginPopup();
+loginPopup.style.display = 'flex';
 });
