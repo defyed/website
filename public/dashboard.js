@@ -1,9 +1,11 @@
 (function () {
     console.log('dashboard.js loaded');
     const userId = localStorage.getItem('userId');
+    const token = localStorage.getItem('token');
     console.log('userId from localStorage:', userId);
-    if (!userId || isNaN(userId)) {
-        console.error('No valid userId found, redirecting to login');
+    console.log('token from localStorage:', token);
+    if (!userId || isNaN(userId) || !token) {
+        console.error('No valid userId or token found, redirecting to login');
         alert('Please log in to view your dashboard.');
         window.location.href = '/league-services.html';
         return;

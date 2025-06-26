@@ -34,23 +34,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Render popup content
     const renderLoginPopup = () => {
-        console.log('Rendering login popup');
-        loginPopup.innerHTML = `
-            <div class="popup-content">
-                <span class="close-btn">×</span>
-                <h2>Sign In</h2>
-                <form id="login-form">
-                    <input type="text" id="username" placeholder="Username or Email" required>
-                    <input type="password" id="password" placeholder="Password" required>
-                    <button type="submit" class="sign-in-btn">Login</button>
-                    <button type="button" id="forgot-password-btn" class="forgot-password-btn">Forgot Password?</button>
-                    <p>Don't have an account? <a href="#" id="show-register">Register</a></p>
-                </form>
-                <div id="login-error" class="error-message"></div>
-            </div>
-        `;
-        bindPopupEvents();
-    };
+    console.log('Rendering login popup');
+    loginPopup.innerHTML = `
+        <div class="popup-content">
+            <span class="close-btn">×</span>
+            <h2>Sign In</h2>
+            <form id="login-form">
+                <input type="text" id="username" placeholder="Username or Email" required>
+                <input type="password" id="password" placeholder="Password" required>
+                <button type="submit" class="sign-in-btn">Login</button>
+                <button type="button" id="forgot-password-btn" class="forgot-password-btn">Forgot Password?</button>
+                <p>Don't have an account? <a href="#" id="show-register">Register</a></p>
+            </form>
+            <div id="login-error" class="error-message"></div>
+        </div>
+    `;
+    bindPopupEvents();
+
+    // Bind sign-in button click event
+    const signInButton = loginPopup.querySelector('.sign-in-btn');
+    if (signInButton) {
+        console.log('Sign-in button found in login popup');
+        signInButton.addEventListener('click', () => {
+            console.log('Sign-in button clicked in login popup');
+            // Form submission is already handled by the form's submit event
+        });
+    } else {
+        console.error('Sign-in button not found in login popup');
+    }
+};
 
     const renderRegisterPopup = () => {
         console.log('Rendering register popup');
@@ -176,31 +188,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                     const data = await response.json();
 
-                    if (response.ok) {
-                    localStorage.setItem('userId', data.userId);
-localStorage.setItem('username', data.username);
-localStorage.setItem('role', data.role);
-localStorage.setItem('token', data.token);
+                   if (response.ok) {
+    localStorage.setItem('userId', data.userId);
+    localStorage.setItem('username', data.username);
+    localStorage.setItem('role', data.role);
+    localStorage.setItem('token', data.token);
 
-// Debug output
-console.log("✅ Saved userId:", localStorage.getItem('userId'));
-console.log("✅ Saved username:", localStorage.getItem('username'));
-console.log("✅ Saved role:", localStorage.getItem('role'));
-console.log("✅ Saved token:", localStorage.getItem('token'));
+    // Debug output
+    console.log("✅ Saved userId:", localStorage.getItem('userId'));
+    console.log("✅ Saved username:", localStorage.getItem('username'));
+    console.log("✅ Saved role:", localStorage.getItem('role'));
+    console.log("✅ Saved token:", localStorage.getItem('token'));
 
-// Add a short delay to ensure localStorage writes before redirect
-setTimeout(() => {
-    hideAllPopups();
-    updateUserInterface(data.username);
-    
-}, 200); // short delay ensures storage is done
-                        console.log('Token just before redirect:', localStorage.getItem('token'));
-
-                        
-                    } else {
-                        loginError.textContent = data.message || 'Login failed';
-                        console.log('Login failed:', data.message);
-                    }
+    // Ensure localStorage is written before redirect
+    setTimeout(() => {
+        hideAllPopups();
+        updateUserInterface(data.username);
+        window.location.href = '/dashboard.html'; // Add explicit redirect
+    }, 200); // Short delay to ensure storage
+} else {
+    loginError.textContent = data.message || 'Login failed';
+    console.log('Login failed:', data.message);
+}
                 } catch (error) {
                     loginError.textContent = 'Server error. Please try again later.';
                     console.error('Login error:', error);
@@ -392,21 +401,7 @@ setTimeout(() => {
         });
     };
 
-    // Initialize sign-in buttons
-    const signInButtons = document.querySelectorAll('.sign-in-btn');
-    if (signInButtons.length === 0) {
-        console.warn('No .sign-in-btn elements found in DOM');
-    } else {
-        console.log(`Found ${signInButtons.length} .sign-in-btn elements`);
-    }
-    signInButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            console.log('Sign In button clicked');
-            hideAllPopups();
-            renderLoginPopup();
-            loginPopup.style.display = 'flex';
-        });
-    });
+    
 
     // Check login status
     const userId = localStorage.getItem('userId');
