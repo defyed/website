@@ -111,7 +111,7 @@
         }
     }
 
-  async function fetchUserOrders() {
+ async function fetchUserOrders() {
     const userRole = localStorage.getItem('userRole');
     if (userRole === 'coach') {
         console.log('Skipping user orders for coach role');
@@ -122,17 +122,11 @@
         return;
     }
     try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            console.warn('No token found in localStorage');
-            throw new Error('Please log in to view orders');
-        }
-        console.log('Fetching orders for userId:', userId, 'Role:', userRole, 'Token:', token ? 'Present' : 'Missing');
+        console.log('Fetching orders for userId:', userId, 'Role:', userRole);
         const response = await fetch(`/api/user-orders?userId=${encodeURIComponent(userId)}`, {
             method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             credentials: 'include'
         });
