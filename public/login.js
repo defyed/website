@@ -192,7 +192,7 @@ console.log("✅ Saved token:", localStorage.getItem('token'));
 setTimeout(() => {
     hideAllPopups();
     updateUserInterface(data.username);
-    window.location.href = '/dashboard.html';
+    
 }, 200); // short delay ensures storage is done
                         console.log('Token just before redirect:', localStorage.getItem('token'));
 
