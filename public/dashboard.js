@@ -1079,8 +1079,7 @@ function renderCoachingOrders(orders, containerId) {
             <p><strong>Desired Rank:</strong> ${order.desired_rank || 'N/A'}</p>
             <p><strong>Current LP:</strong> ${order.current_lp || 0}</p>
             <p><strong>Extra Options:</strong> ${parseExtras(order.extras)}</p>
-            <p><strong>Account Username:</strong> ${order.account_username || 'N/A'}</p>
-            <p><strong>Account Password:</strong> ${order.plaintext_password ? '********' : 'N/A'}</p>
+            
         `;
     }
 
@@ -1561,16 +1560,16 @@ function renderOrders(orders, containerId, isAvailable = false, isWorking = fals
     ordersDiv.innerHTML = '';
     ordersDiv.appendChild(table);
 
-    document.querySelectorAll('.info-button').forEach(button => {
-        button.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const orderId = button.getAttribute('data-order-id');
-            console.log('Info button clicked for orderId:', orderId);
-            const order = orders.find(o => String(o.order_id) === String(orderId));
-            console.log('Found order:', order);
-            showOrderDetailsModal(order);
-        });
+   document.querySelectorAll('.info-button').forEach(button => {
+    button.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const orderId = button.getAttribute('data-order-id');
+        console.log('Info button clicked for orderId:', orderId);
+        const order = orders.find(o => String(o.order_id) === String(orderId));
+        console.log('Found order:', order);
+        showOrderDetailsModal(order, isAvailable); // Pass isAvailable flag
     });
+});
 
     
 
