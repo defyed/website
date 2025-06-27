@@ -113,14 +113,8 @@
 
  async function fetchUserOrders() {
     const userRole = localStorage.getItem('userRole');
-    if (userRole === 'coach') {
-        console.log('Skipping user orders for coach role');
-        const container = document.getElementById('my-orders');
-        if (container) {
-            container.innerHTML = '<p>Orders panel is not available for coaches. See My Coaching Orders.</p>';
-        }
-        return;
-    }
+    
+
     try {
         console.log('Fetching orders for userId:', userId, 'Role:', userRole);
         const response = await fetch(`/api/user-orders?userId=${encodeURIComponent(userId)}`, {
@@ -149,6 +143,7 @@
         }
     }
 }
+
 
   async function fetchAvailableOrders() {
     const userRole = localStorage.getItem('userRole');
