@@ -377,32 +377,33 @@ function renderCoachingOrders(orders, containerId) {
 
     // Complete button event listeners
     document.querySelectorAll('.complete-btn').forEach(button => {
-    button.addEventListener('click', async function (e) {
-        e.stopPropagation();
-        const orderId = button.getAttribute('data-order-id');
-        if (confirm(`Mark coaching order ${orderId} as completed?`)) {
-            try {
-                const response = await fetch('/api/complete-coaching-order', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}` // Add token
-                    },
-                    body: JSON.stringify({ userId, orderId, status: 'completed' }) // Explicitly set status
-                });
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+        button.addEventListener('click', async function (e) {
+            e.stopPropagation();
+            const orderId = button.getAttribute('data-order-id');
+            if (confirm(`Mark coaching order ${orderId} as completed?`)) {
+                try {
+                    
+                    const response = await fetch('/api/complete-coaching-order', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            
+                        },
+                        body: JSON.stringify({ userId, orderId })
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+                    }
+                    alert('Coaching order marked as completed!');
+                    fetchCoachingOrders();
+                } catch (error) {
+                    console.error('Error completing coaching order:', error.message);
+                    alert(`Failed to complete coaching order: ${error.message}`);
                 }
-                alert('Coaching order marked as completed!');
-                fetchCoachingOrders(); // Refresh coach’s orders
-            } catch (error) {
-                console.error('Error completing coaching order:', error.message);
-                alert(`Failed to complete coaching order: ${error.message}`);
             }
-        }
+        });
     });
-});
 
     // Row click event listeners
     table.querySelectorAll('tbody tr').forEach(row => {
