@@ -839,16 +839,7 @@ app.get('/api/user-orders', authenticate, async (req, res) => {
     }
 
     if (!type || type === 'coaching') {
-  // ✅ Always fetch coaching orders the user placed, not the ones they received as a coach
-  const whereClause = 'co.user_id = ?';
-  const [rows] = await pool.query(
-  `SELECT order_id, user_id, booked_hours, game_type, total_price, coach_name, cashback, status,
-        DATE_FORMAT(created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at
-   FROM coaching_orders
-   WHERE coach_id = ?`,
-  [req.user.id]
-);
-
+  // ✅ Only fetch coaching orders the user PLACED, not received
   const [coachingRows] = await pool.query(
     `SELECT co.order_id, co.user_id, co.coach_id, co.booked_hours, co.game_type,
             co.total_price AS price, co.coach_name, co.status, co.cashback,
@@ -857,7 +848,7 @@ app.get('/api/user-orders', authenticate, async (req, res) => {
             u.username AS customer_username
      FROM coaching_orders co
      LEFT JOIN users u ON co.user_id = u.id
-     WHERE ${whereClause}`,
+     WHERE co.user_id = ?`,  
     [req.user.id]
   );
 
