@@ -176,6 +176,17 @@ body {
 .customer-completed-order:hover {
     background-color: #0f471c !important;
 }
+.customer-completed-order td {
+    background-color: #1264253f !important;
+    text-decoration: line-through;
+    color: #888;
+}
+
+.customer-completed-order:hover td {
+    background-color: #0f471c !important;
+}
+
+
 
 .rank-logo {
     width: 40px;
