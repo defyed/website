@@ -1488,7 +1488,7 @@ renderCoachingOrders
                     <thead>
                       <tr>
                         <th>Order ID</th>
-                        <th>Details</th>
+                        
                         <th>Hours</th>
                         <th>Coach</th>
                         <th>Price</th>
@@ -1505,7 +1505,7 @@ renderCoachingOrders
                     row.dataset.orderId = order.order_id;
                    row.innerHTML = `
   <td><button class="order-id-button" data-order-id="${order.order_id}">?</button></td>
-  <td>-</td> <!-- Details placeholder -->
+  
   <td>${order.booked_hours || 'N/A'}</td>
   <td>${order.coach_username || order.coach_name || 'N/A'}</td>
   <td>$${parseFloat(order.price || 0).toFixed(2)}</td>
