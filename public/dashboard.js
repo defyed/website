@@ -434,7 +434,82 @@ document.querySelectorAll('.complete-btn').forEach(button => {
         }
     });
 });
+function renderCompletedCoachingOrdersTable(orders) {
+    const container = document.getElementById('completed-orders-panel');
+    if (!container) {
+        console.error('Error: completed-orders-panel container not found');
+        return;
+    }
 
+    if (!Array.isArray(orders) || orders.length === 0) {
+        container.innerHTML = '<p>No completed coaching orders found.</p>';
+        return;
+    }
+
+    const table = document.createElement('table');
+    table.className = 'orders-table';
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Coach</th>
+                <th>Game</th>
+                <th>Hours</th>
+                <th>Price</th>
+                <th>Cashback</th>
+                <th>Date</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    `;
+
+    const tbody = table.querySelector('tbody');
+    orders.forEach(order => {
+        if (!order || !order.order_id) {
+            console.warn('Skipping invalid coaching order:', order);
+            return;
+        }
+        console.log('Rendering completed coaching order:', order);
+        const row = document.createElement('tr');
+        row.dataset.orderId = order.order_id;
+        row.innerHTML = `
+            <td><button class="order-id-button" data-order-id="${order.order_id}">?</button></td>
+            <td>${order.customer_username || order.customer_name || 'Unknown'}</td>
+            <td>${order.coach_username || order.coach_name || 'Unknown'}</td>
+            <td>${order.game_type || 'N/A'}</td>
+            <td>${order.booked_hours || 'N/A'}</td>
+            <td>$${parseFloat(order.price || order.total_price || 0).toFixed(2)}</td>
+            <td>$${parseFloat(order.cashback || 0).toFixed(2)}</td>
+            <td>${order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}</td>
+            <td><button class="info-button" data-order-id="${order.order_id}">Info</button></td>
+        `;
+        tbody.appendChild(row);
+    });
+
+    container.innerHTML = '';
+    container.appendChild(table);
+
+    // Event listeners for order ID buttons
+    document.querySelectorAll('.order-id-button').forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const orderId = button.getAttribute('data-order-id');
+            showOrderIdModal(orderId);
+        });
+    });
+
+    // Event listeners for info buttons
+    document.querySelectorAll('.info-button').forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const orderId = button.getAttribute('data-order-id');
+            const order = orders.find(o => String(o.order_id) === String(orderId));
+            showOrderDetailsModal(order);
+        });
+    });
+}
 
 
     // Row click event listeners
@@ -466,19 +541,43 @@ document.querySelectorAll('.complete-btn').forEach(button => {
 
 
 async function fetchAndRenderCompletedCoachingOrders() {
-    try {
-        const response = await fetch('/api/fetch-coaching-orders');
-        const completedOrders = await response.json();
+    const userId = localStorage.getItem('userId');
+    if (!userId || isNaN(userId)) {
+        console.error('No valid userId found in localStorage');
+        alert('Please log in to view completed coaching orders.');
+        window.location.href = '/league-services.html';
+        return;
+    }
 
+    try {
+        console.log('Fetching completed coaching orders for userId:', userId);
+        const response = await fetch(`/api/fetch-coaching-orders?userId=${encodeURIComponent(userId)}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`);
+        }
+
+        const completedOrders = await response.json();
         if (!Array.isArray(completedOrders)) {
-            console.error('Invalid response:', completedOrders);
-            return;
+            console.error('Invalid response format:', completedOrders);
+            throw new Error('Invalid response format from server');
         }
 
         console.log('Completed coaching orders:', completedOrders);
         renderCompletedCoachingOrdersTable(completedOrders);
     } catch (error) {
-        console.error('Failed to fetch completed coaching orders:', error);
+        console.error('Failed to fetch completed coaching orders:', error.message);
+        const container = document.getElementById('completed-orders-panel');
+        if (container) {
+            container.innerHTML = `<p style="color: red;">Failed to load completed coaching orders: ${error.message}. Please try again later.</p>`;
+        }
     }
 }
 
