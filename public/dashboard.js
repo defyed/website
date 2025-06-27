@@ -298,10 +298,16 @@ function renderCoachingOrders(orders, containerId, isAvailable = false, isWorkin
     }
     const userRole = localStorage.getItem('userRole');
     const currentUserId = parseInt(userId);
+    console.log(`Rendering coaching orders for container: ${containerId}, isAvailable: ${isAvailable}, isWorking: ${isWorking}, isCompleted: ${isCompleted}, userRole: ${userRole}, orders:`, orders);
+
+    // Clear container
+    container.innerHTML = '';
+
     if (!Array.isArray(orders) || orders.length === 0) {
-        container.innerHTML = '<p>No coaching orders found. Please check if orders exist or contact support.</p>';
+        container.innerHTML = `<p>No coaching orders found${isAvailable ? ' to claim' : isWorking ? ' in progress' : isCompleted ? ' completed' : ''}. Please check if orders exist or contact support.</p>`;
         return;
     }
+
     const table = document.createElement('table');
     table.className = 'orders-table';
     let headers = '';
@@ -325,6 +331,7 @@ function renderCoachingOrders(orders, containerId, isAvailable = false, isWorkin
                 <th>Game</th>
                 <th>Hours</th>
                 <th>Payout</th>
+                <th>Status</th>
                 <th>Created</th>
                 <th>Action</th>
             </tr>
@@ -338,8 +345,8 @@ function renderCoachingOrders(orders, containerId, isAvailable = false, isWorkin
                 <th>Game</th>
                 <th>Hours</th>
                 <th>Price</th>
-                <th>Created</th>
                 <th>Payout Status</th>
+                <th>Created</th>
                 <th>Action</th>
             </tr>
         `;
@@ -360,6 +367,7 @@ function renderCoachingOrders(orders, containerId, isAvailable = false, isWorkin
     }
     table.innerHTML = `<thead>${headers}</thead><tbody></tbody>`;
     const tbody = table.querySelector('tbody');
+
     orders.forEach(order => {
         if (!order || !order.order_id) {
             console.warn('Skipping invalid coaching order:', order);
@@ -370,24 +378,26 @@ function renderCoachingOrders(orders, containerId, isAvailable = false, isWorkin
         const row = document.createElement('tr');
         row.dataset.orderId = order.order_id;
         let rowData = '';
+        const payout = (parseFloat(order.price || order.total_price || 0) * 0.80).toFixed(2);
         if (isAvailable) {
             rowData = `
                 <td><button class="order-id-button" data-order-id="${order.order_id}">?</button></td>
                 <td>${order.customer_username || 'Unknown Customer'}</td>
                 <td>${order.game_type || 'N/A'}</td>
                 <td>${order.booked_hours || 'N/A'}</td>
-                <td>$${(parseFloat(order.price || 0) * 0.80).toFixed(2)}</td>
+                <td>$${payout}</td>
                 <td>${order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}</td>
                 <td><button class="claim-btn" data-order-id="${order.order_id}">Claim</button></td>
             `;
         } else if (isWorking) {
-            const isCompleted = order.status === 'completed';
+            const isCompleted = order.status?.toLowerCase() === 'completed';
             rowData = `
                 <td><button class="order-id-button" data-order-id="${order.order_id}">?</button></td>
                 <td>${order.customer_username || 'Unknown Customer'}</td>
                 <td>${order.game_type || 'N/A'}</td>
                 <td>${order.booked_hours || 'N/A'}</td>
-                <td>$${(parseFloat(order.price || 0) * 0.80).toFixed(2)}</td>
+                <td>$${payout}</td>
+                <td>${order.status || 'pending'}</td>
                 <td>${order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}</td>
                 <td>
                     <button class="cancel-btn" data-order-id="${order.order_id}" ${isCompleted ? 'disabled' : ''}>Cancel</button>
@@ -399,16 +409,15 @@ function renderCoachingOrders(orders, containerId, isAvailable = false, isWorkin
                 row.classList.add('completed-order');
             }
         } else if (isCompleted) {
-            const payout = (parseFloat(order.price || 0) * 0.80).toFixed(2);
             rowData = `
                 <td><button class="order-id-button" data-order-id="${order.order_id}">?</button></td>
                 <td>${order.customer_username || 'Unknown Customer'}</td>
                 <td>${order.coach_username || order.coach_name || 'Unknown Coach'}</td>
                 <td>${order.game_type || 'N/A'}</td>
                 <td>${order.booked_hours || 'N/A'}</td>
-                <td>$${parseFloat(order.price || 0).toFixed(2)}</td>
-                <td>${order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}</td>
+                <td>$${parseFloat(order.price || order.total_price || 0).toFixed(2)}</td>
                 <td>${order.payout_status || 'Pending'}</td>
+                <td>${order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}</td>
                 <td>
                     <button class="approve-btn" data-order-id="${order.order_id}" ${order.payout_status === 'Paid' ? 'disabled' : ''}>
                         Approve Payout ($${payout})
@@ -423,13 +432,13 @@ function renderCoachingOrders(orders, containerId, isAvailable = false, isWorkin
                 <td>${order.game_type || 'N/A'}</td>
                 <td>${order.booked_hours || 'N/A'}</td>
                 <td>
-                    $${userRole === 'coach' ? (parseFloat(order.price || 0) * 0.80).toFixed(2) : parseFloat(order.price || 0).toFixed(2)}
+                    $${userRole === 'coach' ? payout : parseFloat(order.price || order.total_price || 0).toFixed(2)}
                     ${userRole === 'coach' ? '<span class="payout-label">(Payout)</span>' : ''}
                 </td>
                 <td>${order.status || 'pending'}</td>
                 <td>${order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}</td>
                 <td>
-                    ${userRole === 'coach' && order.coach_id === currentUserId && order.status !== 'completed' ? `
+                    ${isOwnOrder && order.status?.toLowerCase() !== 'completed' ? `
                         <button class="complete-btn" data-order-id="${order.order_id}">Mark Complete</button>
                     ` : ''}
                 </td>
@@ -438,9 +447,9 @@ function renderCoachingOrders(orders, containerId, isAvailable = false, isWorkin
         row.innerHTML = rowData;
         tbody.appendChild(row);
     });
-    container.innerHTML = '';
     container.appendChild(table);
 
+    // Attach event listeners
     document.querySelectorAll('.order-id-button').forEach(button => {
         button.addEventListener('click', function (e) {
             e.stopPropagation();
@@ -460,14 +469,15 @@ function renderCoachingOrders(orders, containerId, isAvailable = false, isWorkin
                         const response = await fetch('/api/claim-coaching-order', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ userId, orderId })
+                            body: JSON.stringify({ userId, orderId }),
+                            credentials: 'include'
                         });
                         if (!response.ok) {
                             const errorData = await response.json();
                             throw new Error(errorData.error || 'Failed to claim coaching order');
                         }
                         alert('Coaching order claimed successfully!');
-                        fetchCoachingOrders();
+                        fetchCoachingOrders(); // Refresh all coaching orders
                     } catch (error) {
                         console.error('Error claiming coaching order:', error.message);
                         alert(`Failed to claim coaching order: ${error.message}`);
@@ -488,14 +498,15 @@ function renderCoachingOrders(orders, containerId, isAvailable = false, isWorkin
                         const response = await fetch('/api/unclaim-coaching-order', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ userId, orderId })
+                            body: JSON.stringify({ userId, orderId }),
+                            credentials: 'include'
                         });
                         if (!response.ok) {
                             const errorData = await response.json();
                             throw new Error(errorData.error || 'Failed to cancel coaching order');
                         }
                         alert('Coaching order cancelled successfully!');
-                        fetchCoachingOrders();
+                        fetchCoachingOrders(); // Refresh all coaching orders
                     } catch (error) {
                         console.error('Error cancelling coaching order:', error.message);
                         alert(`Failed to cancel coaching order: ${error.message}`);
@@ -514,14 +525,15 @@ function renderCoachingOrders(orders, containerId, isAvailable = false, isWorkin
                         const response = await fetch('/api/complete-coaching-order', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ userId, orderId })
+                            body: JSON.stringify({ userId, orderId }),
+                            credentials: 'include'
                         });
                         if (!response.ok) {
                             const errorData = await response.json();
                             throw new Error(errorData.error || 'Failed to complete coaching order');
                         }
                         alert('Coaching order marked as completed!');
-                        fetchCoachingOrders();
+                        fetchCoachingOrders(); // Refresh all coaching orders
                     } catch (error) {
                         console.error('Error completing coaching order:', error.message);
                         alert(`Failed to complete coaching order: ${error.message}`);
@@ -542,14 +554,16 @@ function renderCoachingOrders(orders, containerId, isAvailable = false, isWorkin
                         const response = await fetch('/api/approve-coaching-payout', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ userId, orderId })
+                            body: JSON.stringify({ userId, orderId }),
+                            credentials: 'include'
                         });
                         if (!response.ok) {
                             const errorData = await response.json();
                             throw new Error(errorData.error || 'Failed to approve coaching payout');
                         }
                         alert('Coaching payout approved successfully!');
-                        fetchCompletedCoachingOrders();
+                        fetchCompletedCoachingOrders(); // Refresh completed orders
+                        fetchUserBalance(); // Update balance
                     } catch (error) {
                         console.error('Error approving coaching payout:', error.message);
                         alert(`Failed to approve coaching payout: ${error.message}`);
@@ -562,7 +576,7 @@ function renderCoachingOrders(orders, containerId, isAvailable = false, isWorkin
     table.querySelectorAll('tbody tr').forEach(row => {
         const orderId = row.dataset.orderId;
         if (!orderId) {
-            console.warn(`Skipping row with missing or invalid orderId in container: ${containerId}`, row.outerHTML);
+            console.warn(`Skipping row with missing orderId in container: ${containerId}`, row.outerHTML);
             row.style.cursor = 'not-allowed';
             return;
         }
@@ -572,11 +586,11 @@ function renderCoachingOrders(orders, containerId, isAvailable = false, isWorkin
             row.style.cursor = 'not-allowed';
             return;
         }
-        if (!(isWorking && order.status === 'completed') && !isCompleted) {
+        if (!(isWorking && order.status?.toLowerCase() === 'completed') && !isCompleted) {
             row.addEventListener('click', async () => {
                 const userRole = await checkUserRole();
                 console.log('Row clicked for orderId:', orderId, 'Role:', userRole, 'Status:', order.status);
-                showOrderFormModal(order, userRole);
+                showOrderFormModal({ ...order, order_type: 'coaching' }, userRole);
             });
         } else {
             console.log('Skipping click handler for completed orderId:', orderId);
