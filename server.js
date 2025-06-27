@@ -341,30 +341,38 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
       try {
         await connection.beginTransaction();
 
-       if (orderData.type === 'coaching') {
-  const { coachId, hours, game, finalPrice, coachName } = orderData;
-  if (!coachId || !hours || !game || !finalPrice || !coachName) {
-    console.error('Incomplete coaching order data:', orderData);
-    await connection.rollback();
-    return res.status(400).json({ error: 'Incomplete coaching order data' });
-  }
+        if (orderData.type === 'coaching') {
+          const { coachId, hours, game, finalPrice, coachName } = orderData;
+          if (!coachId || !hours || !game || !finalPrice || !coachName) {
+            console.error('Incomplete coaching order data:', orderData);
+            await connection.rollback();
+            return res.status(400).json({ error: 'Incomplete coaching order data' });
+          }
 
-  const [coachRows] = await connection.query('SELECT id, username FROM users WHERE id = ? AND role = "coach"', [coachId]);
-  if (!coachRows.length) {
-    console.error('Coach not found:', coachId);
-    await connection.rollback();
-    return res.status(400).json({ error: 'Coach not found' });
-  }
+          const [coachRows] = await connection.query('SELECT id, username FROM users WHERE id = ? AND role = "coach"', [coachId]);
+          if (!coachRows.length) {
+            console.error('Coach not found:', coachId);
+            await connection.rollback();
+            return res.status(400).json({ error: 'Coach not found' });
+          }
 
-  const cashback = parseFloat((finalPrice * 0.10).toFixed(2)); // ← NEW LINE
+          const cashback = parseFloat((finalPrice * 0.10).toFixed(2));
 
-  await connection.query(
-    `INSERT INTO coaching_orders (
-      user_id, coach_id, order_id, booked_hours, game_type, total_price, coach_name, status, cashback
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [parseInt(userId), coachId, orderId, hours, game, finalPrice, coachName, 'pending', cashback]
-  );
-          console.log(`Coaching order ${orderId} created for user ${userId}, coach ${coachId}`);
+          // Insert coaching order
+          await connection.query(
+            `INSERT INTO coaching_orders (
+              user_id, coach_id, order_id, booked_hours, game_type, total_price, coach_name, status, cashback
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [parseInt(userId), coachId, orderId, hours, game, finalPrice, coachName, 'pending', cashback]
+          );
+
+          // Add cashback to customer's account balance
+          await connection.query(
+            'UPDATE users SET account_balance = account_balance + ? WHERE id = ?',
+            [cashback, parseInt(userId)]
+          );
+
+          console.log(`Coaching order ${orderId} created for user ${userId}, coach ${coachId}, cashback $${cashback} credited`);
         } else if (orderData.type === 'boost') {
           const { currentRank, desiredRank, currentDivision, desiredDivision, currentLP, desiredLP, finalPrice, game, extras } = orderData;
           const leagueRanks = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Emerald', 'Diamond', 'Master', 'Grandmaster', 'Challenger'];
