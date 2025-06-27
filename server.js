@@ -1140,45 +1140,83 @@ app.get('/api/completed-orders', authenticate, checkRole(['admin']), async (req,
   }
 });
 
-app.post('/api/request-payout', authenticate, checkRole(['booster', 'coach'])
-, async (req, res) => {
-  const { amount, paymentMethod, paymentDetails } = req.body;
+app.post('/api/request-payout', authenticate, checkRole(['booster', 'coach']), async (req, res) => {
+  const { amount, paymentMethod, paymentDetails, orderId, source } = req.body;
+
   try {
-    const [userRows] = await pool.query('SELECT account_balance FROM users WHERE id = ?', [req.user.id]);
+    const connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    if (req.user.role === 'coach' || source === 'coaching') {
+      // 🧠 Coach payouts – validate based on completed coaching order
+      const [orderRows] = await connection.query(
+        'SELECT total_price, status FROM coaching_orders WHERE order_id = ? AND coach_id = ?',
+        [orderId, req.user.id]
+      );
+
+      if (!orderRows.length) {
+        await connection.rollback();
+        return res.status(404).json({ error: 'Coaching order not found' });
+      }
+
+      const order = orderRows[0];
+      if (order.status !== 'completed') {
+        await connection.rollback();
+        return res.status(400).json({ error: 'Order must be marked completed before payout' });
+      }
+
+      const payoutAmount = parseFloat(order.total_price);
+      if (isNaN(payoutAmount) || payoutAmount <= 0) {
+        await connection.rollback();
+        return res.status(400).json({ error: 'Invalid coaching payout amount' });
+      }
+
+      await connection.query(
+        'INSERT INTO payout_requests (user_id, amount, payment_method, payment_details) VALUES (?, ?, ?, ?)',
+        [req.user.id, payoutAmount, paymentMethod || 'Pending', paymentDetails || 'Coaching session payout']
+      );
+
+      await connection.commit();
+      return res.json({ success: true, message: 'Coaching payout requested' });
+    }
+
+    // 🧠 Booster payouts – validate based on account balance
+    const [userRows] = await connection.query('SELECT account_balance FROM users WHERE id = ?', [req.user.id]);
     if (!userRows.length) {
+      await connection.rollback();
       return res.status(404).json({ error: 'User not found' });
     }
+
     const balance = parseFloat(userRows[0].account_balance);
     if (isNaN(amount) || amount <= 0 || amount > balance) {
+      await connection.rollback();
       return res.status(400).json({ error: 'Invalid payout amount' });
     }
-    const [recentRequest] = await pool.query(
+
+    const [recentRequest] = await connection.query(
       'SELECT requested_at FROM payout_requests WHERE user_id = ? AND requested_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)',
       [req.user.id]
     );
+
     if (recentRequest.length) {
+      await connection.rollback();
       return res.status(400).json({ error: 'Payout request allowed only once per month' });
     }
-    const connection = await pool.getConnection();
-    try {
-      await connection.beginTransaction();
-      await connection.query(
-        'INSERT INTO payout_requests (user_id, amount, payment_method, payment_details) VALUES (?, ?, ?, ?)',
-        [req.user.id, amount, paymentMethod, paymentDetails]
-      );
-      await connection.commit();
-      res.json({ success: true, message: 'Payout request submitted' });
-    } catch (error) {
-      await connection.rollback();
-      throw error;
-    } finally {
-      connection.release();
-    }
+
+    await connection.query(
+      'INSERT INTO payout_requests (user_id, amount, payment_method, payment_details) VALUES (?, ?, ?, ?)',
+      [req.user.id, amount, paymentMethod, paymentDetails]
+    );
+
+    await connection.commit();
+    return res.json({ success: true, message: 'Booster payout submitted' });
+
   } catch (error) {
     console.error('Error requesting payout:', error.message);
-    res.status(500).json({ error: 'Internal server error', details: error.message });
+    return res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 });
+
 
 app.get('/api/payout-requests', authenticate, checkRole(['admin']), async (req, res) => {
   try {

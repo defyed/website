@@ -409,14 +409,14 @@ document.querySelectorAll('.complete-btn').forEach(button => {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        userId,
-                        amount: (price * 0.80).toFixed(2),
-                        paymentMethod: 'Pending',
-                        paymentDetails: 'Auto-requested for completed coaching session',
-                        source: 'coaching',
-                        orderId
-                    })
+                  body: JSON.stringify({
+  userId,
+  orderId,
+  source: 'coaching',
+  paymentMethod: 'Pending',
+  paymentDetails: 'Auto-requested for completed coaching session'
+})
+
                 });
 
                 if (!payoutResponse.ok) {
