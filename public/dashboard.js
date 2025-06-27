@@ -463,6 +463,66 @@ document.querySelectorAll('.complete-btn').forEach(button => {
         }
     });
 }
+// ✅ FULL FIXED dashboard.js
+
+// ... [keep your other code untouched]
+
+// ✅ Admin fetch completed coaching orders
+async function fetchAndRenderCompletedCoachingOrders() {
+    try {
+        const response = await fetch('/api/fetch-coaching-orders');
+        const completedOrders = await response.json();
+        console.log('Completed coaching orders:', completedOrders);
+
+        const completedPanel = document.getElementById('completed-orders-panel');
+        if (!completedPanel) return;
+
+        const table = document.createElement('table');
+        table.classList.add('order-table');
+
+        const thead = document.createElement('thead');
+        thead.innerHTML = `
+          <tr>
+            <th>Order ID</th>
+            <th>Customer ID</th>
+            <th>Coach ID</th>
+            <th>Game</th>
+            <th>Hours</th>
+            <th>Price</th>
+            <th>Status</th>
+            <th>Requested</th>
+          </tr>
+        `;
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        completedOrders.forEach(order => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${order.order_id}</td>
+              <td>${order.user_id}</td>
+              <td>${order.coach_id}</td>
+              <td>${order.game_type}</td>
+              <td>${order.booked_hours}</td>
+              <td>$${order.total_price}</td>
+              <td>${order.status}</td>
+              <td>${new Date(order.created_at).toLocaleString()}</td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        table.appendChild(tbody);
+        completedPanel.innerHTML = '<h3>Completed Coaching Orders</h3>';
+        completedPanel.appendChild(table);
+    } catch (err) {
+        console.error('Failed to fetch completed coaching orders:', err);
+    }
+}
+
+// ✅ Call on admin load
+if (localStorage.getItem('userRole') === 'admin') {
+    fetchAndRenderCompletedCoachingOrders();
+}
 
     async function fetchCompletedOrders() {
         try {

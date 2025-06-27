@@ -1086,7 +1086,71 @@ app.get('/api/completed-coaching-orders', authenticate, checkRole(['admin']), as
   }
 });
 
+// ✅ Mark coaching order complete
+app.post('/api/complete-coaching-order', authenticate, checkRole(['coach', 'admin']), async (req, res) => {
+  const { orderId } = req.body;
+  try {
+    const [rows] = await pool.query(
+      'SELECT total_price, coach_id, status FROM coaching_orders WHERE order_id = ?',
+      [orderId]
+    );
+    if (!rows.length || rows[0].status !== 'pending') {
+      return res.status(400).json({ error: 'Order not found or not pending' });
+    }
+    const order = rows[0];
+    if (req.user.role !== 'admin' && order.coach_id !== req.user.id) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
 
+    await pool.query('UPDATE coaching_orders SET status = ? WHERE order_id = ?', ['completed', orderId]);
+    res.json({ success: true, message: 'Order completed', price: order.total_price });
+  } catch (err) {
+    console.error('complete-coaching-order error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ✅ Request payout
+app.post('/api/request-payout', authenticate, checkRole(['booster', 'coach']), async (req, res) => {
+  const { amount, paymentMethod, paymentDetails } = req.body;
+  try {
+    const [[user]] = await pool.query('SELECT account_balance FROM users WHERE id = ?', [req.user.id]);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    const balance = parseFloat(user.account_balance);
+    if (isNaN(amount) || amount <= 0 || amount > balance) {
+      return res.status(400).json({ error: 'Invalid payout amount' });
+    }
+    const [recent] = await pool.query(
+      'SELECT requested_at FROM payout_requests WHERE user_id = ? AND requested_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)',
+      [req.user.id]
+    );
+    if (recent.length) {
+      return res.status(400).json({ error: 'Only one payout request per month allowed' });
+    }
+
+    await pool.query(
+      'INSERT INTO payout_requests (user_id, amount, payment_method, payment_details) VALUES (?, ?, ?, ?)',
+      [req.user.id, amount, paymentMethod, paymentDetails]
+    );
+    res.json({ success: true, message: 'Payout requested' });
+  } catch (err) {
+    console.error('request-payout error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ✅ Fetch completed coaching orders for admin
+app.get('/api/fetch-coaching-orders', authenticate, checkRole(['admin']), async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT * FROM coaching_orders WHERE status = "completed" ORDER BY created_at DESC'
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error('fetch-coaching-orders error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 
 app.post('/api/approve-payout', authenticate, checkRole(['admin']), async (req, res) => {
