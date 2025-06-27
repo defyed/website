@@ -838,30 +838,32 @@ app.get('/api/user-orders', authenticate, async (req, res) => {
       }));
     }
 
-    if (!type || type === 'coaching') {
-      // Fetch coaching orders for customers or coaches
-      const whereClause = 'co.user_id = ?'; 
-      const [coachingRows] = await pool.query(
-  `SELECT co.order_id, co.user_id, co.coach_id, co.booked_hours, co.game_type,
-          co.total_price AS price, co.coach_name, co.status, co.cashback,
-          DATE_FORMAT(co.created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at,
-          'coaching' AS order_type,
-          u.username AS customer_username
-   FROM coaching_orders co
-   LEFT JOIN users u ON co.user_id = u.id
-   WHERE ${whereClause}`,
-  [req.user.id]
-);
+   if (!type || type === 'coaching') {
+  if (req.user.role !== 'coach') {
+    const whereClause = 'co.user_id = ?';
+    const [coachingRows] = await pool.query(
+      `SELECT co.order_id, co.user_id, co.coach_id, co.booked_hours, co.game_type,
+              co.total_price AS price, co.coach_name, co.status, co.cashback,
+              DATE_FORMAT(co.created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at,
+              'coaching' AS order_type,
+              u.username AS customer_username
+       FROM coaching_orders co
+       LEFT JOIN users u ON co.user_id = u.id
+       WHERE ${whereClause}`,
+      [req.user.id]
+    );
 
-      orders.push(...coachingRows.map(row => ({
-        ...row,
-        currentRank: null,
-        currentDivision: null,
-        desiredRank: null,
-        desiredDivision: null,
-        coach_username: row.coach_name
-      })));
-    }
+    orders.push(...coachingRows.map(row => ({
+      ...row,
+      currentRank: null,
+      currentDivision: null,
+      desiredRank: null,
+      desiredDivision: null,
+      coach_username: row.coach_name
+    })));
+  }
+}
+
 
     console.log(`Orders found for userId ${req.user.id}: ${orders.length}`, orders);
     res.json(orders);
