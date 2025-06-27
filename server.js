@@ -1317,10 +1317,10 @@ app.get('/api/my-coaching-orders', authenticate, checkRole(['coach', 'admin']), 
     const userId = req.user.id;
     console.log(`Fetching coaching orders for coachId: ${userId}`);
     const [rows] = await pool.query(
-      `SELECT order_id, user_id, booked_hours, game_type, total_price, coach_name, cashback,status, 
-              DATE_FORMAT(created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at
-       FROM coaching_orders
-       WHERE coach_id = ?`,
+      `SELECT order_id, user_id, booked_hours, game_type, total_price, coach_name, cashback, status,
+            DATE_FORMAT(created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at
+     FROM coaching_orders
+     WHERE coach_id = ?`,
       [userId]
     );
     console.log(`Coaching orders found for coachId ${userId}: ${rows.length}`, rows);
