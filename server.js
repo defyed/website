@@ -842,17 +842,14 @@ app.get('/api/user-orders', authenticate, async (req, res) => {
       // Fetch coaching orders for customers or coaches
       const whereClause = req.user.role === 'coach' ? 'co.coach_id = ?' : 'co.user_id = ?';
       const [coachingRows] = await pool.query(
-  `SELECT co.order_id, co.user_id, co.coach_id, co.booked_hours, co.game_type,
-          co.total_price AS price, co.coach_name, co.status, co.cashback,
-          DATE_FORMAT(co.created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at,
-          'coaching' AS order_type,
-          u.username AS customer_username
-   FROM coaching_orders co
-   LEFT JOIN users u ON co.user_id = u.id
-   WHERE ${whereClause}`,
-  [req.user.id]
-);
-
+        `SELECT co.order_id, co.user_id, co.coach_id, co.booked_hours, co.game_type, co.total_price AS price, co.coach_name, co.status, 
+                DATE_FORMAT(co.created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at, 'coaching' AS order_type,
+                u.username AS customer_username
+         FROM coaching_orders co
+         LEFT JOIN users u ON co.user_id = u.id
+         WHERE ${whereClause}`,
+        [req.user.id]
+      );
       orders.push(...coachingRows.map(row => ({
         ...row,
         currentRank: null,
