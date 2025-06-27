@@ -1130,7 +1130,8 @@ app.get('/api/completed-orders', authenticate, checkRole(['admin']), async (req,
   }
 });
 
-app.post('/api/request-payout', authenticate, checkRole(['booster']), async (req, res) => {
+app.post('/api/request-payout', authenticate, checkRole(['booster', 'coach'])
+, async (req, res) => {
   const { amount, paymentMethod, paymentDetails } = req.body;
   try {
     const [userRows] = await pool.query('SELECT account_balance FROM users WHERE id = ?', [req.user.id]);
