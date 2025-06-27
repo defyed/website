@@ -1461,7 +1461,6 @@ function renderCoachingOrders(orders, containerId) {
                     <thead>
                       <tr>
                         <th>Order ID</th>
-                        <th>Details</th>
                         <th>Hours</th>
                         <th>Coach</th>
                         <th>Price</th>
