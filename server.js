@@ -1068,6 +1068,23 @@ app.post('/api/complete-coaching-order', authenticate, checkRole(['coach', 'admi
     res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 });
+app.get('/api/completed-coaching-orders', authenticate, checkRole(['admin']), async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT co.order_id, co.user_id, u.username AS customer_name, co.coach_id, c.username AS coach_name,
+             co.booked_hours, co.total_price, co.status, co.created_at, co.cashback
+      FROM coaching_orders co
+      JOIN users u ON co.user_id = u.id
+      JOIN users c ON co.coach_id = c.id
+      WHERE co.status = 'completed'
+      ORDER BY co.created_at DESC
+    `);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching completed coaching orders:', error.message);
+    res.status(500).json({ error: 'Internal server error', details: error.message });
+  }
+});
 
 
 

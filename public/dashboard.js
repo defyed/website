@@ -480,6 +480,46 @@ document.querySelectorAll('.complete-btn').forEach(button => {
             document.getElementById('completed-orders').innerHTML = '<p>Error loading completed orders. Please try again later.</p>';
         }
     }
+    async function fetchCompletedCoachingOrders() {
+  try {
+    const res = await fetch('/api/completed-coaching-orders');
+    const coachingOrders = await res.json();
+    console.log('✅ Admin Coaching Orders:', coachingOrders);
+
+    const table = document.createElement('table');
+    table.className = 'orders-table';
+    table.innerHTML = `
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Customer</th>
+          <th>Coach</th>
+          <th>Hours</th>
+          <th>Price</th>
+          <th>Cashback</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${coachingOrders.map(order => `
+          <tr>
+            <td>${order.order_id}</td>
+            <td>${order.customer_name}</td>
+            <td>${order.coach_name}</td>
+            <td>${order.booked_hours}</td>
+            <td>$${parseFloat(order.total_price).toFixed(2)}</td>
+            <td>$${parseFloat(order.cashback).toFixed(2)}</td>
+            <td>${new Date(order.created_at).toLocaleDateString()}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    `;
+    document.getElementById('completed-orders-panel').appendChild(table);
+  } catch (err) {
+    console.error('❌ Failed to fetch admin coaching orders:', err);
+  }
+}
+
 
     async function fetchPayoutHistory() {
         try {
