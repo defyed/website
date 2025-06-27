@@ -335,10 +335,12 @@ function renderCoachingOrders(orders, containerId) {
             <td>$${parseFloat(order.price || order.total_price || 0).toFixed(2)}</td>
             <td>${order.status || 'pending'}</td>
             <td>${order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}</td>
-            <td>
-                <button class="info-button" data-order-id="${order.order_id}">Info</button>
-                <button class="complete-btn" data-order-id="${order.order_id}" ${order.status === 'completed' || !isOwnOrder ? 'disabled' : ''}>Complete</button>
-            </td>
+          <td>
+    ${userRole === 'coach' && order.coach_id === currentUserId && order.status !== 'completed' ? `
+        <button class="complete-btn" data-order-id="${order.order_id}">Mark Complete</button>
+    ` : ''}
+</td>
+
         `;
         tbody.appendChild(row);
     });
@@ -378,7 +380,7 @@ function renderCoachingOrders(orders, containerId) {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
+                            
                         },
                         body: JSON.stringify({ userId, orderId })
                     });
@@ -1469,7 +1471,7 @@ function renderCoachingOrders(orders, containerId) {
                     row.dataset.orderId = order.order_id;
                     row.innerHTML = `
                         <td><button class="order-id-button" data-order-id="${order.order_id}">?</button></td>
-                        <td><button class="info-button" data-order-id="${order.order_id}">Info</button></td>
+                        
                         <td>${order.booked_hours||'N/A'}</td>
                         <td>${order.coach_username||order.coach_name||'N/A'}</td>
                         <td>$${parseFloat(order.price||0).toFixed(2)}</td>
