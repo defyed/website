@@ -840,7 +840,7 @@ app.get('/api/user-orders', authenticate, async (req, res) => {
 
     if (!type || type === 'coaching') {
       // Fetch coaching orders for customers or coaches
-      const whereClause = req.user.role === 'coach' ? 'co.coach_id = ?' : 'co.user_id = ?';
+      const whereClause = 'co.user_id = ?'; 
       const [coachingRows] = await pool.query(
   `SELECT co.order_id, co.user_id, co.coach_id, co.booked_hours, co.game_type,
           co.total_price AS price, co.coach_name, co.status, co.cashback,
