@@ -395,7 +395,7 @@ document.querySelectorAll('.complete-btn').forEach(button => {
                     const errorData = await completeResponse.json();
                     throw new Error(errorData.error || `HTTP error! Status: ${completeResponse.status}`);
                 }
-
+renderCoachingOrders
                 // 2. Parse response to get price
                 const orderData = await completeResponse.json(); // Ensure your API returns order info!
                 const price = orderData.price || 0;
@@ -1503,14 +1503,16 @@ document.querySelectorAll('.complete-btn').forEach(button => {
                 coachingOrders.forEach(order => {
                     const row = document.createElement('tr');
                     row.dataset.orderId = order.order_id;
-                    row.innerHTML = `
-                        <td><button class="order-id-button" data-order-id="${order.order_id}">?</button></td>
-                        <td>${order.booked_hours||'N/A'}</td>
-                        <td>${order.coach_username||order.coach_name||'N/A'}</td>
-                        <td>$${parseFloat(order.price||0).toFixed(2)}</td>
-                        <td>${order.status||'Pending'}</td>
-                        <td>${new Date(order.created_at).toLocaleDateString()}</td>
-                        <td>$${parseFloat(order.cashback||0).toFixed(2)}</td>`;
+                   row.innerHTML = `
+  <td><button class="order-id-button" data-order-id="${order.order_id}">?</button></td>
+  <td>-</td> <!-- Details placeholder -->
+  <td>${order.booked_hours || 'N/A'}</td>
+  <td>${order.coach_username || order.coach_name || 'N/A'}</td>
+  <td>$${parseFloat(order.price || 0).toFixed(2)}</td>
+  <td>${order.status || 'Pending'}</td>
+  <td>${new Date(order.created_at).toLocaleDateString()}</td>
+  <td>$${parseFloat(order.cashback || 0).toFixed(2)}</td>`;
+
                     if ((order.status || '').trim().toLowerCase() === 'completed') {
 
                         row.classList.add('customer-completed-order');
