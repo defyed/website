@@ -395,10 +395,13 @@ document.querySelectorAll('.complete-btn').forEach(button => {
                     const errorData = await completeResponse.json();
                     throw new Error(errorData.error || `HTTP error! Status: ${completeResponse.status}`);
                 }
-renderCoachingOrders
+
                 // 2. Parse response to get price
-                const orderData = await completeResponse.json(); // Ensure your API returns order info!
-                const price = orderData.price || 0;
+                const orderData = await completeResponse.json();
+                const price = parseFloat(orderData.price);
+                if (isNaN(price) || price <= 0) {
+                    throw new Error('Invalid price returned from server.');
+                }
 
                 // 3. Send payout request to admin
                 const payoutResponse = await fetch('/api/request-payout', {
@@ -408,7 +411,7 @@ renderCoachingOrders
                     },
                     body: JSON.stringify({
                         userId,
-                        amount: (parseFloat(price) * 0.80).toFixed(2),
+                        amount: (price * 0.80).toFixed(2),
                         paymentMethod: 'Pending',
                         paymentDetails: 'Auto-requested for completed coaching session',
                         source: 'coaching',
@@ -422,14 +425,16 @@ renderCoachingOrders
                 }
 
                 alert('Coaching order completed and payout requested!');
-                fetchCoachingOrders();
+                fetchCoachingOrders(); // refresh the panel only after both succeed
             } catch (error) {
-                console.error('Error completing coaching order:', error.message);
-                alert(`Failed to complete coaching order: ${error.message}`);
+                console.error('❌ Error completing coaching order:', error.message);
+                alert(`❌ Failed to complete coaching order: ${error.message}`);
+                // ❗ Don't hide the button or mark order as completed if anything fails
             }
         }
     });
 });
+
 
 
     // Row click event listeners
