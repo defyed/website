@@ -1373,22 +1373,23 @@ app.post('/api/process-payout', authenticate, checkRole(['admin']), async (req, 
   }
 });
 
-// ✅ NEW: Admin view of completed coaching orders
+/// Fetch all completed coaching orders for admin
 app.get('/api/fetch-coaching-orders', authenticate, checkRole(['admin']), async (req, res) => {
   try {
-    const [rows] = await pool.query(`
+    const [orders] = await pool.query(`
       SELECT 
-        o.order_id, o.user_id, o.coach_id, o.booked_hours, o.game_type, o.price, 
-        o.status, o.created_at, o.order_type,
-        u.username AS customer_username,
-        c.username AS coach_username
-      FROM orders o
-      LEFT JOIN users u ON o.user_id = u.id
-      LEFT JOIN users c ON o.coach_id = c.id
-      WHERE o.order_type = 'coaching' AND o.status = 'completed'
-      ORDER BY o.created_at DESC
+        co.order_id, co.user_id, u.username AS customer_username,
+        co.coach_id, c.username AS coach_username,
+        co.booked_hours, co.game_type, co.total_price,
+        co.cashback, co.status, co.created_at
+      FROM coaching_orders co
+      JOIN users u ON co.user_id = u.id
+      JOIN users c ON co.coach_id = c.id
+      WHERE co.status = 'completed'
+      ORDER BY co.created_at DESC
     `);
-    res.json(rows);
+
+    res.json(orders);
   } catch (error) {
     console.error('Error fetching completed coaching orders:', error.message);
     res.status(500).json({ error: 'Internal server error' });
