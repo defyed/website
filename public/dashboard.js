@@ -1484,7 +1484,8 @@ function renderCoachingOrders(orders, containerId) {
                         <td>${order.status||'Pending'}</td>
                         <td>${new Date(order.created_at).toLocaleDateString()}</td>
                         <td>$${parseFloat(order.cashback||0).toFixed(2)}</td>`;
-                    if (order.status === 'completed') {
+                    if ((order.status || '').trim().toLowerCase() === 'completed') {
+
                         row.classList.add('customer-completed-order');
                     }
 tb2.appendChild(row);
