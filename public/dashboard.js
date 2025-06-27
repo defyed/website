@@ -332,7 +332,14 @@ function renderCoachingOrders(orders, containerId) {
             <td>${order.coach_username || order.coach_name || 'Unknown Coach'}</td>
             <td>${order.game_type || 'N/A'}</td>
             <td>${order.booked_hours || 'N/A'}</td>
-            <td>$${parseFloat(order.price || order.total_price || 0).toFixed(2)}</td>
+            <td>
+  $${userRole === 'coach'
+    ? (parseFloat(order.price || 0) * 0.80).toFixed(2)
+    : parseFloat(order.price || 0).toFixed(2)}
+  ${userRole === 'coach' ? '<span class="payout-label">(Payout)</span>' : ''}
+</td>
+
+
             <td>${order.status || 'pending'}</td>
             <td>${order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}</td>
           <td>
@@ -1471,15 +1478,17 @@ function renderCoachingOrders(orders, containerId) {
                     row.dataset.orderId = order.order_id;
                     row.innerHTML = `
                         <td><button class="order-id-button" data-order-id="${order.order_id}">?</button></td>
-                        
                         <td>${order.booked_hours||'N/A'}</td>
                         <td>${order.coach_username||order.coach_name||'N/A'}</td>
                         <td>$${parseFloat(order.price||0).toFixed(2)}</td>
                         <td>${order.status||'Pending'}</td>
                         <td>${new Date(order.created_at).toLocaleDateString()}</td>
                         <td>$${parseFloat(order.cashback||0).toFixed(2)}</td>`;
-                    if (order.status === 'Completed') row.classList.add('customer-completed-order');
-                    tb2.appendChild(row);
+                    if (order.status === 'completed') {
+                        row.classList.add('customer-completed-order');
+                    }
+
+                    
                 });
 
                 ordersDiv.appendChild(Object.assign(document.createElement('h3'), { textContent: 'Coaching Orders' }));
