@@ -376,34 +376,61 @@ function renderCoachingOrders(orders, containerId) {
     });
 
     // Complete button event listeners
-    document.querySelectorAll('.complete-btn').forEach(button => {
-        button.addEventListener('click', async function (e) {
-            e.stopPropagation();
-            const orderId = button.getAttribute('data-order-id');
-            if (confirm(`Mark coaching order ${orderId} as completed?`)) {
-                try {
-                    
-                    const response = await fetch('/api/complete-coaching-order', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            
-                        },
-                        body: JSON.stringify({ userId, orderId })
-                    });
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
-                    }
-                    alert('Coaching order marked as completed!');
-                    fetchCoachingOrders();
-                } catch (error) {
-                    console.error('Error completing coaching order:', error.message);
-                    alert(`Failed to complete coaching order: ${error.message}`);
+document.querySelectorAll('.complete-btn').forEach(button => {
+    button.addEventListener('click', async function (e) {
+        e.stopPropagation();
+        const orderId = button.getAttribute('data-order-id');
+        if (confirm(`Mark coaching order ${orderId} as completed?`)) {
+            try {
+                // 1. Mark the order as complete
+                const completeResponse = await fetch('/api/complete-coaching-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ userId, orderId })
+                });
+
+                if (!completeResponse.ok) {
+                    const errorData = await completeResponse.json();
+                    throw new Error(errorData.error || `HTTP error! Status: ${completeResponse.status}`);
                 }
+
+                // 2. Parse response to get price
+                const orderData = await completeResponse.json(); // Ensure your API returns order info!
+                const price = orderData.price || 0;
+
+                // 3. Send payout request to admin
+                const payoutResponse = await fetch('/api/request-payout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId,
+                        amount: (parseFloat(price) * 0.80).toFixed(2),
+                        paymentMethod: 'Pending',
+                        paymentDetails: 'Auto-requested for completed coaching session',
+                        source: 'coaching',
+                        orderId
+                    })
+                });
+
+                if (!payoutResponse.ok) {
+                    const payoutError = await payoutResponse.json();
+                    throw new Error(payoutError.error || 'Payout request failed.');
+                }
+
+                alert('Coaching order completed and payout requested!');
+                fetchCoachingOrders();
+            } catch (error) {
+                console.error('Error completing coaching order:', error.message);
+                alert(`Failed to complete coaching order: ${error.message}`);
             }
-        });
+        }
     });
+});
+
 
     // Row click event listeners
     table.querySelectorAll('tbody tr').forEach(row => {
