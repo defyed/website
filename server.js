@@ -356,7 +356,8 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
             return res.status(400).json({ error: 'Coach not found' });
           }
 
-          const cashback = parseFloat((finalPrice * 0.10).toFixed(2));
+          
+          const cashback = parseFloat((finalPrice * 0.0299).toFixed(2));
 
           // Insert coaching order
           await connection.query(
@@ -1706,6 +1707,9 @@ app.get('/dashboard', (req, res) => {
 app.get('/confirmation', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'confirmation.html'));
 });
+app.get('/coaching', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'coaching.html'));
+});
 
 // Redirect .html to clean URLs
 app.get('/index.html', (req, res) => {
@@ -1728,6 +1732,9 @@ app.get('/dashboard.html', (req, res) => {
 });
 app.get('/confirmation.html', (req, res) => {
     res.redirect(301, '/confirmation');
+});
+app.get('/coaching.html', (req, res) => {
+    res.redirect(301, '/coaching');
 });
 
 // 404 for unknown routes
