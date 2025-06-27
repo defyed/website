@@ -1035,7 +1035,7 @@ app.post('/api/complete-coaching-order', authenticate, checkRole(['coach', 'admi
   const { orderId } = req.body;
   try {
     const [orderRows] = await pool.query(
-      'SELECT status, coach_id, price FROM coaching_orders WHERE order_id = ? AND status = ?',
+      'SELECT status, coach_id, total_price FROM coaching_orders WHERE order_id = ? AND status = ?',
       [orderId, 'pending']
     );
 
@@ -1047,7 +1047,7 @@ app.post('/api/complete-coaching-order', authenticate, checkRole(['coach', 'admi
       return res.status(403).json({ error: 'Unauthorized: Not your coaching order' });
     }
 
-    const price = orderRows[0].price;
+    const price = orderRows[0].total_price;
 
     const connection = await pool.getConnection();
     try {
@@ -1055,7 +1055,7 @@ app.post('/api/complete-coaching-order', authenticate, checkRole(['coach', 'admi
       await connection.query('UPDATE coaching_orders SET status = "completed" WHERE order_id = ?', [orderId]);
       await connection.commit();
 
-      // ✅ Include price in response
+      // ✅ Return total_price (as price) to the frontend
       res.json({ success: true, message: 'Coaching order completed successfully', price });
     } catch (error) {
       await connection.rollback();
@@ -1064,10 +1064,12 @@ app.post('/api/complete-coaching-order', authenticate, checkRole(['coach', 'admi
       connection.release();
     }
   } catch (error) {
-    console.error('Error completing coaching order:', error.message);
+    console.error('❌ Error completing coaching order:', error);
     res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 });
+
+
 
 
 app.post('/api/approve-payout', authenticate, checkRole(['admin']), async (req, res) => {
