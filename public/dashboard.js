@@ -1414,7 +1414,7 @@ function renderCoachingOrders(orders, containerId) {
                     row.dataset.orderId = order.order_id;
                     row.innerHTML = `
                         <td><button class="order-id-button" data-order-id="${order.order_id}">?</button></td>
-                        <td>${order.order_type}</td>
+                        <td>${order.order_type === 'coaching' ? 'Coaching' : (order.game_type || 'Boost')}</td>
                         <td><button class="info-button" data-order-id="${order.order_id}">Info</button></td>
                         <td>
                           <img src="${curImg}" class="rank-logo" onerror="this.src='/images/fallback.png'">
