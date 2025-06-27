@@ -1,6 +1,7 @@
 
 document.addEventListener('DOMContentLoaded', async () => {
     const userId = localStorage.getItem('userId');
+    const userRole = localStorage.getItem('userRole');
     const role = localStorage.getItem('role');
     if (!userId || isNaN(userId)) {
         window.location.href = 'login.html';
