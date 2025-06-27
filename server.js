@@ -1374,25 +1374,30 @@ app.post('/api/process-payout', authenticate, checkRole(['admin']), async (req, 
 });
 
 /// Fetch all completed coaching orders for admin
-app.get('/api/fetch-coaching-orders', authenticate, checkRole(['admin']), async (req, res) => {
+app.get('/api/fetch-coaching-orders', authenticate, checkRole(['admin', 'coach']), async (req, res) => {
   try {
-    const [orders] = await pool.query(`
-      SELECT 
-        co.order_id, co.user_id, u.username AS customer_username,
-        co.coach_id, c.username AS coach_username,
-        co.booked_hours, co.game_type, co.total_price,
-        co.cashback, co.status, co.created_at
-      FROM coaching_orders co
-      JOIN users u ON co.user_id = u.id
-      JOIN users c ON co.coach_id = c.id
-      WHERE co.status = 'completed'
-      ORDER BY co.created_at DESC
-    `);
+    const role = req.user.role;
+    const userId = req.user.id;
 
-    res.json(orders);
-  } catch (error) {
-    console.error('Error fetching completed coaching orders:', error.message);
-    res.status(500).json({ error: 'Internal server error' });
+    let query = '';
+    let params = [];
+
+    if (role === 'admin') {
+      // Admin sees all completed coaching orders
+      query = 'SELECT * FROM coaching_orders WHERE status = "completed" ORDER BY created_at DESC';
+    } else if (role === 'coach') {
+      // Coach sees only their own completed coaching orders
+      query = 'SELECT * FROM coaching_orders WHERE coach_id = ? AND status = "completed" ORDER BY created_at DESC';
+      params = [userId];
+    } else {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    const [rows] = await pool.query(query, params);
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching completed coaching orders:', err.message);
+    res.status(500).json({ error: 'Internal server error', details: err.message });
   }
 });
 
