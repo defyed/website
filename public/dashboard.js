@@ -163,7 +163,9 @@ async function fetchAvailableCoachingOrders() {
     try {
         console.log('Fetching available coaching orders for userId:', userId);
         const response = await fetch(`/api/available-coaching-orders?userId=${userId}`, {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'
         });
         if (!response.ok) {
             const errorData = await response.json();
@@ -180,6 +182,7 @@ async function fetchAvailableCoachingOrders() {
         }
     }
 }
+
 async function fetchWorkingCoachingOrders() {
     const userRole = localStorage.getItem('userRole');
     if (userRole !== 'coach' && userRole !== 'admin') {
@@ -193,7 +196,9 @@ async function fetchWorkingCoachingOrders() {
     try {
         console.log('Fetching working coaching orders for userId:', userId);
         const response = await fetch(`/api/working-coaching-orders?userId=${userId}`, {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'
         });
         if (!response.ok) {
             const errorData = await response.json();
@@ -207,6 +212,35 @@ async function fetchWorkingCoachingOrders() {
         const container = document.getElementById('coaching-orders');
         if (container) {
             container.innerHTML = `<p style="color: red;">Error loading working coaching orders: ${error.message}. Please try again later.</p>`;
+        }
+    }
+}
+
+async function fetchCompletedCoachingOrders() {
+    const userRole = localStorage.getItem('userRole');
+    if (userRole !== 'admin') {
+        console.log('Skipping completed coaching orders for non-admin role:', userRole);
+        return;
+    }
+    try {
+        console.log('Fetching completed coaching orders for userId:', userId);
+        const response = await fetch(`/api/completed-coaching-orders?userId=${userId}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`);
+        }
+        const orders = await response.json();
+        console.log('Completed coaching orders received:', orders);
+        renderCoachingOrders(orders, 'completed-orders', false, false, true);
+    } catch (error) {
+        console.error('Error fetching completed coaching orders:', error.message);
+        const container = document.getElementById('completed-orders');
+        if (container) {
+            container.innerHTML = `<p style="color: red;">Error loading completed coaching orders: ${error.message}. Please try again later.</p>`;
         }
     }
 }
@@ -425,9 +459,7 @@ function renderCoachingOrders(orders, containerId, isAvailable = false, isWorkin
                         console.log('Claiming coaching orderId:', orderId, 'with userId:', userId);
                         const response = await fetch('/api/claim-coaching-order', {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
+                            headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ userId, orderId })
                         });
                         if (!response.ok) {
@@ -455,9 +487,7 @@ function renderCoachingOrders(orders, containerId, isAvailable = false, isWorkin
                         console.log('Cancelling coaching orderId:', orderId, 'with userId:', userId);
                         const response = await fetch('/api/unclaim-coaching-order', {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
+                            headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ userId, orderId })
                         });
                         if (!response.ok) {
@@ -483,9 +513,7 @@ function renderCoachingOrders(orders, containerId, isAvailable = false, isWorkin
                         console.log('Completing coaching orderId:', orderId, 'with userId:', userId);
                         const response = await fetch('/api/complete-coaching-order', {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
+                            headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ userId, orderId })
                         });
                         if (!response.ok) {
@@ -513,9 +541,7 @@ function renderCoachingOrders(orders, containerId, isAvailable = false, isWorkin
                         console.log('Approving payout for coaching orderId:', orderId, 'with userId:', userId);
                         const response = await fetch('/api/approve-coaching-payout', {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
+                            headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ userId, orderId })
                         });
                         if (!response.ok) {
@@ -780,39 +806,31 @@ async function showOrderDetailsModal(order, isAvailable = false) {
 
 
 async function fetchCoachingOrders() {
+    const userRole = localStorage.getItem('userRole');
     const userId = localStorage.getItem('userId');
-    const role = localStorage.getItem('role');
-    if (!userId || !role) {
+    if (!userId || !userRole) {
         console.error('No userId or role found in localStorage');
         alert('Please log in to view coaching orders.');
         window.location.href = '/league-services.html';
         return;
     }
-    try {
-        console.log('Fetching coaching orders for userId:', userId, 'role:', role);
-        const response = await fetch(`/api/user-orders?userId=${encodeURIComponent(userId)}&role=${encodeURIComponent(role)}&type=coaching&status=claimed`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include'
-        });
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`);
-        }
-        const orders = await response.json();
-        console.log('Coaching orders raw response:', orders);
-        if (!Array.isArray(orders)) {
-            console.warn('Unexpected response format for coaching orders:', orders);
-            throw new Error('Invalid response format from server');
-        }
-        renderCoachingOrders(orders, 'coaching-orders');
-    } catch (error) {
-        console.error('Error fetching coaching orders:', error.message);
+    console.log('Fetching coaching orders for userId:', userId, 'role:', userRole);
+    if (userRole === 'admin') {
+        await Promise.all([
+            fetchAvailableCoachingOrders(),
+            fetchWorkingCoachingOrders(),
+            fetchCompletedCoachingOrders()
+        ]);
+    } else if (userRole === 'coach') {
+        await Promise.all([
+            fetchAvailableCoachingOrders(),
+            fetchWorkingCoachingOrders()
+        ]);
+    } else {
+        console.log('Skipping coaching orders for role:', userRole);
         const container = document.getElementById('coaching-orders');
         if (container) {
-            container.innerHTML = `<p style="color: red;">Failed to load coaching orders: ${error.message}. Please contact support.</p>`;
+            container.innerHTML = '<p>Coaching orders are only for coaches and admins.</p>';
         }
     }
 }
@@ -2577,14 +2595,14 @@ if (isCompleted) {
             });
         }
 
-        if (document.getElementById('coaching-orders-link')) {
-            document.getElementById('coaching-orders-link').addEventListener('click', function (e) {
-                e.preventDefault();
-                console.log('Coaching orders link clicked');
-                showPanel('coaching-orders-panel');
-                fetchCoachingOrders();
-            });
-        }
+       if (document.getElementById('coaching-orders-link')) {
+    document.getElementById('coaching-orders-link').addEventListener('click', function (e) {
+        e.preventDefault();
+        console.log('Coaching orders link clicked');
+        showPanel('coaching-orders-panel');
+        fetchCoachingOrders();
+    });
+}
 
         const workingOrdersLink = document.getElementById('working-orders-link');
         if (workingOrdersLink) {
