@@ -1481,50 +1481,49 @@ renderCoachingOrders
             }
 
             // COACHING ORDERS TABLE
-            if (coachingOrders.length) {
-                const tbl2 = document.createElement('table');
-                tbl2.className = 'orders-table';
-                tbl2.innerHTML = `
-                    <thead>
-                      <tr>
-                        <th>Order ID</th>
-                        
-                        <th>Hours</th>
-                        <th>Coach</th>
-                        <th>Price</th>
-                        <th>Status</th>
-                        <th>Ordered On</th>
-                        <th>Cashback</th>
-                      </tr>
-                    </thead>
-                    <tbody></tbody>`;
-                const tb2 = tbl2.querySelector('tbody');
+           // COACHING ORDERS TABLE
+if (coachingOrders.length) {
+    const tbl2 = document.createElement('table');
+    tbl2.className = 'orders-table';
+    tbl2.innerHTML = `
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Hours</th>
+            <th>Coach</th>
+            <th>Price</th>
+            <th>Status</th>
+            <th>Ordered On</th>
+            <th>Cashback</th>
+          </tr>
+        </thead>
+        <tbody></tbody>`;
+    const tb2 = tbl2.querySelector('tbody');
 
-                coachingOrders.forEach(order => {
-                    const row = document.createElement('tr');
-                    row.dataset.orderId = order.order_id;
-                   row.innerHTML = `
-  <td><button class="order-id-button" data-order-id="${order.order_id}">?</button></td>
-  
-  <td>${order.booked_hours || 'N/A'}</td>
-  <td>${order.coach_username || order.coach_name || 'N/A'}</td>
-  <td>$${parseFloat(order.price || 0).toFixed(2)}</td>
-  <td>${order.status || 'Pending'}</td>
-  <td>${new Date(order.created_at).toLocaleDateString()}</td>
-  <td>$${parseFloat(order.cashback || 0).toFixed(2)}</td>`;
+    coachingOrders.forEach(order => {
+        const row = document.createElement('tr');
+        row.dataset.orderId = order.order_id;
 
-                    if ((order.status || '').trim().toLowerCase() === 'completed') {
+        row.innerHTML = `
+            <td><button class="order-id-button" data-order-id="${order.order_id}">?</button></td>
+            <td>${order.booked_hours || 'N/A'}</td>
+            <td>${order.coach_username || order.coach_name || 'N/A'}</td>
+            <td>$${parseFloat(order.price || 0).toFixed(2)}</td>
+            <td>${order.status || 'Pending'}</td>
+            <td>${new Date(order.created_at).toLocaleDateString()}</td>
+            <td>$${parseFloat(order.cashback || 0).toFixed(2)}</td>`;
 
-                        row.classList.add('customer-completed-order');
-                    }
-tb2.appendChild(row);
+        if ((order.status || '').trim().toLowerCase() === 'completed') {
+            row.classList.add('customer-completed-order');
+        }
 
-                    
-                });
+        tb2.appendChild(row);
+    });
 
-                ordersDiv.appendChild(Object.assign(document.createElement('h3'), { textContent: 'Coaching Orders' }));
-                ordersDiv.appendChild(tbl2);
-            }
+    ordersDiv.appendChild(Object.assign(document.createElement('h3'), { textContent: 'Coaching Orders' }));
+    ordersDiv.appendChild(tbl2);
+}
+
 
             // No orders at all?
             if (!boostOrders.length && !coachingOrders.length) {
