@@ -628,26 +628,7 @@ body {
 #coupon-management button[type="submit"]:hover {
     background-color: #218838;
 }
-.orders-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-.orders-table th, .orders-table td {
-    border: 1px solid #ccc;
-    padding: 8px;
-    text-align: left;
-}
-.orders-table th {
-    background-color: #f4f4f4;
-}
-.claim-btn, .cancel-btn, .complete-btn, .approve-btn, .order-id-button {
-    padding: 5px 10px;
-    margin: 2px;
-    cursor: pointer;
-}
-.completed-order {
-    background-color: #e0e0e0;
-}
+
 
 
 /* Media queries */
