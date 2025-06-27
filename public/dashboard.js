@@ -376,141 +376,34 @@ function renderCoachingOrders(orders, containerId) {
     });
 
     // Complete button event listeners
-document.querySelectorAll('.complete-btn').forEach(button => {
-    button.addEventListener('click', async function (e) {
-        e.stopPropagation();
-        const orderId = button.getAttribute('data-order-id');
-        if (confirm(`Mark coaching order ${orderId} as completed?`)) {
-            try {
-                // 1. Mark the order as complete
-                const completeResponse = await fetch('/api/complete-coaching-order', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ userId, orderId })
-                });
-
-                if (!completeResponse.ok) {
-                    const errorData = await completeResponse.json();
-                    throw new Error(errorData.error || `HTTP error! Status: ${completeResponse.status}`);
+    document.querySelectorAll('.complete-btn').forEach(button => {
+        button.addEventListener('click', async function (e) {
+            e.stopPropagation();
+            const orderId = button.getAttribute('data-order-id');
+            if (confirm(`Mark coaching order ${orderId} as completed?`)) {
+                try {
+                    
+                    const response = await fetch('/api/complete-coaching-order', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            
+                        },
+                        body: JSON.stringify({ userId, orderId })
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+                    }
+                    alert('Coaching order marked as completed!');
+                    fetchCoachingOrders();
+                } catch (error) {
+                    console.error('Error completing coaching order:', error.message);
+                    alert(`Failed to complete coaching order: ${error.message}`);
                 }
-
-                // 2. Parse response to get price
-                const orderData = await completeResponse.json();
-                const price = parseFloat(orderData.price);
-                if (isNaN(price) || price <= 0) {
-                    throw new Error('Invalid price returned from server.');
-                }
-
-                // 3. Send payout request to admin
-                const payoutResponse = await fetch('/api/request-payout', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                  body: JSON.stringify({
-  userId,
-  orderId,
-  source: 'coaching',
-  paymentMethod: 'Pending',
-  paymentDetails: 'Auto-requested for completed coaching session'
-})
-
-                });
-
-                if (!payoutResponse.ok) {
-                    const payoutError = await payoutResponse.json();
-                    throw new Error(payoutError.error || 'Payout request failed.');
-                }
-
-                alert('Coaching order completed and payout requested!');
-                fetchCoachingOrders(); // refresh the panel only after both succeed
-            } catch (error) {
-                console.error('❌ Error completing coaching order:', error.message);
-                alert(`❌ Failed to complete coaching order: ${error.message}`);
-                // ❗ Don't hide the button or mark order as completed if anything fails
             }
-        }
-    });
-});
-function renderCompletedCoachingOrdersTable(orders) {
-    const container = document.getElementById('completed-orders-panel');
-    if (!container) {
-        console.error('Error: completed-orders-panel container not found');
-        return;
-    }
-
-    if (!Array.isArray(orders) || orders.length === 0) {
-        container.innerHTML = '<p>No completed coaching orders found.</p>';
-        return;
-    }
-
-    const table = document.createElement('table');
-    table.className = 'orders-table';
-    table.innerHTML = `
-        <thead>
-            <tr>
-                <th>Order ID</th>
-                <th>Customer</th>
-                <th>Coach</th>
-                <th>Game</th>
-                <th>Hours</th>
-                <th>Price</th>
-                <th>Cashback</th>
-                <th>Date</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    `;
-
-    const tbody = table.querySelector('tbody');
-    orders.forEach(order => {
-        if (!order || !order.order_id) {
-            console.warn('Skipping invalid coaching order:', order);
-            return;
-        }
-        console.log('Rendering completed coaching order:', order);
-        const row = document.createElement('tr');
-        row.dataset.orderId = order.order_id;
-        row.innerHTML = `
-            <td><button class="order-id-button" data-order-id="${order.order_id}">?</button></td>
-            <td>${order.customer_username || order.customer_name || 'Unknown'}</td>
-            <td>${order.coach_username || order.coach_name || 'Unknown'}</td>
-            <td>${order.game_type || 'N/A'}</td>
-            <td>${order.booked_hours || 'N/A'}</td>
-            <td>$${parseFloat(order.price || order.total_price || 0).toFixed(2)}</td>
-            <td>$${parseFloat(order.cashback || 0).toFixed(2)}</td>
-            <td>${order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}</td>
-            <td><button class="info-button" data-order-id="${order.order_id}">Info</button></td>
-        `;
-        tbody.appendChild(row);
-    });
-
-    container.innerHTML = '';
-    container.appendChild(table);
-
-    // Event listeners for order ID buttons
-    document.querySelectorAll('.order-id-button').forEach(button => {
-        button.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const orderId = button.getAttribute('data-order-id');
-            showOrderIdModal(orderId);
         });
     });
-
-    // Event listeners for info buttons
-    document.querySelectorAll('.info-button').forEach(button => {
-        button.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const orderId = button.getAttribute('data-order-id');
-            const order = orders.find(o => String(o.order_id) === String(orderId));
-            showOrderDetailsModal(order);
-        });
-    });
-}
-
 
     // Row click event listeners
     table.querySelectorAll('tbody tr').forEach(row => {
@@ -539,54 +432,6 @@ function renderCompletedCoachingOrdersTable(orders) {
     });
 }
 
-
-async function fetchAndRenderCompletedCoachingOrders() {
-    const userId = localStorage.getItem('userId');
-    if (!userId || isNaN(userId)) {
-        console.error('No valid userId found in localStorage');
-        alert('Please log in to view completed coaching orders.');
-        window.location.href = '/league-services.html';
-        return;
-    }
-
-    try {
-        console.log('Fetching completed coaching orders for userId:', userId);
-        const response = await fetch(`/api/fetch-coaching-orders?userId=${encodeURIComponent(userId)}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include'
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`);
-        }
-
-        const completedOrders = await response.json();
-        if (!Array.isArray(completedOrders)) {
-            console.error('Invalid response format:', completedOrders);
-            throw new Error('Invalid response format from server');
-        }
-
-        console.log('Completed coaching orders:', completedOrders);
-        renderCompletedCoachingOrdersTable(completedOrders);
-    } catch (error) {
-        console.error('Failed to fetch completed coaching orders:', error.message);
-        const container = document.getElementById('completed-orders-panel');
-        if (container) {
-            container.innerHTML = `<p style="color: red;">Failed to load completed coaching orders: ${error.message}. Please try again later.</p>`;
-        }
-    }
-}
-
-
-// ✅ Call on admin load
-if (localStorage.getItem('userRole') === 'admin') {
-    fetchAndRenderCompletedCoachingOrders();
-}
-
     async function fetchCompletedOrders() {
         try {
             console.log('Fetching completed orders for userId:', userId);
@@ -603,46 +448,6 @@ if (localStorage.getItem('userRole') === 'admin') {
             document.getElementById('completed-orders').innerHTML = '<p>Error loading completed orders. Please try again later.</p>';
         }
     }
-    async function fetchCompletedCoachingOrders() {
-  try {
-    const res = await fetch('/api/completed-coaching-orders');
-    const coachingOrders = await res.json();
-    console.log('✅ Admin Coaching Orders:', coachingOrders);
-
-    const table = document.createElement('table');
-    table.className = 'orders-table';
-    table.innerHTML = `
-      <thead>
-        <tr>
-          <th>Order ID</th>
-          <th>Customer</th>
-          <th>Coach</th>
-          <th>Hours</th>
-          <th>Price</th>
-          <th>Cashback</th>
-          <th>Date</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${coachingOrders.map(order => `
-          <tr>
-            <td>${order.order_id}</td>
-            <td>${order.customer_name}</td>
-            <td>${order.coach_name}</td>
-            <td>${order.booked_hours}</td>
-            <td>$${parseFloat(order.total_price).toFixed(2)}</td>
-            <td>$${parseFloat(order.cashback).toFixed(2)}</td>
-            <td>${new Date(order.created_at).toLocaleDateString()}</td>
-          </tr>
-        `).join('')}
-      </tbody>
-    `;
-    document.getElementById('completed-orders-panel').appendChild(table);
-  } catch (err) {
-    console.error('❌ Failed to fetch admin coaching orders:', err);
-  }
-}
-
 
     async function fetchPayoutHistory() {
         try {
@@ -1649,49 +1454,48 @@ if (localStorage.getItem('userRole') === 'admin') {
             }
 
             // COACHING ORDERS TABLE
-           // COACHING ORDERS TABLE
-if (coachingOrders.length) {
-    const tbl2 = document.createElement('table');
-    tbl2.className = 'orders-table';
-    tbl2.innerHTML = `
-        <thead>
-          <tr>
-            <th>Order ID</th>
-            <th>Hours</th>
-            <th>Coach</th>
-            <th>Price</th>
-            <th>Status</th>
-            <th>Ordered On</th>
-            <th>Cashback</th>
-          </tr>
-        </thead>
-        <tbody></tbody>`;
-    const tb2 = tbl2.querySelector('tbody');
+            if (coachingOrders.length) {
+                const tbl2 = document.createElement('table');
+                tbl2.className = 'orders-table';
+                tbl2.innerHTML = `
+                    <thead>
+                      <tr>
+                        <th>Order ID</th>
+                        <th>Details</th>
+                        <th>Hours</th>
+                        <th>Coach</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                        <th>Ordered On</th>
+                        <th>Cashback</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>`;
+                const tb2 = tbl2.querySelector('tbody');
 
-    coachingOrders.forEach(order => {
-        const row = document.createElement('tr');
-        row.dataset.orderId = order.order_id;
+                coachingOrders.forEach(order => {
+                    const row = document.createElement('tr');
+                    row.dataset.orderId = order.order_id;
+                    row.innerHTML = `
+                        <td><button class="order-id-button" data-order-id="${order.order_id}">?</button></td>
+                        <td>${order.booked_hours||'N/A'}</td>
+                        <td>${order.coach_username||order.coach_name||'N/A'}</td>
+                        <td>$${parseFloat(order.price||0).toFixed(2)}</td>
+                        <td>${order.status||'Pending'}</td>
+                        <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                        <td>$${parseFloat(order.cashback||0).toFixed(2)}</td>`;
+                    if ((order.status || '').trim().toLowerCase() === 'completed') {
 
-        row.innerHTML = `
-            <td><button class="order-id-button" data-order-id="${order.order_id}">?</button></td>
-            <td>${order.booked_hours || 'N/A'}</td>
-            <td>${order.coach_username || order.coach_name || 'N/A'}</td>
-            <td>$${parseFloat(order.price || 0).toFixed(2)}</td>
-            <td>${order.status || 'Pending'}</td>
-            <td>${new Date(order.created_at).toLocaleDateString()}</td>
-            <td>$${parseFloat(order.cashback || 0).toFixed(2)}</td>`;
+                        row.classList.add('customer-completed-order');
+                    }
+tb2.appendChild(row);
 
-        if ((order.status || '').trim().toLowerCase() === 'completed') {
-            row.classList.add('customer-completed-order');
-        }
+                    
+                });
 
-        tb2.appendChild(row);
-    });
-
-    ordersDiv.appendChild(Object.assign(document.createElement('h3'), { textContent: 'Coaching Orders' }));
-    ordersDiv.appendChild(tbl2);
-}
-
+                ordersDiv.appendChild(Object.assign(document.createElement('h3'), { textContent: 'Coaching Orders' }));
+                ordersDiv.appendChild(tbl2);
+            }
 
             // No orders at all?
             if (!boostOrders.length && !coachingOrders.length) {
