@@ -1487,6 +1487,7 @@ function renderCoachingOrders(orders, containerId) {
                     if (order.status === 'completed') {
                         row.classList.add('customer-completed-order');
                     }
+tb2.appendChild(row);
 
                     
                 });
