@@ -1047,7 +1047,10 @@ app.post('/api/complete-coaching-order', authenticate, checkRole(['coach', 'admi
     const connection = await pool.getConnection();
     try {
       await connection.beginTransaction();
-      await connection.query('UPDATE coaching_orders SET status = "completed" WHERE order_id = ?', [orderId]);
+      await connection.query(
+        'UPDATE coaching_orders SET status = ?, payout_status = ?, updated_at = NOW() WHERE order_id = ?',
+        ['completed', 'Pending', orderId]
+      );
       await connection.commit();
       res.json({ success: true, message: 'Coaching order completed successfully' });
     } catch (error) {
@@ -1065,35 +1068,35 @@ app.post('/api/complete-coaching-order', authenticate, checkRole(['coach', 'admi
 app.post('/api/approve-payout', authenticate, checkRole(['admin']), async (req, res) => {
   const { orderId } = req.body;
   try {
-    if (!orderId) {
-      return res.status(400).json({ error: 'Missing orderId' });
-    }
     const connection = await pool.getConnection();
     try {
       await connection.beginTransaction();
-      const [orderRows] = await connection.query(
-        'SELECT o.price, o.payout_status, bo.booster_id FROM orders o ' +
-        'JOIN booster_orders bo ON o.order_id = bo.order_id ' +
-        'WHERE o.order_id = ? AND o.status = "Completed"',
-        [orderId]
+      // Check if order exists in orders or coaching_orders
+      const [boostOrderRows] = await connection.query(
+        'SELECT user_id, booster_id, price, payout_status FROM orders WHERE order_id = ? AND status = ? AND payout_status = ?',
+        [orderId, 'Completed', 'Pending']
       );
-      if (!orderRows.length || !orderRows[0].booster_id) {
+      const [coachingOrderRows] = await connection.query(
+        'SELECT user_id, coach_id, total_price AS price, payout_status FROM coaching_orders WHERE order_id = ? AND status = ? AND payout_status = ?',
+        [orderId, 'Completed', 'Pending']
+      );
+      if (!boostOrderRows.length && !coachingOrderRows.length) {
         await connection.rollback();
-        return res.status(400).json({ error: 'Order not found, not completed, or no booster assigned' });
+        return res.status(400).json({ error: 'Order not found or not ready for payout' });
       }
-      if (orderRows[0].payout_status === 'Paid') {
-        await connection.rollback();
-        return res.status(400).json({ error: 'Payout already processed' });
-      }
-      const boosterId = orderRows[0].booster_id;
-      const payout = parseFloat(orderRows[0].price) * 0.85;
+      const isBoostOrder = boostOrderRows.length > 0;
+      const order = isBoostOrder ? boostOrderRows[0] : coachingOrderRows[0];
+      const workerId = isBoostOrder ? order.booster_id : order.coach_id;
+      const payoutAmount = isBoostOrder ? parseFloat(order.price) * 0.85 : parseFloat(order.price) * 0.80;
+      // Update payout_status
+      await connection.query(
+        `UPDATE ${isBoostOrder ? 'orders' : 'coaching_orders'} SET payout_status = ?, updated_at = NOW() WHERE order_id = ?`,
+        ['Paid', orderId]
+      );
+      // Update user's account_balance
       await connection.query(
         'UPDATE users SET account_balance = account_balance + ? WHERE id = ?',
-        [payout, boosterId]
-      );
-      await connection.query(
-        'UPDATE orders SET payout_status = "Paid" WHERE order_id = ?',
-        [orderId]
+        [payoutAmount, workerId]
       );
       await connection.commit();
       res.json({ success: true, message: 'Payout approved successfully' });
@@ -1111,18 +1114,31 @@ app.post('/api/approve-payout', authenticate, checkRole(['admin']), async (req, 
 
 app.get('/api/completed-orders', authenticate, checkRole(['admin']), async (req, res) => {
   try {
-    const [rows] = await pool.query(`
-      SELECT o.order_id, o.user_id, u.username AS customer_username, o.current_rank, o.desired_rank, o.current_lp, o.desired_lp, o.price, o.status, o.cashback, DATE_FORMAT(o.created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at, o.extras, o.payout_status, bo.booster_id, ub.username AS booster_username
+    const [boostOrders] = await pool.query(`
+      SELECT o.order_id, o.user_id, u.username AS customer_username, o.current_rank, o.desired_rank, o.current_lp, o.desired_lp, o.price, o.status, o.cashback, DATE_FORMAT(o.created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at, o.extras, o.payout_status, bo.booster_id, ub.username AS booster_username, 'boost' AS order_type
       FROM orders o
       LEFT JOIN booster_orders bo ON o.order_id = bo.order_id
       LEFT JOIN users u ON o.user_id = u.id
       LEFT JOIN users ub ON bo.booster_id = ub.id
       WHERE o.status = 'Completed'
     `);
-    const orders = rows.map(order => ({
-      ...order,
-      booster_payout: (parseFloat(order.price) * 0.85).toFixed(2)
-    }));
+    const [coachingOrders] = await pool.query(`
+      SELECT o.order_id, o.user_id, u.username AS customer_username, o.coach_id, uc.username AS coach_username, o.coach_name, o.game AS game_type, o.hours AS booked_hours, o.total_price AS price, o.status, o.cashback, DATE_FORMAT(o.created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at, o.payout_status, 'coaching' AS order_type
+      FROM coaching_orders o
+      LEFT JOIN users u ON o.user_id = u.id
+      LEFT JOIN users uc ON o.coach_id = uc.id
+      WHERE o.status = 'Completed'
+    `);
+    const orders = [
+      ...boostOrders.map(order => ({
+        ...order,
+        booster_payout: (parseFloat(order.price) * 0.85).toFixed(2)
+      })),
+      ...coachingOrders.map(order => ({
+        ...order,
+        coach_payout: (parseFloat(order.price) * 0.80).toFixed(2) // Matches renderCoachingOrders logic
+      }))
+    ];
     res.json(orders);
   } catch (error) {
     console.error('Error fetching completed orders:', error.message);
@@ -1130,7 +1146,7 @@ app.get('/api/completed-orders', authenticate, checkRole(['admin']), async (req,
   }
 });
 
-app.post('/api/request-payout', authenticate, checkRole(['booster']), async (req, res) => {
+app.post('/api/request-payout', authenticate, checkRole(['booster', 'coach']), async (req, res) => {
   const { amount, paymentMethod, paymentDetails } = req.body;
   try {
     const [userRows] = await pool.query('SELECT account_balance FROM users WHERE id = ?', [req.user.id]);
@@ -1165,6 +1181,20 @@ app.post('/api/request-payout', authenticate, checkRole(['booster']), async (req
     }
   } catch (error) {
     console.error('Error requesting payout:', error.message);
+    res.status(500).json({ error: 'Internal server error', details: error.message });
+  }
+});
+
+app.get('/api/payout-history', authenticate, checkRole(['booster', 'coach', 'admin']), async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT id, user_id, amount, status, payment_method, payment_details, requested_at, processed_at, admin_notes
+      FROM payout_requests
+      WHERE user_id = ? ORDER BY requested_at DESC
+    `, [req.user.id]);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching payout history:', error.message);
     res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 });
