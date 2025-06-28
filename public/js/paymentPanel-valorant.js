@@ -78,9 +78,9 @@ function calculateRankDistance(startRank, endRank) {
 
 function calculateBasePrice() {
     const startRank = window.currentRank || 'Iron';
-    const startDivision = window.currentDivision || 'I';
+    const startDivision = window.currentRank === 'Immortal' ? '' : (window.currentDivision || 'I');
     const endRank = window.desiredRank || 'Iron';
-    const endDivision = window.desiredDivision || 'II';
+    const endDivision = window.desiredRank === 'Immortal' ? '' : (window.desiredDivision || 'II');
     const rrRange = window.currentLP && ['0-20', '21-40', '41-60', '61-80', '81-100'].includes(window.currentLP) ? window.currentLP : '0-20';
 
     console.log('Calculating price for:', startRank, startDivision, 'to', endRank, endDivision, 'RR:', rrRange);
@@ -130,7 +130,7 @@ function calculateBasePrice() {
                         const nextDiv = `${rankOrder[i + 1]} ${divisionOrder[j + 1]}`;
                         const divStepPrice = priceData[currentDiv]?.[nextDiv] || 0;
                         console.log(`Step 2 (intermediate): ${currentDiv} to ${nextDiv} = $${divStepPrice}`);
-                        totalPrice += divStepPrice;
+                        totalPrice += stepPrice;
                     }
                 }
             }
@@ -339,9 +339,9 @@ function updateTotalPrice() {
 
     const orderData = {
         currentRank: window.currentRank || 'Iron',
-        currentDivision: window.currentDivision || 'I',
+        currentDivision: window.currentRank === 'Immortal' ? '' : (window.currentDivision || 'I'),
         desiredRank: window.desiredRank || 'Iron',
-        desiredDivision: window.desiredDivision || 'II',
+        desiredDivision: window.desiredRank === 'Immortal' ? '' : (window.desiredDivision || 'II'),
         currentLP: window.currentLP || '0-20',
         currentRR: window.currentRR || 0,
         desiredRR: window.desiredRR || 0,
@@ -365,7 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.querySelectorAll('.option-toggle').forEach(checkbox => {
-        console.log('checkbox', checkbox)
+        console.log('checkbox', checkbox);
         checkbox.addEventListener('change', () => {
             console.log('Extra option changed:', checkbox.closest('.option-row')?.querySelector('span')?.textContent.trim() || 'unknown', checkbox.checked);
             debouncedUpdateTotalPrice();

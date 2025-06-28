@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
         label.textContent = labelText;
         const input = document.createElement('input');
         input.id = inputId;
-        input.type = 'text';
+        input.type = 'number';
         input.placeholder = 'Enter RR';
         input.classList.add('input-lp');
         input.min = '0';
@@ -136,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (desiredRRContainer) desiredRRContainer.style.display = (isDesiredImmortal || isAscendantToImmortal) ? '' : 'none';
         if (desiredRRInput && (isDesiredImmortal || isAscendantToImmortal)) {
-            if (!desiredRRInput.value || isDesiredImmortal) {
+            if (!desiredRRInput.value) {
                 desiredRRInput.value = '';
                 window.desiredRR = 0;
             }
