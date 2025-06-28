@@ -15,7 +15,7 @@ const priceData = {
     "Platinum II": { "Platinum III": 9.96 },
     "Platinum III": { "Diamond I": 11.95 },
     "Diamond I": { "Diamond II": 16.82 },
-    "Diamond II": { "Diamond III": 18.93},
+    "Diamond II": { "Diamond III": 18.93 },
     "Diamond III": { "Ascendant I": 29.44 },
     "Ascendant I": { "Ascendant II": 40.65 },
     "Ascendant II": { "Ascendant III": 45.43 },
@@ -81,7 +81,7 @@ function calculateBasePrice() {
     const startDivision = window.currentRank === 'Immortal' ? '' : (window.currentDivision || 'I');
     const endRank = window.desiredRank || 'Iron';
     const endDivision = window.desiredRank === 'Immortal' ? '' : (window.desiredDivision || 'II');
-    const rrRange = window.currentRank === 'Immortal' ? null : (window.currentLP && ['0-20', '21-40', '41-60', '61-80', '81-100'].includes(window.currentLP) ? window.currentLP : '0-20');
+    const rrRange = window.currentRank === 'Immortal' ? null : (window.currentRR && ['0-20', '21-40', '41-60', '61-80', '81-100'].includes(window.currentRR) ? window.currentRR : '0-20');
 
     console.log('Calculating price for:', startRank, startDivision, 'to', endRank, endDivision, 'RR:', rrRange);
 
@@ -350,17 +350,14 @@ function updateTotalPrice() {
         currentDivision: window.currentRank === 'Immortal' ? '' : (window.currentDivision || 'I'),
         desiredRank: window.desiredRank || 'Iron',
         desiredDivision: window.desiredRank === 'Immortal' ? '' : (window.desiredDivision || 'II'),
-        currentRR: window.currentRR || 0,
-        desiredRR: window.desiredRR || 0,
+        currentRR: window.currentRank === 'Immortal' ? (window.currentRR || 0) : (window.currentRR || '0-20'),
+        desiredRR: window.desiredRank === 'Immortal' ? (window.desiredRR || 0) : '0',
         finalPrice: finalPrice.toFixed(2),
         extras,
         couponApplied: isCouponApplied,
         discountRate: discountRate,
         game: 'Valorant'
     };
-    if (window.currentRank !== 'Immortal') {
-        orderData.currentLP = window.currentLP || '0-20';
-    }
     sessionStorage.setItem('orderData', JSON.stringify(orderData));
     console.log('Order data saved:', orderData);
 }
@@ -370,12 +367,12 @@ const debouncedUpdateTotalPrice = debounce(updateTotalPrice, 100);
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, setting up listeners');
 
-    // Clear stale sessionStorage and reset currentLP for Immortal
+    // Clear stale sessionStorage
     const orderData = JSON.parse(sessionStorage.getItem('orderData')) || {};
-    if (window.currentRank === 'Immortal' && orderData.currentLP) {
+    if (orderData.currentLP) {
         delete orderData.currentLP;
         sessionStorage.setItem('orderData', JSON.stringify(orderData));
-        console.log('Cleared stale currentLP from sessionStorage for Immortal rank');
+        console.log('Cleared stale currentLP from sessionStorage');
     }
 
     const couponInput = document.querySelector('#coupon-input');
@@ -388,7 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (rrDropdown) {
         if (window.currentRank === 'Immortal') {
             rrDropdown.disabled = true;
-            window.currentLP = null;
+            window.currentRR = 0;
             console.log('Disabled RR dropdown for Immortal rank');
         } else {
             rrDropdown.disabled = false;
@@ -396,8 +393,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         rrDropdown.addEventListener('change', () => {
             if (window.currentRank !== 'Immortal') {
-                window.currentLP = rrDropdown.value;
-                console.log('RR dropdown changed:', window.currentLP);
+                window.currentRR = rrDropdown.value;
+                console.log('RR dropdown changed:', window.currentRR);
                 debouncedUpdateTotalPrice();
             }
         });
@@ -432,25 +429,17 @@ document.addEventListener('DOMContentLoaded', () => {
             if (rank && rank !== window.currentRank) {
                 window.currentRank = rank;
                 window.currentDivision = rank === 'Immortal' ? '' : 'III';
-                window.currentRR = rank === 'Immortal' ? 0 : window.currentRR;
+                window.currentRR = rank === 'Immortal' ? 0 : (window.currentRR || '0-20');
                 if (rank === 'Immortal') {
-                    window.currentLP = null;
                     if (rrDropdown) {
                         rrDropdown.disabled = true;
                         console.log('Disabled RR dropdown for Immortal rank');
                     }
-                    // Clear currentLP from sessionStorage
-                    const orderData = JSON.parse(sessionStorage.getItem('orderData')) || {};
-                    if (orderData.currentLP) {
-                        delete orderData.currentLP;
-                        sessionStorage.setItem('orderData', JSON.stringify(orderData));
-                        console.log('Cleared currentLP from sessionStorage on rank change to Immortal');
-                    }
                 } else if (rrDropdown) {
                     rrDropdown.disabled = false;
-                    window.currentLP = rrDropdown.value || '0-20';
+                    window.currentRR = rrDropdown.value || '0-20';
                 }
-                console.log('Current rank changed:', window.currentRank, 'Division:', window.currentDivision, 'RR:', window.currentRR, 'LP:', window.currentLP);
+                console.log('Current rank changed:', window.currentRank, 'Division:', window.currentDivision, 'RR:', window.currentRR);
                 debouncedUpdateTotalPrice();
             }
         });
@@ -479,7 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 window.desiredRank = rank;
                 window.desiredDivision = rank === 'Immortal' ? '' : 'III';
-                window.desiredRR = rank === 'Immortal' ? 0 : window.desiredRR;
+                window.desiredRR = rank === 'Immortal' ? 0 : '0';
                 console.log('Desired rank changed:', window.desiredRank, 'Division:', window.desiredDivision, 'RR:', window.desiredRR);
                 debouncedUpdateTotalPrice();
             }
