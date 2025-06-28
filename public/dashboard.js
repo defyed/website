@@ -1692,10 +1692,10 @@ tb2.appendChild(row);
                 <td>${extras}</td>
                 <td>${order.payout_status || 'Pending'}</td>
                 <td>
-                    <button class="approve-btn" data-order-id="${order.order_id}" ${order.payout_status === 'Paid' ? 'disabled' : ''}>
-                        Approve Payout ($${payout})
-                    </button>
-                </td>
+    <button class="approve-btn" data-order-id="${order.order_id}" data-order-type="${order.order_type}" ${order.payout_status === 'Paid' ? 'disabled' : ''}>
+        Approve Payout ($${payout})
+    </button>
+</td>
             `;
         } else {
             rowData = `
@@ -1848,11 +1848,14 @@ if (isAvailable) {
     });
 }
 
+// Approve button event listeners
+// Approve button event listeners
 if (isCompleted) {
-    document.querySelectorAll('.approve-btn').forEach(button => {
+    ordersDiv.querySelectorAll('.approve-btn').forEach(button => {
         button.addEventListener('click', async (e) => {
             e.stopPropagation();
             const orderId = button.getAttribute('data-order-id');
+            const orderType = button.getAttribute('data-order-type');
             const userId = localStorage.getItem('userId');
             if (!userId) {
                 console.error('No userId found in localStorage');
@@ -1862,21 +1865,24 @@ if (isCompleted) {
             }
             if (confirm(`Are you sure you want to approve the payout for order ${orderId}?`)) {
                 try {
-                    console.log('Approving payout for orderId:', orderId, 'with userId:', userId);
-                    const response = await fetch('/api/approve-payout', {
+                    const endpoint = orderType === 'coaching' ? '/api/approve-coaching-payout' : '/api/approve-payout';
+                    console.log('Approving payout for orderId:', orderId, 'type:', orderType, 'with userId:', userId);
+                    const response = await fetch(endpoint, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ userId, orderId })
                     });
                     const data = await response.json();
                     if (!response.ok) {
-                        throw new Error(data.error || 'Failed to approve payout');
+                        throw new Error(data.error || `Failed to approve ${orderType} payout`);
                     }
                     console.log('Payout approved successfully:', data);
                     alert('Payout approved successfully!');
                     await fetchCompletedOrders();
+                    // Optionally refresh Payout Management panel if it exists
+                    if (typeof fetchPayoutRequests === 'function') {
+                        await fetchPayoutRequests();
+                    }
                 } catch (error) {
                     console.error('Error approving payout:', error.message);
                     alert('Failed to approve payout: ' + error.message);
@@ -1885,7 +1891,6 @@ if (isCompleted) {
         });
     });
 }
-
     document.querySelectorAll('.order-id-button').forEach(button => {
         button.addEventListener('click', (e) => {
             e.stopPropagation();

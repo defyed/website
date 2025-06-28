@@ -1074,51 +1074,52 @@ app.post('/api/complete-coaching-order', authenticate, checkRole(['coach', 'admi
   }
 });
 
-app.post('/api/approve-payout', authenticate, checkRole(['admin']), async (req, res) => {
-  const { orderId } = req.body;
-  try {
-    if (!orderId) {
-      return res.status(400).json({ error: 'Missing orderId' });
-    }
-    const connection = await pool.getConnection();
+app.post('/api/approve-coaching-payout', authenticate, checkRole(['admin']), async (req, res) => {
+    const { orderId, userId } = req.body;
     try {
-      await connection.beginTransaction();
-      const [orderRows] = await connection.query(
-        'SELECT o.price, o.payout_status, bo.booster_id FROM orders o ' +
-        'JOIN booster_orders bo ON o.order_id = bo.order_id ' +
-        'WHERE o.order_id = ? AND o.status = "Completed"',
-        [orderId]
-      );
-      if (!orderRows.length || !orderRows[0].booster_id) {
-        await connection.rollback();
-        return res.status(400).json({ error: 'Order not found, not completed, or no booster assigned' });
-      }
-      if (orderRows[0].payout_status === 'Paid') {
-        await connection.rollback();
-        return res.status(400).json({ error: 'Payout already processed' });
-      }
-      const boosterId = orderRows[0].booster_id;
-      const payout = parseFloat(orderRows[0].price) * 0.85;
-      await connection.query(
-        'UPDATE users SET account_balance = account_balance + ? WHERE id = ?',
-        [payout, boosterId]
-      );
-      await connection.query(
-        'UPDATE orders SET payout_status = "Paid" WHERE order_id = ?',
-        [orderId]
-      );
-      await connection.commit();
-      res.json({ success: true, message: 'Payout approved successfully' });
+        if (!orderId || !userId) {
+            return res.status(400).json({ error: 'Missing orderId or userId' });
+        }
+        const connection = await pool.getConnection();
+        try {
+            await connection.beginTransaction();
+            // Fetch the coaching order
+            const [orderRows] = await connection.query(
+                'SELECT total_price, payout_status, coach_id FROM coaching_orders WHERE order_id = ? AND status = "completed"',
+                [orderId]
+            );
+            if (!orderRows.length || !orderRows[0].coach_id) {
+                await connection.rollback();
+                return res.status(400).json({ error: 'Order not found, not completed, or no coach assigned' });
+            }
+            if (orderRows[0].payout_status === 'Paid') {
+                await connection.rollback();
+                return res.status(400).json({ error: 'Payout already processed' });
+            }
+            const coachId = orderRows[0].coach_id;
+            const payout = parseFloat(orderRows[0].total_price) * 0.85; // Adjust multiplier as needed
+            // Update coach's account balance
+            await connection.query(
+                'UPDATE users SET account_balance = account_balance + ? WHERE id = ?',
+                [payout, coachId]
+            );
+            // Update payout status
+            await connection.query(
+                'UPDATE coaching_orders SET payout_status = "Paid" WHERE order_id = ?',
+                [orderId]
+            );
+            await connection.commit();
+            res.json({ success: true, message: 'Coaching payout approved successfully' });
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        } finally {
+            connection.release();
+        }
     } catch (error) {
-      await connection.rollback();
-      throw error;
-    } finally {
-      connection.release();
+        console.error('Error approving coaching payout:', error.message);
+        res.status(500).json({ error: 'Internal server error', details: error.message });
     }
-  } catch (error) {
-    console.error('Error approving payout:', error.message);
-    res.status(500).json({ error: 'Internal server error', details: error.message });
-  }
 });
 
 app.get('/api/completed-orders', authenticate, checkRole(['admin']), async (req, res) => {
@@ -1178,48 +1179,51 @@ app.get('/api/completed-orders', authenticate, checkRole(['admin']), async (req,
   }
 });
 app.post('/api/approve-coaching-payout', authenticate, checkRole(['admin']), async (req, res) => {
-  const { orderId } = req.body;
-  try {
-    if (!orderId) {
-      return res.status(400).json({ error: 'Missing orderId' });
-    }
-    const connection = await pool.getConnection();
+    const { orderId, userId } = req.body;
     try {
-      await connection.beginTransaction();
-      const [orderRows] = await connection.query(
-        'SELECT total_price, payout_status, coach_id FROM coaching_orders WHERE order_id = ? AND status = "completed"',
-        [orderId]
-      );
-      if (!orderRows.length || !orderRows[0].coach_id) {
-        await connection.rollback();
-        return res.status(400).json({ error: 'Coaching order not found, not completed, or no coach assigned' });
-      }
-      if (orderRows[0].payout_status === 'Paid') {
-        await connection.rollback();
-        return res.status(400).json({ error: 'Payout already processed' });
-      }
-      const coachId = orderRows[0].coach_id;
-      const payout = parseFloat(orderRows[0].total_price) * 0.85;
-      await connection.query(
-        'UPDATE users SET account_balance = account_balance + ? WHERE id = ?',
-        [payout, coachId]
-      );
-      await connection.query(
-        'UPDATE coaching_orders SET payout_status = "Paid" WHERE order_id = ?',
-        [orderId]
-      );
-      await connection.commit();
-      res.json({ success: true, message: 'Coaching payout approved successfully' });
+        if (!orderId || !userId) {
+            return res.status(400).json({ error: 'Missing orderId or userId' });
+        }
+        const connection = await pool.getConnection();
+        try {
+            await connection.beginTransaction();
+            // Fetch the coaching order
+            const [orderRows] = await connection.query(
+                'SELECT total_price, payout_status, coach_id FROM coaching_orders WHERE order_id = ? AND status = "completed"',
+                [orderId]
+            );
+            if (!orderRows.length || !orderRows[0].coach_id) {
+                await connection.rollback();
+                return res.status(400).json({ error: 'Order not found, not completed, or no coach assigned' });
+            }
+            if (orderRows[0].payout_status === 'Paid') {
+                await connection.rollback();
+                return res.status(400).json({ error: 'Payout already processed' });
+            }
+            const coachId = orderRows[0].coach_id;
+            const payout = parseFloat(orderRows[0].total_price) * 0.85; // Adjust multiplier as needed
+            // Update coach's account balance
+            await connection.query(
+                'UPDATE users SET account_balance = account_balance + ? WHERE id = ?',
+                [payout, coachId]
+            );
+            // Update payout status
+            await connection.query(
+                'UPDATE coaching_orders SET payout_status = "Paid" WHERE order_id = ?',
+                [orderId]
+            );
+            await connection.commit();
+            res.json({ success: true, message: 'Coaching payout approved successfully' });
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        } finally {
+            connection.release();
+        }
     } catch (error) {
-      await connection.rollback();
-      throw error;
-    } finally {
-      connection.release();
+        console.error('Error approving coaching payout:', error.message);
+        res.status(500).json({ error: 'Internal server error', details: error.message });
     }
-  } catch (error) {
-    console.error('Error approving coaching payout:', error.message);
-    res.status(500).json({ error: 'Internal server error', details: error.message });
-  }
 });
 
 app.post('/api/request-payout', authenticate, checkRole(['booster']), async (req, res) => {
