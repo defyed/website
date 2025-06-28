@@ -128,7 +128,7 @@
                     // Ensure initial hidden state
                     currentLPElement.classList.add('hidden');
                     currentRRElement.classList.add('hidden');
-                    if (orderData.game === 'Valorant' && ['Ascendant', 'Immortal', 'Radiant'].includes(orderData.currentRank)) {
+                    if (orderData.game === 'Valorant') {
                         currentRRElement.classList.remove('hidden');
                         if (rrSpan) rrSpan.textContent = `${orderData.currentRR || 0}`;
                     } else if (orderData.game === 'League of Legends') {
