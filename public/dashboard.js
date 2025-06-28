@@ -432,129 +432,23 @@ function renderCoachingOrders(orders, containerId) {
     });
 }
 
-   async function fetchCompletedOrders() {
-  try {
-    const response = await fetch('/api/completed-orders?userId=' + userId, {
-      headers: { 'Content-Type': 'application/json' }
-    });
-    if (!response.ok) throw new Error('Failed to fetch completed orders');
-    const orders = await response.json();
-    const completedOrdersDiv = document.getElementById('completedOrders');
-    completedOrdersDiv.innerHTML = '<h3>Completed Orders</h3>';
-
-    if (orders.length === 0) {
-      completedOrdersDiv.innerHTML += '<p>No completed orders found.</p>';
-      return;
+    async function fetchCompletedOrders() {
+        try {
+            console.log('Fetching completed orders for userId:', userId);
+            const response = await fetch(`/api/completed-orders?userId=${userId}`);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`);
+            }
+            const orders = await response.json();
+            console.log('Completed orders received:', orders);
+            renderOrders(orders, 'completed-orders', false, false, true);
+        } catch (error) {
+            console.error('Error fetching completed orders:', error.message);
+            document.getElementById('completed-orders').innerHTML = '<p>Error loading completed orders. Please try again later.</p>';
+        }
     }
 
-    const table = document.createElement('table');
-    table.innerHTML = `
-      <tr>
-        <th>Order ID</th>
-        <th>Type</th>
-        <th>Customer</th>
-        <th>Details</th>
-        <th>Price</th>
-        <th>Payout</th>
-        <th>Payout Status</th>
-        <th>Action</th>
-      </tr>
-    `;
-    orders.forEach(order => {
-      const row = document.createElement('tr');
-      const details = order.order_type === 'coaching'
-        ? `${order.booked_hours} hours, ${order.game_type}, Coach: ${order.coach_username}`
-        : `From ${order.current_rank} ${order.currentDivision || ''} to ${order.desired_rank} ${order.desiredDivision || ''}, ${order.game_type}${order.booster_username ? `, Booster: ${order.booster_username}` : ''}`;
-      const actionButton = order.payout_status === 'Pending' ? `
-        <button onclick="approvePayout('${order.order_id}', '${order.order_type}')">Approve Payout</button>
-      ` : 'Payout Processed';
-      row.innerHTML = `
-        <td>${order.order_id}</td>
-        <td>${order.order_type.charAt(0).toUpperCase() + order.order_type.slice(1)}</td>
-        <td>${order.customer_username}</td>
-        <td>${details}</td>
-        <td>$${parseFloat(order.price).toFixed(2)}</td>
-        <td>$${order.booster_payout}</td>
-        <td>${order.payout_status}</td>
-        <td>${actionButton}</td>
-      `;
-      table.appendChild(row);
-    });
-    completedOrdersDiv.appendChild(table);
-  } catch (error) {
-    console.error('Error fetching completed orders:', error);
-    document.getElementById('completedOrders').innerHTML += '<p>Error loading completed orders.</p>';
-  }
-}
-
-async function approvePayout(orderId, orderType) {
-  try {
-    const endpoint = orderType === 'coaching' ? '/api/approve-coaching-payout' : '/api/approve-payout';
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderId, adminUserId: userId })
-    });
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.error || 'Failed to approve payout');
-    alert(result.message || 'Payout approved successfully');
-    fetchCompletedOrders(); // Refresh completed orders
-    fetchPayoutRequests(); // Refresh payout requests
-  } catch (error) {
-    console.error('Error approving payout:', error);
-    alert('Failed to approve payout: ' + error.message);
-  }
-}
-
-async function fetchPayoutRequests() {
-  try {
-    const response = await fetch('/api/payout-requests?userId=' + userId, {
-      headers: { 'Content-Type': 'application/json' }
-    });
-    if (!response.ok) throw new Error('Failed to fetch payout requests');
-    const requests = await response.json();
-    const payoutRequestsDiv = document.getElementById('payoutRequests');
-    payoutRequestsDiv.innerHTML = '<h3>Payout Requests</h3>';
-
-    if (requests.length === 0) {
-      payoutRequestsDiv.innerHTML += '<p>No pending payout requests.</p>';
-      return;
-    }
-
-    const table = document.createElement('table');
-    table.innerHTML = `
-      <tr>
-        <th>Request ID</th>
-        <th>User</th>
-        <th>Amount</th>
-        <th>Payment Method</th>
-        <th>Details</th>
-        <th>Requested At</th>
-        <th>Action</th>
-      </tr>
-    `;
-    requests.forEach(request => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${request.id}</td>
-        <td>${request.username}</td>
-        <td>$${parseFloat(request.amount).toFixed(2)}</td>
-        <td>${request.payment_method}</td>
-        <td>${request.payment_details}</td>
-        <td>${new Date(request.requested_at).toLocaleString()}</td>
-        <td>
-          <button onclick="processPayout(${request.id}, 'approve')">Approve</button>
-          <button onclick="processPayout(${request.id}, 'reject')">Reject</button>
-        </td>
-      `;
-      table.appendChild(row);
-    });
-    payoutRequestsDiv.appendChild(table);
-  } catch (error) {
-    console.error('Error fetching payout requests:', error);
-    document.getElementById('payoutRequests').innerHTML += '<p>Error loading payout requests.</p>';
-  }
-}
     async function fetchPayoutHistory() {
         try {
             console.log('Fetching payout history for userId:', userId);
