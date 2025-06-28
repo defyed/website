@@ -86,12 +86,23 @@
                 const currentLPElement = document.getElementById('current-lp');
                 const currentRRElement = document.getElementById('current-rr');
                 const masterLpElement = document.getElementById('MasterLP');
-                const masterLpSpan = masterLpElement ? masterLpElement.querySelector('span') : null;
                 const lpDetailsElement = document.getElementById('lp-details');
                 const optionsElement = document.getElementById('options');
                 const subtotalElement = document.getElementById('subtotal');
                 const discountElement = document.getElementById('discount');
                 const totalElement = document.getElementById('total');
+
+                // Debug element existence
+                console.log('Element check:', {
+                    currentLPElement: !!currentLPElement,
+                    currentRRElement: !!currentRRElement,
+                    masterLpElement: !!masterLpElement,
+                    lpDetailsElement: !!lpDetailsElement,
+                    optionsElement: !!optionsElement,
+                    subtotalElement: !!subtotalElement,
+                    discountElement: !!discountElement,
+                    totalElement: !!totalElement
+                });
 
                 if (currentRankElement) {
                     currentRankElement.textContent = formatRank(
@@ -110,35 +121,42 @@
                     );
                 }
                 if (currentLPElement && currentRRElement) {
-                    if (orderData.game === 'Valorant') {
+                    const lpSpan = currentLPElement.querySelector('span');
+                    const rrSpan = currentRRElement.querySelector('span');
+                    if (orderData.game === 'Valorant' && orderData.currentRank !== 'Immortal') {
                         currentLPElement.classList.add('hidden');
                         currentRRElement.classList.remove('hidden');
-                        currentRRElement.textContent = `Current RR: ${orderData.currentRR || 0}`;
-                    } else {
+                        if (rrSpan) rrSpan.textContent = `${orderData.currentRR || 0}`;
+                    } else if (orderData.game === 'League of Legends') {
                         currentLPElement.classList.remove('hidden');
                         currentRRElement.classList.add('hidden');
-                        currentLPElement.textContent = `Current LP: ${orderData.currentLP || 'N/A'}`;
+                        if (lpSpan) lpSpan.textContent = `${orderData.currentLP || 'N/A'}`;
+                    } else {
+                        currentLPElement.classList.add('hidden');
+                        currentRRElement.classList.add('hidden');
                     }
+                } else {
+                    console.warn('Current LP or RR element missing in DOM');
                 }
-                if (masterLpElement && masterLpSpan && lpDetailsElement) {
+                if (masterLpElement && lpDetailsElement) {
+                    const masterLpSpan = lpDetailsElement.querySelector('#MasterLP');
                     const isMasterOrImmortal = (rank) => ['Master', 'Immortal'].includes((rank || '').split(' ')[0]);
                     if (isMasterOrImmortal(orderData.currentRank) && isMasterOrImmortal(orderData.desiredRank)) {
                         lpDetailsElement.classList.add('hidden');
                     } else if (isMasterOrImmortal(orderData.currentRank) || isMasterOrImmortal(orderData.desiredRank)) {
-                        masterLpSpan.textContent = orderData.desiredMasterLP || orderData.desiredRR || '0';
-                        masterLpElement.style.display = 'block';
+                        if (masterLpSpan) masterLpSpan.textContent = orderData.desiredMasterLP || orderData.desiredRR || '0';
                         lpDetailsElement.classList.remove('hidden');
                     } else {
-                        masterLpElement.style.display = 'none';
-                        lpDetailsElement.classList.remove('hidden');
+                        lpDetailsElement.classList.add('hidden');
                     }
+                } else {
+                    console.warn('MasterLP or lp-details element missing in DOM');
                 }
                 if (optionsElement) {
                     const optionsDisplay = orderData.extras?.length 
                         ? orderData.extras.map(option => option.label).join(', ')
                         : 'None';
                     optionsElement.textContent = optionsDisplay;
-
                 }
                 if (subtotalElement && discountElement && totalElement) {
                     const finalPrice = parseFloat(orderData.finalPrice) || 0;
@@ -149,9 +167,7 @@
 
                     subtotalElement.textContent = `$${totalPrice.toFixed(2)}`;
                     discountElement.textContent = `${discount.toFixed(0)}% ($${discountAmount.toFixed(2)})`;
-
                     totalElement.textContent = `$${finalPrice.toFixed(2)}`;
-
                     console.log('Order summary updated:', { basePrice, totalPrice, discount, discountAmount, finalPrice });
                 }
             } catch (error) {
@@ -162,10 +178,10 @@
                 const masterLpElement = document.getElementById('MasterLP');
                 const lpDetailsElement = document.getElementById('lp-details');
 
-                if (subtotalElement) subtotalElement.textContent = 'Subtotal $0.00';
-                if (discountElement) discountElement.textContent = 'Discount (0%) $0.00';
-                if (totalElement) totalElement.textContent = 'Total $0.00';
-                if (masterLpElement) masterLpElement.style.display = 'none';
+                if (subtotalElement) subtotalElement.textContent = '$0.00';
+                if (discountElement) discountElement.textContent = '0% ($0.00)';
+                if (totalElement) totalElement.textContent = '$0.00';
+                if (masterLpElement) masterLpElement.parentElement.classList.add('hidden');
                 if (lpDetailsElement) lpDetailsElement.classList.add('hidden');
             }
         };
@@ -236,7 +252,7 @@
                     desiredMasterLP: parseInt(orderData.desiredMasterLP) || 0,
                     currentRR: parseInt(orderData.currentRR) || 0,
                     desiredRR: parseInt(orderData.desiredRR) || 0,
-                    game: orderData.game || 'Valorant',
+                    game: orderData.game || 'League of Legends',
                     discountRate: parseFloat(orderData.discountRate) || (orderData.couponApplied ? (orderData.game === 'Valorant' ? 44 : 15) : 0)
                 };
 

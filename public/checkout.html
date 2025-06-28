@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout | CH|Boost</title>
     <style>
-       body {
+        body {
             font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
@@ -207,11 +207,18 @@
             margin-bottom: 20px;
             color: #ffffff;
         }
+        .summary-details {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            max-width: 500px;
+            margin: 0 auto;
+        }
         .summary-details p {
             display: flex;
             justify-content: space-between;
-            max-width: 500px;
-            margin: 12px auto;
+            width: 100%;
+            margin: 12px 0;
             font-size: 16px;
             padding: 8px 0;
             border-bottom: 1px solid #444;
@@ -223,14 +230,20 @@
         .summary-details p span {
             text-align: right;
         }
+        .price-details {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            max-width: 500px;
+            margin: 20px auto;
+        }
         .price-details p {
             display: flex;
             justify-content: space-between;
-            max-width: 500px;
-            margin: 12px auto;
+            width: 100%;
+            margin: 12px 0;
             font-size: 16px;
             padding: 8px 0;
-            
         }
         .price-details p strong {
             font-weight: bold;
@@ -283,6 +296,9 @@
             bottom: 0;
             width: 100%;
         }
+        .hidden {
+            display: none;
+        }
         @media (max-width: 600px) {
             .menu-icon {
                 display: block;
@@ -305,39 +321,39 @@
             }
             .profile-dropdown .dropdown-content {
                 right: -10px;
-            
-        }}
+            }
+        }
     </style>
 </head>
 <body>
     <header>
-    <a href="/league" class="logo">CH|Boost</a>
-    <nav>
-        <span class="menu-icon">☰</span>
-        <ul>
-            <li><a href="/boosters">Boosters</a></li>
-            <li><a href="/league">Boosting</a></li>
-            <li><a href="/coaching">Coaching</a></li>
-            <li><a href="#" class="sign-in-btn">Sign In</a></li>
-        </ul>
-    </nav>
-</header>
+        <a href="/league" class="logo">CH|Boost</a>
+        <nav>
+            <span class="menu-icon">☰</span>
+            <ul>
+                <li><a href="/boosters">Boosters</a></li>
+                <li><a href="/league">Boosting</a></li>
+                <li><a href="/coaching">Coaching</a></li>
+                <li><a href="#" class="sign-in-btn">Sign In</a></li>
+            </ul>
+        </nav>
+    </header>
 
     <main>
         <h1>Complete Your Purchase</h1>
         <section class="order-summary">
             <h2>Order Summary</h2>
             <div class="summary-details">
-                <p><strong>Service:</strong> <span>Rank Boost</span></p>
+                <p><strong>Service:</strong> <span id="service">Rank Boost</span></p>
                 <p><strong>From:</strong> <span id="current-rank">Select Rank</span></p>
                 <p><strong>To:</strong> <span id="desired-rank">Select Rank</span></p>
-                <p><strong>Current LP:</strong> <span id="current-lp">N/A</span></p>
-                
+                <p id="current-lp" class="hidden"><strong>Current LP:</strong> <span>N/A</span></p>
+                <p id="current-rr" class="hidden"><strong>Current RR:</strong> <span>0</span></p>
+                <p id="lp-details" class="hidden"><strong>Master/Immortal Points:</strong> <span id="MasterLP">0</span></p>
                 <p><strong>Options:</strong> <span id="options">None</span></p>
-
             </div>
             <div class="price-details">
-                 <p><strong>Subtotal:</strong> <span id="subtotal">$0.00</span></p>
+                <p><strong>Subtotal:</strong> <span id="subtotal">$0.00</span></p>
                 <p><strong>Discount:</strong> <span id="discount">$0.00</span></p>
                 <p><strong>Total:</strong> <span id="total">$0.00</span></p>
             </div>
