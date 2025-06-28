@@ -77,7 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
         input.placeholder = 'Enter RR';
         input.classList.add('input-lp');
         input.min = '0';
-        
         container.appendChild(label);
         container.appendChild(input);
         return container;
@@ -136,12 +135,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (desiredRRContainer) desiredRRContainer.style.display = (isDesiredImmortal || isAscendantToImmortal) ? '' : 'none';
-       if ((isDesiredImmortal || isAscendantToImmortal) && desiredRRInput) {
-    if (!desiredRRInput.value || Number(desiredRRInput.value) < (isAscendantToImmortal ?'' : 40)) {
-        desiredRRInput.value = isAscendantToImmortal ? '' : '';
-    }
-}
-
+        if (desiredRRInput && (isDesiredImmortal || isAscendantToImmortal)) {
+            if (!desiredRRInput.value || isDesiredImmortal) {
+                desiredRRInput.value = '';
+                window.desiredRR = 0;
+            }
+        }
 
         if (window.currentRank) {
             const displayDivision = window.currentRank === 'Immortal' ? '' : ` ${window.currentDivision || 'I'}`;
@@ -163,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (window.currentRank && !window.desiredRank) {
             window.desiredRank = window.currentRank;
-            window.desiredDivision = window.currentRank === 'Immortal' ? null : 'II';
+            window.desiredDivision = window.currentRank === 'Immortal' ? '' : 'II';
             desiredRankButtons.forEach(btn => btn.classList.toggle('selected', btn.dataset.rank === window.currentRank));
             desiredDivisionButtons.forEach(btn => btn.classList.toggle('selected', btn.dataset.division === 'II'));
         }
@@ -221,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             window.desiredDivision = ranks[currentRankIndex + 1] === 'Immortal' ? '' : 'I';
                             desiredRankButtons.forEach(btn => btn.classList.toggle('selected', btn.dataset.rank === ranks[currentRankIndex + 1]));
                             desiredDivisionButtons.forEach(btn => btn.classList.toggle('selected', btn.dataset.division === 'I'));
-                            updateButtonStates(); // Re-run to apply new rank state
+                            updateButtonStates();
                         }
                     }
                 }
@@ -303,27 +302,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (desiredRRInput) {
-        currentRRInput.addEventListener('input', () => {
-            let value = parseInt(currentRRInput.value) || 0;
-            if (value < 0) value = 0;
-            currentRRInput.value = value;
-            window.currentRR = value;
-            updateButtonStates();
-        });
-    }
-
-    if (desiredRRInput) {
         desiredRRInput.addEventListener('input', () => {
             let value = parseInt(desiredRRInput.value) || 0;
             if (value < 0) value = 0;
-            if (window.currentRank === 'Immortal' && window.desiredRank === 'Immortal') {
-                const currentRR = parseInt(currentRRInput.value) || 0;
-                if (value <= currentRR || (value - currentRR) < 40) {
-                    value = currentRR + 40;
-                    desiredRRInput.value = value;
-                    window.desiredRR = value;
-                }
-            }
             desiredRRInput.value = value;
             window.desiredRR = value;
             updateButtonStates();
@@ -340,16 +321,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentDivisionButtons.forEach(b => {
                     b.classList.toggle('selected', b.dataset.division === 'I');
                 });
-            }
-            if (window.currentRank === 'Immortal' && currentRRInput) {
-                
-                
+            } else {
+                window.currentDivision = '';
                 window.desiredRank = 'Immortal';
                 window.desiredDivision = '';
-                
-                if (desiredRRInput) desiredRRInput.value = '40';
                 desiredRankButtons.forEach(b => b.classList.toggle('selected', b.dataset.rank === 'Immortal'));
                 desiredDivisionButtons.forEach(b => b.classList.remove('selected'));
+                if (desiredRRInput) desiredRRInput.value = '';
+                window.desiredRR = 0;
             }
             updateButtonStates();
         });
@@ -366,8 +345,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const isAscendantToImmortal = window.currentRank === 'Ascendant' && window.currentDivision === 'III' && window.desiredRank === 'Immortal';
-            if (isAscendantToImmortal && desiredRRInput) {
-                desiredRRInput.value = '0';
+            if ((isAscendantToImmortal || window.desiredRank === 'Immortal') && desiredRRInput) {
+                desiredRRInput.value = '';
                 window.desiredRR = 0;
             }
 
@@ -385,7 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.desiredRank = 'Immortal';
                 window.desiredDivision = '';
                 window.desiredRR = 0;
-                if (desiredRRInput) desiredRRInput.value = '0';
+                if (desiredRRInput) desiredRRInput.value = '';
                 desiredRankButtons.forEach(b => b.classList.toggle('selected', b.dataset.rank === 'Immortal'));
                 desiredDivisionButtons.forEach(b => b.classList.remove('selected'));
             }
