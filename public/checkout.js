@@ -67,7 +67,6 @@
             delete orderData.currentLP;
             sessionStorage.setItem('orderData', JSON.stringify(orderData));
             console.log('Cleared currentLP from orderData for Valorant on checkout load');
-            // Reload orderData to ensure consistency
             orderData = JSON.parse(sessionStorage.getItem('orderData')) || {};
             console.log('orderData after clearing currentLP:', JSON.stringify(orderData, null, 2));
         }
@@ -129,7 +128,7 @@
                     // Ensure initial hidden state
                     currentLPElement.classList.add('hidden');
                     currentRRElement.classList.add('hidden');
-                    if (orderData.game === 'Valorant' && orderData.currentRank !== 'Immortal') {
+                    if (orderData.game === 'Valorant' && ['Ascendant', 'Immortal', 'Radiant'].includes(orderData.currentRank)) {
                         currentRRElement.classList.remove('hidden');
                         if (rrSpan) rrSpan.textContent = `${orderData.currentRR || 0}`;
                     } else if (orderData.game === 'League of Legends') {
