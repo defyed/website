@@ -130,7 +130,10 @@ async function initializeDatabase() {
     FOREIGN KEY (coach_id) REFERENCES users(id) ON DELETE CASCADE
   )
 `);
-
+const [coachingPayoutStatusColumn] = await connection.query("SHOW COLUMNS FROM coaching_orders LIKE 'payout_status'");
+if (coachingPayoutStatusColumn.length === 0) {
+  await connection.query("ALTER TABLE coaching_orders ADD payout_status ENUM('Pending', 'Paid') DEFAULT 'Pending'");
+}
     // Coach profiles table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS coach_profiles (
@@ -1120,21 +1123,101 @@ app.post('/api/approve-payout', authenticate, checkRole(['admin']), async (req, 
 
 app.get('/api/completed-orders', authenticate, checkRole(['admin']), async (req, res) => {
   try {
-    const [rows] = await pool.query(`
-      SELECT o.order_id, o.user_id, u.username AS customer_username, o.current_rank, o.desired_rank, o.current_lp, o.desired_lp, o.price, o.status, o.cashback, DATE_FORMAT(o.created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at, o.extras, o.payout_status, bo.booster_id, ub.username AS booster_username
+    // Fetch completed boost orders
+    const [boostRows] = await pool.query(`
+      SELECT o.order_id, o.user_id, u.username AS customer_username, o.current_rank, o.desired_rank, 
+             o.current_lp, o.desired_lp, o.price, o.status, o.cashback, 
+             DATE_FORMAT(o.created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at, 
+             o.extras, o.payout_status, o.order_type, bo.booster_id, ub.username AS booster_username
       FROM orders o
       LEFT JOIN booster_orders bo ON o.order_id = bo.order_id
       LEFT JOIN users u ON o.user_id = u.id
       LEFT JOIN users ub ON bo.booster_id = ub.id
       WHERE o.status = 'Completed'
     `);
-    const orders = rows.map(order => ({
-      ...order,
-      booster_payout: (parseFloat(order.price) * 0.85).toFixed(2)
-    }));
+
+    // Fetch completed coaching orders
+    const [coachingRows] = await pool.query(`
+      SELECT co.order_id, co.user_id, u.username AS customer_username, co.booked_hours, 
+             co.game_type, co.total_price AS price, co.coach_name, co.status, co.cashback, 
+             DATE_FORMAT(co.created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at, 
+             co.payout_status, 'coaching' AS order_type, co.coach_id, uc.username AS coach_username
+      FROM coaching_orders co
+      LEFT JOIN users u ON co.user_id = u.id
+      LEFT JOIN users uc ON co.coach_id = uc.id
+      WHERE co.status = 'completed'
+    `);
+
+    // Combine and normalize orders
+    const orders = [
+      ...boostRows.map(order => ({
+        ...order,
+        booster_payout: (parseFloat(order.price) * 0.85).toFixed(2),
+        coach_id: null,
+        coach_username: null,
+        booked_hours: null,
+        game_type: order.game_type || 'League of Legends'
+      })),
+      ...coachingRows.map(order => ({
+        ...order,
+        booster_payout: (parseFloat(order.price) * 0.85).toFixed(2),
+        current_rank: null,
+        desired_rank: null,
+        current_lp: null,
+        desired_lp: null,
+        extras: null,
+        booster_id: null,
+        booster_username: null
+      }))
+    ];
+
     res.json(orders);
   } catch (error) {
     console.error('Error fetching completed orders:', error.message);
+    res.status(500).json({ error: 'Internal server error', details: error.message });
+  }
+});
+app.post('/api/approve-coaching-payout', authenticate, checkRole(['admin']), async (req, res) => {
+  const { orderId } = req.body;
+  try {
+    if (!orderId) {
+      return res.status(400).json({ error: 'Missing orderId' });
+    }
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+      const [orderRows] = await connection.query(
+        'SELECT total_price, payout_status, coach_id FROM coaching_orders WHERE order_id = ? AND status = "completed"',
+        [orderId]
+      );
+      if (!orderRows.length || !orderRows[0].coach_id) {
+        await connection.rollback();
+        return res.status(400).json({ error: 'Coaching order not found, not completed, or no coach assigned' });
+      }
+      if (orderRows[0].payout_status === 'Paid') {
+        await connection.rollback();
+        return res.status(400).json({ error: 'Payout already processed' });
+      }
+      const coachId = orderRows[0].coach_id;
+      const payout = parseFloat(orderRows[0].total_price) * 0.85;
+      await connection.query(
+        'UPDATE users SET account_balance = account_balance + ? WHERE id = ?',
+        [payout, coachId]
+      );
+      await connection.query(
+        'UPDATE coaching_orders SET payout_status = "Paid" WHERE order_id = ?',
+        [orderId]
+      );
+      await connection.commit();
+      res.json({ success: true, message: 'Coaching payout approved successfully' });
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error('Error approving coaching payout:', error.message);
     res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 });
