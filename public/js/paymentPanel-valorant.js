@@ -20,7 +20,7 @@ const priceData = {
     "Ascendant I": { "Ascendant II": 40.65 },
     "Ascendant II": { "Ascendant III": 45.43 },
     "Ascendant III": { "Immortal": 52.60 },
-    "Immortal": { "Immortal": 25.35 }
+    "Immortal": { "Immortal": 15.53 }
 };
 
 const rankOrder = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal'];
@@ -49,7 +49,7 @@ function getRankUpRRDiscount(rrRange) {
 }
 
 function calculateImmortalRRCost(rrDifference) {
-    if (!rrDifference || rrDifference < 40) return 25.35; // Default to base price for display
+    if (!rrDifference || rrDifference < 40) return 15.53; // Default to base price for display
     const basePrice = 25.35; // Base price for 40 RR
     const additionalRR = rrDifference - 40; // RR points beyond 40
     const additionalCost = additionalRR * 0.65; // $0.65 per additional RR
@@ -355,7 +355,8 @@ function updateTotalPrice() {
         finalPrice: finalPrice.toFixed(2),
         extras,
         couponApplied: isCouponApplied,
-        game: 'Valorant' // Explicitly set for Valorant page
+        discountRate: discountRate,
+        game: 'Valorant'
     };
     if (window.currentRank !== 'Immortal') {
         orderData.currentLP = window.currentLP || '0-20';

@@ -48,22 +48,26 @@
         const normalizedCurrentRank = orderData.currentRank ? orderData.currentRank.split(' ')[0] : '';
         const normalizedDesiredRank = orderData.desiredRank ? orderData.desiredRank.split(' ')[0] : '';
 
-      // Set game type based on page user came from, not rank
-if (document.referrer.includes('/league')) {
-    orderData.game = 'League of Legends';
-    console.log('Forced game type to League of Legends based on referrer: /league');
-} else if (document.referrer.includes('/valorant')) {
-    orderData.game = 'Valorant';
-    console.log('Forced game type to Valorant based on referrer: /valorant');
-} else if (orderData.game && ['League of Legends', 'Valorant'].includes(orderData.game)) {
-    console.log(`Game type set to ${orderData.game} based on orderData.game`);
-} else {
-    orderData.game = 'League of Legends'; // Fallback
-    console.log('Defaulted game type to League of Legends');
-}
+        // Set game type based on page user came from
+        if (document.referrer.includes('/league')) {
+            orderData.game = 'League of Legends';
+            console.log('Forced game type to League of Legends based on referrer: /league');
+        } else if (document.referrer.includes('/valorant')) {
+            orderData.game = 'Valorant';
+            console.log('Forced game type to Valorant based on referrer: /valorant');
+        } else if (orderData.game && ['League of Legends', 'Valorant'].includes(orderData.game)) {
+            console.log(`Game type set to ${orderData.game} based on orderData.game`);
+        } else {
+            orderData.game = 'League of Legends'; // Fallback
+            console.log('Defaulted game type to League of Legends');
+        }
 
-
-       
+        // Clear currentLP for Immortal ranks
+        if (orderData.currentRank === 'Immortal' && orderData.currentLP) {
+            delete orderData.currentLP;
+            sessionStorage.setItem('orderData', JSON.stringify(orderData));
+            console.log('Cleared currentLP from orderData for Immortal rank on checkout load');
+        }
 
         const updateSummary = () => {
             try {
@@ -80,6 +84,7 @@ if (document.referrer.includes('/league')) {
                 const currentRankElement = document.getElementById('current-rank');
                 const desiredRankElement = document.getElementById('desired-rank');
                 const currentLPElement = document.getElementById('current-lp');
+                const currentRRElement = document.getElementById('current-rr');
                 const masterLpElement = document.getElementById('MasterLP');
                 const masterLpSpan = masterLpElement ? masterLpElement.querySelector('span') : null;
                 const lpDetailsElement = document.getElementById('lp-details');
@@ -104,10 +109,17 @@ if (document.referrer.includes('/league')) {
                         orderData.desiredRR
                     );
                 }
-                if (currentLPElement) {
-                    currentLPElement.textContent = `Current ${orderData.game === 'Valorant' ? 'RR' : 'LP'}: ${orderData.currentLP || 'N/A'}`;
+                if (currentLPElement && currentRRElement) {
+                    if (orderData.game === 'Valorant') {
+                        currentLPElement.classList.add('hidden');
+                        currentRRElement.classList.remove('hidden');
+                        currentRRElement.textContent = `Current RR: ${orderData.currentRR || 0}`;
+                    } else {
+                        currentLPElement.classList.remove('hidden');
+                        currentRRElement.classList.add('hidden');
+                        currentLPElement.textContent = `Current LP: ${orderData.currentLP || 'N/A'}`;
+                    }
                 }
-
                 if (masterLpElement && masterLpSpan && lpDetailsElement) {
                     const isMasterOrImmortal = (rank) => ['Master', 'Immortal'].includes((rank || '').split(' ')[0]);
                     if (isMasterOrImmortal(orderData.currentRank) && isMasterOrImmortal(orderData.desiredRank)) {
@@ -121,25 +133,22 @@ if (document.referrer.includes('/league')) {
                         lpDetailsElement.classList.remove('hidden');
                     }
                 }
-
                 if (optionsElement) {
                     const optionsDisplay = orderData.extras?.length 
                         ? orderData.extras.map(option => option.label).join(', ')
                         : 'None';
-                    optionsElement.textContent = optionsDisplay;
-
+                    optionsElement.textContent = `Options: ${optionsDisplay}`;
                 }
-
                 if (subtotalElement && discountElement && totalElement) {
                     const finalPrice = parseFloat(orderData.finalPrice) || 0;
-                    const discount = parseFloat(orderData.discount) || (orderData.couponApplied ? 0.15 : 0);
-                    const totalPrice = parseFloat(orderData.totalPrice) || (discount > 0 ? finalPrice / (1 - discount) : finalPrice);
+                    const discount = parseFloat(orderData.discountRate) || (orderData.couponApplied ? (orderData.game === 'Valorant' ? 44 : 15) : 0);
+                    const totalPrice = parseFloat(orderData.totalPrice) || (discount > 0 ? finalPrice / (1 - discount / 100) : finalPrice);
                     const basePrice = parseFloat(orderData.basePrice) || totalPrice - (orderData.extras?.reduce((acc, e) => acc + parseFloat(e.cost || e.price || 0), 0) || 0);
-                    const discountAmount = totalPrice * discount;
+                    const discountAmount = totalPrice * (discount / 100);
 
-                    subtotalElement.textContent = `$${totalPrice.toFixed(2)}`;
-                    discountElement.textContent = `$${discountAmount.toFixed(2)}`;
-                    totalElement.textContent = `$${finalPrice.toFixed(2)}`;
+                    subtotalElement.textContent = `Subtotal $${totalPrice.toFixed(2)}`;
+                    discountElement.textContent = `Discount (${discount}%) $${discountAmount.toFixed(2)}`;
+                    totalElement.textContent = `Total $${finalPrice.toFixed(2)}`;
                     console.log('Order summary updated:', { basePrice, totalPrice, discount, discountAmount, finalPrice });
                 }
             } catch (error) {
@@ -150,116 +159,114 @@ if (document.referrer.includes('/league')) {
                 const masterLpElement = document.getElementById('MasterLP');
                 const lpDetailsElement = document.getElementById('lp-details');
 
-                if (subtotalElement) subtotalElement.textContent = '$0.00';
-                if (discountElement) discountElement.textContent = '$0.00';
-                if (totalElement) totalElement.textContent = '$0.00';
+                if (subtotalElement) subtotalElement.textContent = 'Subtotal $0.00';
+                if (discountElement) discountElement.textContent = 'Discount (0%) $0.00';
+                if (totalElement) totalElement.textContent = 'Total $0.00';
                 if (masterLpElement) masterLpElement.style.display = 'none';
                 if (lpDetailsElement) lpDetailsElement.classList.add('hidden');
             }
         };
         updateSummary();
 
-       proceedButton.addEventListener('click', async () => {
-    console.log('Pay Now button clicked at:', new Date().toISOString());
-    const userId = localStorage.getItem('userId');
-    if (!userId || isNaN(userId)) {
-        alert('Please log in to proceed with payment.');
-        console.log('No valid userId found:', userId);
-        window.location.href = '/league';
-        return;
-    }
-    if (!orderData.currentRank || !orderData.desiredRank || !orderData.finalPrice) {
-        alert('Incomplete order data. Please select ranks and options on the previous page.');
-        console.log('Incomplete orderData:', orderData);
-        window.location.href = '/league';
-        return;
-    }
+        proceedButton.addEventListener('click', async () => {
+            console.log('Pay Now button clicked at:', new Date().toISOString());
+            const userId = localStorage.getItem('userId');
+            if (!userId || isNaN(userId)) {
+                alert('Please log in to proceed with payment.');
+                console.log('No valid userId found:', userId);
+                window.location.href = '/league';
+                return;
+            }
+            if (!orderData.currentRank || !orderData.desiredRank || !orderData.finalPrice) {
+                alert('Incomplete order data. Please select ranks and options on the previous page.');
+                console.log('Incomplete orderData:', orderData);
+                window.location.href = '/league';
+                return;
+            }
 
-    try {
-        const isMasterOrImmortal = (rank) => ['Master', 'Immortal'].includes((rank || '').split(' ')[0]);
-        const currentLP = isMasterOrImmortal(orderData.currentRank) 
-            ? (parseInt(orderData.currentMasterLP) || parseInt(orderData.currentRR) || 0)
-            : (orderData.currentLP || '0-20');
-        const desiredLP = isMasterOrImmortal(orderData.desiredRank) 
-            ? (parseInt(orderData.desiredMasterLP) || parseInt(orderData.desiredRR) || 0)
-            : (parseInt(orderData.desiredLP) || 0);
+            try {
+                const isMasterOrImmortal = (rank) => ['Master', 'Immortal'].includes((rank || '').split(' ')[0]);
+                const currentLP = orderData.game === 'Valorant' ? undefined : (orderData.currentLP || '0-20');
+                const desiredLP = orderData.game === 'Valorant' ? undefined : (parseInt(orderData.desiredLP) || 0);
 
-        const abbreviate = (str) => {
-            const map = {
-                'League of Legends': 'LoL',
-                'Valorant': 'Val',
-                'Platinum': 'Plat',
-                'Diamond': 'Dia',
-                'Emerald': 'Em',
-                'Ascendant': 'Asc',
-                'Immortal': 'Imm',
-                'Grandmaster': 'GM',
-                'Challenger': 'Chal'
-            };
-            return map[str] || str.slice(0, 4);
-        };
+                const abbreviate = (str) => {
+                    const map = {
+                        'League of Legends': 'LoL',
+                        'Valorant': 'Val',
+                        'Platinum': 'Plat',
+                        'Diamond': 'Dia',
+                        'Emerald': 'Em',
+                        'Ascendant': 'Asc',
+                        'Immortal': 'Imm',
+                        'Grandmaster': 'GM',
+                        'Challenger': 'Chal'
+                    };
+                    return map[str] || str.slice(0, 4);
+                };
 
-        const clientReference = {
-            cRank: abbreviate(orderData.currentRank || 'Iron'),
-            dRank: abbreviate(orderData.desiredRank || 'Iron'),
-            price: parseFloat(orderData.finalPrice) || 0,
-            cDiv: orderData.currentDivision || '',
-            dDiv: orderData.desiredDivision || '',
-            cLP: currentLP,
-            dLP: desiredLP,
-            extras: orderData.extras?.map(e => ({ l: e.label.slice(0, 10), p: e.price })) || [],
-            game: abbreviate(orderData.game || 'League of Legends')
-        };
-        const clientReferenceString = JSON.stringify(clientReference);
-        console.log('client_reference_id:', { length: clientReferenceString.length, value: clientReferenceString });
+                const clientReference = {
+                    cRank: abbreviate(orderData.currentRank || 'Iron'),
+                    dRank: abbreviate(orderData.desiredRank || 'Iron'),
+                    price: parseFloat(orderData.finalPrice) || 0,
+                    cDiv: orderData.currentDivision || '',
+                    dDiv: orderData.desiredDivision || '',
+                    cLP: orderData.game === 'Valorant' ? (parseInt(orderData.currentRR) || 0) : currentLP,
+                    dLP: orderData.game === 'Valorant' ? (parseInt(orderData.desiredRR) || 0) : desiredLP,
+                    extras: orderData.extras?.map(e => ({ l: e.label.slice(0, 10), p: e.price })) || [],
+                    game: abbreviate(orderData.game || 'League of Legends'),
+                    discountRate: parseFloat(orderData.discountRate) || (orderData.couponApplied ? (orderData.game === 'Valorant' ? 44 : 15) : 0)
+                };
+                const clientReferenceString = JSON.stringify(clientReference);
+                console.log('client_reference_id:', { length: clientReferenceString.length, value: clientReferenceString });
 
-        if (clientReferenceString.length > 200) {
-            console.error('client_reference_id too long:', clientReferenceString.length);
-            alert('Order data is too complex. Please simplify your selection (e.g., fewer extras).');
-            return;
-        }
+                if (clientReferenceString.length > 200) {
+                    console.error('client_reference_id too long:', clientReferenceString.length);
+                    alert('Order data is too complex. Please simplify your selection (e.g., fewer extras).');
+                    return;
+                }
 
-        const updatedOrderData = {
-            ...orderData,
-            currentLP: currentLP,
-            desiredLP: desiredLP,
-            currentMasterLP: parseInt(orderData.currentMasterLP) || 0,
-            desiredMasterLP: parseInt(orderData.desiredMasterLP) || 0,
-            currentRR: parseInt(orderData.currentRR) || 0,
-            desiredRR: parseInt(orderData.desiredRR) || 0,
-            game: orderData.game || 'League of Legends'
-        };
+                const updatedOrderData = {
+                    ...orderData,
+                    currentLP: currentLP,
+                    desiredLP: desiredLP,
+                    currentMasterLP: parseInt(orderData.currentMasterLP) || 0,
+                    desiredMasterLP: parseInt(orderData.desiredMasterLP) || 0,
+                    currentRR: parseInt(orderData.currentRR) || 0,
+                    desiredRR: parseInt(orderData.desiredRR) || 0,
+                    game: orderData.game || 'Valorant',
+                    discountRate: parseFloat(orderData.discountRate) || (orderData.couponApplied ? (orderData.game === 'Valorant' ? 44 : 15) : 0)
+                };
 
-        console.log('Requesting Stripe Checkout Session with:', { orderData: updatedOrderData, userId, type: 'boost' });
-        const response = await fetch('/api/create-checkout-session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orderData: updatedOrderData, userId, type: 'boost' })
+                console.log('Requesting Stripe Checkout Session with:', { orderData: updatedOrderData, userId, type: 'boost' });
+                const response = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderData: updatedOrderData, userId, type: 'boost' })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('Failed to create checkout session:', errorData);
+                    alert(`Failed to initiate payment: ${errorData.error || 'Unknown error'}`);
+                    window.location.href = '/checkout';
+                    return;
+                }
+
+                const session = await response.json();
+                console.log('Checkout Session created:', session);
+
+                const { error } = await stripe.redirectToCheckout({ sessionId: session.id });
+                if (error) {
+                    console.error('Stripe redirectToCheckout error:', error.message, error);
+                    alert(`Payment error: ${error.message}. Please try again or contact support.`);
+                    window.location.href = '/checkout';
+                }
+            } catch (error) {
+                console.error('Checkout error:', error.message, error.stack);
+                alert(`An error occurred while processing your payment: ${error.message}. Please try again or contact support.`);
+                window.location.href = '/checkout';
+            }
         });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error('Failed to create checkout session:', errorData);
-            alert(`Failed to initiate payment: ${errorData.error || 'Unknown error'}`);
-            window.location.href = '/checkout.html';
-            return;
-        }
-
-        const session = await response.json();
-        console.log('Checkout Session created:', session);
-
-        const { error } = await stripe.redirectToCheckout({ sessionId: session.id });
-        if (error) {
-            console.error('Stripe redirectToCheckout error:', error.message, error);
-            alert(`Payment error: ${error.message}. Please try again or contact support.`);
-            window.location.href = '/checkout.html';
-        }
-    } catch (error) {
-        console.error('Checkout error:', error.message, error.stack);
-        alert(`An error occurred while processing your payment: ${error.message}. Please try again or contact support.`);
-        window.location.href = '/checkout.html';
-    }
-});
 
         proceedButton.addEventListener('mousedown', () => {
             console.log('Pay Now button mousedown at:', new Date().toISOString());
