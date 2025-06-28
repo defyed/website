@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         localStorage.setItem('role', data.role);
                         hideAllPopups();
                         updateUserInterface(data.username);
-                         dashboardLink.href = '/dashboard';
+                        window.location.href = '/dashboard.html';
                     } else {
                         loginError.textContent = data.message || 'Login failed';
                         console.log('Login failed:', data.message);
@@ -223,9 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         localStorage.setItem('role', data.role);
                         hideAllPopups();
                         updateUserInterface(data.username);
-                        dashboardLink.href = '/dashboard';
-
-                        
+                        window.location.href = '/dashboard.html';
                     } else {
                         registerError.textContent = data.message || 'Registration failed';
                         console.log('Registration failed:', data.message);
@@ -342,7 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 profileDropdown.innerHTML = `
                     <button class="profile-btn">${username}</button>
                     <div class="dropdown-content">
-                        <a href="/dashboard" class="dashboard-link">Dashboard</a>
+                        <a href="/dashboard.html" class="dashboard-link">Dashboard</a>
                         <a href="#" class="logout-link">Logout</a>
                     </div>
                 `;

@@ -99,8 +99,7 @@ async function handleLogin(e) {
                     localStorage.setItem('role', data.role);
                     closeForm();
                     updateUserInterface(username);
-                    window.location.href = '/dashboard';
-
+                    window.location.href = '/dashboard.html';
                     return;
                 } else {
                     loginError.textContent = data.message || 'Invalid username or password.';
@@ -167,7 +166,7 @@ async function handleRegister(e) {
                     localStorage.setItem('role', data.role);
                     closeForm();
                     updateUserInterface(username);
-                    window.location.href = '/dashboard';
+                    window.location.href = '/dashboard.html';
                     return;
                 } else {
                     registerError.textContent = data.message || 'Username or email already exists.';
@@ -310,8 +309,7 @@ function updateUserInterface(username) {
             profileDropdown.innerHTML = `
                 <button class="profile-btn">${username}</button>
                 <div class="dropdown-content">
-                    <a href="/dashboard" class="dashboard-link">Dashboard</a>
-
+                    <a href="/dashboard.html" class="dashboard-link">Dashboard</a>
                     <a href="#" class="logout-link">Logout</a>
                 </div>
             `;
