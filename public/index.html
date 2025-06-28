@@ -26,9 +26,9 @@
     <span class="nav-toggle">☰</span>
     <ul>
         <li><a href="/">Home</a></li>
-        <li><a href="#" onclick="checkLoginAndNavigate('/boosters')">Boosters</a></li>
-        <li><a href="#" onclick="checkLoginAndNavigate('/coaching')">Coaching</a></li>
-        <li><a href="#" id="sign-in-btn" class="sign-in-btn">Sign In</a></li>
+        <li><a href="/boosters" onclick="return checkLoginAndNavigate('/boosters')">Boosters</a></li>
+        <li><a href="/coaching" onclick="return checkLoginAndNavigate('/coaching')">Coaching</a></li>
+        <li><a href="#" id="sign-in-btn" class="sign-in-btn" onclick="showSignInModal()">Sign In</a></li>
     </ul>
 </nav>
         </header>
