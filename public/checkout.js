@@ -37,7 +37,7 @@
         proceedButton.style.cursor = 'pointer';
         proceedButton.style.opacity = '1';
 
-        const orderData = JSON.parse(sessionStorage.getItem('orderData')) || {};
+        let orderData = JSON.parse(sessionStorage.getItem('orderData')) || {};
         console.log('orderData loaded:', JSON.stringify(orderData, null, 2));
 
         // Define rank lists
@@ -62,11 +62,14 @@
             console.log('Defaulted game type to League of Legends');
         }
 
-        // Clear currentLP for Immortal ranks
-        if (orderData.currentRank === 'Immortal' && orderData.currentLP) {
+        // Clear currentLP for all Valorant orders and update sessionStorage
+        if (orderData.game === 'Valorant' && orderData.currentLP) {
             delete orderData.currentLP;
             sessionStorage.setItem('orderData', JSON.stringify(orderData));
-            console.log('Cleared currentLP from orderData for Immortal rank on checkout load');
+            console.log('Cleared currentLP from orderData for Valorant on checkout load');
+            // Reload orderData to ensure consistency
+            orderData = JSON.parse(sessionStorage.getItem('orderData')) || {};
+            console.log('orderData after clearing currentLP:', JSON.stringify(orderData, null, 2));
         }
 
         const updateSummary = () => {
@@ -123,32 +126,37 @@
                 if (currentLPElement && currentRRElement) {
                     const lpSpan = currentLPElement.querySelector('span');
                     const rrSpan = currentRRElement.querySelector('span');
+                    // Ensure initial hidden state
+                    currentLPElement.classList.add('hidden');
+                    currentRRElement.classList.add('hidden');
                     if (orderData.game === 'Valorant' && orderData.currentRank !== 'Immortal') {
-                        currentLPElement.classList.add('hidden');
                         currentRRElement.classList.remove('hidden');
                         if (rrSpan) rrSpan.textContent = `${orderData.currentRR || 0}`;
                     } else if (orderData.game === 'League of Legends') {
                         currentLPElement.classList.remove('hidden');
-                        currentRRElement.classList.add('hidden');
                         if (lpSpan) lpSpan.textContent = `${orderData.currentLP || 'N/A'}`;
-                    } else {
-                        currentLPElement.classList.add('hidden');
-                        currentRRElement.classList.add('hidden');
                     }
+                    console.log('Visibility check:', {
+                        lpHidden: currentLPElement.classList.contains('hidden'),
+                        rrHidden: currentRRElement.classList.contains('hidden'),
+                        lpText: lpSpan ? lpSpan.textContent : 'N/A',
+                        rrText: rrSpan ? rrSpan.textContent : 'N/A'
+                    });
                 } else {
                     console.warn('Current LP or RR element missing in DOM');
                 }
                 if (masterLpElement && lpDetailsElement) {
                     const masterLpSpan = lpDetailsElement.querySelector('#MasterLP');
                     const isMasterOrImmortal = (rank) => ['Master', 'Immortal'].includes((rank || '').split(' ')[0]);
-                    if (isMasterOrImmortal(orderData.currentRank) && isMasterOrImmortal(orderData.desiredRank)) {
-                        lpDetailsElement.classList.add('hidden');
-                    } else if (isMasterOrImmortal(orderData.currentRank) || isMasterOrImmortal(orderData.desiredRank)) {
+                    lpDetailsElement.classList.add('hidden'); // Default to hidden
+                    if (isMasterOrImmortal(orderData.currentRank) || isMasterOrImmortal(orderData.desiredRank)) {
                         if (masterLpSpan) masterLpSpan.textContent = orderData.desiredMasterLP || orderData.desiredRR || '0';
                         lpDetailsElement.classList.remove('hidden');
-                    } else {
-                        lpDetailsElement.classList.add('hidden');
                     }
+                    console.log('MasterLP visibility:', {
+                        lpDetailsHidden: lpDetailsElement.classList.contains('hidden'),
+                        masterLpText: masterLpSpan ? masterLpSpan.textContent : 'N/A'
+                    });
                 } else {
                     console.warn('MasterLP or lp-details element missing in DOM');
                 }
@@ -186,6 +194,8 @@
             }
         };
         updateSummary();
+        // Force a second update to ensure DOM reflects changes
+        setTimeout(updateSummary, 100);
 
         proceedButton.addEventListener('click', async () => {
             console.log('Pay Now button clicked at:', new Date().toISOString());
