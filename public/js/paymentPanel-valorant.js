@@ -20,7 +20,7 @@ const priceData = {
     "Ascendant I": { "Ascendant II": 40.65 },
     "Ascendant II": { "Ascendant III": 45.43 },
     "Ascendant III": { "Immortal": 52.60 },
-    "Immortal": { "Immortal": 15.53 }
+    "Immortal": { "Immortal": 25.35 }
 };
 
 const rankOrder = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal'];
@@ -50,7 +50,7 @@ function getRankUpRRDiscount(rrRange) {
 
 function calculateImmortalRRCost(rrDifference) {
     if (!rrDifference || rrDifference < 40) return 0;
-    const basePrice = 15.53; // Base price for 40 RR
+    const basePrice = 25.35; // Base price for 40 RR
     const additionalRR = rrDifference - 40; // RR points beyond 40
     const additionalCost = additionalRR * 0.65; // $0.65 per additional RR
     return basePrice + additionalCost;
@@ -365,6 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.querySelectorAll('.option-toggle').forEach(checkbox => {
+        console.log('checkbox', checkbox)
         checkbox.addEventListener('change', () => {
             console.log('Extra option changed:', checkbox.closest('.option-row')?.querySelector('span')?.textContent.trim() || 'unknown', checkbox.checked);
             debouncedUpdateTotalPrice();
@@ -432,7 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 window.desiredRank = rank;
                 window.desiredDivision = rank === 'Immortal' ? '' : 'III';
-                window.desiredRR = rank === 'Immortal' && window.currentRank !== 'Ascendant' ? 40 : window.desiredRR;
+                window.desiredRR = rank === 'Immortal' ? 0 : window.desiredRR;
                 console.log('Desired rank changed:', window.desiredRank, 'Division:', window.desiredDivision, 'RR:', window.desiredRR);
                 debouncedUpdateTotalPrice();
             }
