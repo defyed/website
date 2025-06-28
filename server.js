@@ -1123,60 +1123,65 @@ app.post('/api/approve-coaching-payout', authenticate, checkRole(['admin']), asy
 });
 
 app.get('/api/completed-orders', authenticate, checkRole(['admin']), async (req, res) => {
-  try {
-    // Fetch completed boost orders
-    const [boostRows] = await pool.query(`
-      SELECT o.order_id, o.user_id, u.username AS customer_username, o.current_rank, o.desired_rank, 
-             o.current_lp, o.desired_lp, o.price, o.status, o.cashback, 
-             DATE_FORMAT(o.created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at, 
-             o.extras, o.payout_status, o.order_type, bo.booster_id, ub.username AS booster_username
-      FROM orders o
-      LEFT JOIN booster_orders bo ON o.order_id = bo.order_id
-      LEFT JOIN users u ON o.user_id = u.id
-      LEFT JOIN users ub ON bo.booster_id = ub.id
-      WHERE o.status = 'Completed'
-    `);
-
-    // Fetch completed coaching orders
-    const [coachingRows] = await pool.query(`
-      SELECT co.order_id, co.user_id, u.username AS customer_username, co.booked_hours, 
-             co.game_type, co.total_price AS price, co.coach_name, co.status, co.cashback, 
-             DATE_FORMAT(co.created_at, "%Y-%m-%dT%H:%i:%s.000Z") AS created_at, 
-             co.payout_status, 'coaching' AS order_type, co.coach_id, uc.username AS coach_username
-      FROM coaching_orders co
-      LEFT JOIN users u ON co.user_id = u.id
-      LEFT JOIN users uc ON co.coach_id = uc.id
-      WHERE co.status = 'completed'
-    `);
-
-    // Combine and normalize orders
-    const orders = [
-      ...boostRows.map(order => ({
-        ...order,
-        booster_payout: (parseFloat(order.price) * 0.85).toFixed(2),
-        coach_id: null,
-        coach_username: null,
-        booked_hours: null,
-        game_type: order.game_type || 'League of Legends'
-      })),
-      ...coachingRows.map(order => ({
-        ...order,
-        booster_payout: (parseFloat(order.price) * 0.85).toFixed(2),
-        current_rank: null,
-        desired_rank: null,
-        current_lp: null,
-        desired_lp: null,
-        extras: null,
-        booster_id: null,
-        booster_username: null
-      }))
-    ];
-
-    res.json(orders);
-  } catch (error) {
-    console.error('Error fetching completed orders:', error.message);
-    res.status(500).json({ error: 'Internal server error', details: error.message });
-  }
+    const { userId } = req.query;
+    try {
+        if (!userId) return res.status(400).json({ error: 'Missing userId' });
+        const connection = await pool.getConnection();
+        try {
+            // Fetch completed boost orders
+            const [boostRows] = await connection.query(`
+                SELECT o.order_id, o.user_id, u.username AS customer_username, o.current_rank, o.desired_rank, 
+                       o.current_lp, o.desired_lp, o.price, o.status, o.cashback, 
+                       DATE_FORMAT(o.created_at, '%Y-%m-%dT%H:%i:%s.000Z') AS created_at, 
+                       o.extras, o.payout_status, o.order_type, bo.booster_id, ub.username AS booster_username,
+                       o.game_type
+                FROM orders o
+                LEFT JOIN booster_orders bo ON o.order_id = bo.order_id
+                LEFT JOIN users u ON o.user_id = u.id
+                LEFT JOIN users ub ON bo.booster_id = ub.id
+                WHERE o.status = 'Completed'
+            `);
+            // Fetch completed coaching orders
+            const [coachingRows] = await connection.query(`
+                SELECT co.order_id, co.user_id, u.username AS customer_username, co.booked_hours, 
+                       co.game_type, co.total_price AS price, co.status, co.cashback, 
+                       DATE_FORMAT(co.created_at, '%Y-%m-%dT%H:%i:%s.000Z') AS created_at, 
+                       co.payout_status, 'coaching' AS order_type, co.coach_id, uc.username AS coach_username
+                FROM coaching_orders co
+                LEFT JOIN users u ON co.user_id = u.id
+                LEFT JOIN users uc ON co.coach_id = uc.id
+                WHERE co.status = 'completed'
+            `);
+            // Combine and normalize orders
+            const orders = [
+                ...boostRows.map(order => ({
+                    ...order,
+                    booster_payout: (parseFloat(order.price) * 0.85).toFixed(2),
+                    coach_id: null,
+                    coach_username: null,
+                    booked_hours: null,
+                    game_type: order.game_type || 'League of Legends'
+                })),
+                ...coachingRows.map(order => ({
+                    ...order,
+                    booster_payout: (parseFloat(order.price) * 0.85).toFixed(2),
+                    current_rank: null,
+                    desired_rank: null,
+                    current_lp: null,
+                    desired_lp: null,
+                    extras: null,
+                    booster_id: null,
+                    booster_username: null
+                }))
+            ];
+            res.json(orders);
+        } finally {
+            connection.release();
+        }
+    } catch (error) {
+        console.error('Error fetching completed orders:', error.message);
+        res.status(500).json({ error: 'Internal server error', details: error.message });
+    }
 });
 app.post('/api/approve-coaching-payout', authenticate, checkRole(['admin']), async (req, res) => {
     const { orderId, userId } = req.body;
