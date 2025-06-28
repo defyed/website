@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         localStorage.setItem('role', data.role);
                         hideAllPopups();
                         updateUserInterface(data.username);
-                        window.location.href = '/dashboard';
+                         dashboardLink.href = '/dashboard';
                     } else {
                         loginError.textContent = data.message || 'Login failed';
                         console.log('Login failed:', data.message);
@@ -223,7 +223,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         localStorage.setItem('role', data.role);
                         hideAllPopups();
                         updateUserInterface(data.username);
-                        window.location.href = '/dashboard';
+                        dashboardLink.href = '/dashboard';
+
+                        
                     } else {
                         registerError.textContent = data.message || 'Registration failed';
                         console.log('Registration failed:', data.message);
