@@ -126,7 +126,8 @@ if (document.referrer.includes('/league')) {
                     const optionsDisplay = orderData.extras?.length 
                         ? orderData.extras.map(option => option.label).join(', ')
                         : 'None';
-                    optionsElement.textContent = `Options: ${optionsDisplay}`;
+                    optionsElement.textContent = optionsDisplay;
+
                 }
 
                 if (subtotalElement && discountElement && totalElement) {

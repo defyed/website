@@ -20,7 +20,7 @@ const priceData = {
     "Ascendant I": { "Ascendant II": 40.65 },
     "Ascendant II": { "Ascendant III": 45.43 },
     "Ascendant III": { "Immortal": 52.60 },
-    "Immortal": { "Immortal": 15.53 }
+    "Immortal": { "Immortal": 25.35 }
 };
 
 const rankOrder = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal'];
@@ -49,7 +49,7 @@ function getRankUpRRDiscount(rrRange) {
 }
 
 function calculateImmortalRRCost(rrDifference) {
-    if (!rrDifference || rrDifference < 40) return 15.53; // Default to base price for display
+    if (!rrDifference || rrDifference < 40) return 25.35; // Default to base price for display
     const basePrice = 25.35; // Base price for 40 RR
     const additionalRR = rrDifference - 40; // RR points beyond 40
     const additionalCost = additionalRR * 0.65; // $0.65 per additional RR
@@ -126,7 +126,7 @@ function calculateBasePrice() {
                         const nextDiv = `${rankOrder[i + 1]} ${divisionOrder[j + 1]}`;
                         const divStepPrice = priceData[currentDiv]?.[nextDiv] || 0;
                         console.log(`Step 2 (intermediate): ${currentDiv} to ${nextDiv} = $${divStepPrice}`);
-                        totalPrice += stepPrice;
+                        totalPrice += divStepPrice;
                     }
                 }
             }
@@ -354,7 +354,8 @@ function updateTotalPrice() {
         desiredRR: window.desiredRR || 0,
         finalPrice: finalPrice.toFixed(2),
         extras,
-        couponApplied: isCouponApplied
+        couponApplied: isCouponApplied,
+        game: 'Valorant' // Explicitly set for Valorant page
     };
     if (window.currentRank !== 'Immortal') {
         orderData.currentLP = window.currentLP || '0-20';
@@ -368,20 +369,37 @@ const debouncedUpdateTotalPrice = debounce(updateTotalPrice, 100);
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, setting up listeners');
 
-    // Clear stale sessionStorage to prevent old currentLP values
-    if (window.currentRank === 'Immortal') {
-        const orderData = JSON.parse(sessionStorage.getItem('orderData')) || {};
-        if (orderData.currentLP) {
-            delete orderData.currentLP;
-            sessionStorage.setItem('orderData', JSON.stringify(orderData));
-            console.log('Cleared stale currentLP from sessionStorage for Immortal rank');
-        }
+    // Clear stale sessionStorage and reset currentLP for Immortal
+    const orderData = JSON.parse(sessionStorage.getItem('orderData')) || {};
+    if (window.currentRank === 'Immortal' && orderData.currentLP) {
+        delete orderData.currentLP;
+        sessionStorage.setItem('orderData', JSON.stringify(orderData));
+        console.log('Cleared stale currentLP from sessionStorage for Immortal rank');
     }
 
     const couponInput = document.querySelector('#coupon-input');
     if (couponInput) {
         couponInput.value = 'SAVE44';
         console.log('Coupon auto-filled: SAVE44');
+    }
+
+    const rrDropdown = document.querySelector('#current-lp-select');
+    if (rrDropdown) {
+        if (window.currentRank === 'Immortal') {
+            rrDropdown.disabled = true;
+            window.currentLP = null;
+            console.log('Disabled RR dropdown for Immortal rank');
+        } else {
+            rrDropdown.disabled = false;
+            rrDropdown.value = '0-20';
+        }
+        rrDropdown.addEventListener('change', () => {
+            if (window.currentRank !== 'Immortal') {
+                window.currentLP = rrDropdown.value;
+                console.log('RR dropdown changed:', window.currentLP);
+                debouncedUpdateTotalPrice();
+            }
+        });
     }
 
     document.querySelectorAll('.option-toggle').forEach(checkbox => {
@@ -407,16 +425,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const rrDropdown = document.querySelector('#current-lp-select');
-    if (rrDropdown) {
-        rrDropdown.value = '0-20';
-        rrDropdown.addEventListener('change', () => {
-            window.currentLP = rrDropdown.value;
-            console.log('RR dropdown changed:', window.currentLP);
-            debouncedUpdateTotalPrice();
-        });
-    }
-
     document.querySelectorAll('.ls-current-league-group .rank-btn').forEach(button => {
         button.addEventListener('click', () => {
             const rank = button.dataset.rank;
@@ -426,6 +434,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.currentRR = rank === 'Immortal' ? 0 : window.currentRR;
                 if (rank === 'Immortal') {
                     window.currentLP = null;
+                    if (rrDropdown) {
+                        rrDropdown.disabled = true;
+                        console.log('Disabled RR dropdown for Immortal rank');
+                    }
                     // Clear currentLP from sessionStorage
                     const orderData = JSON.parse(sessionStorage.getItem('orderData')) || {};
                     if (orderData.currentLP) {
@@ -433,6 +445,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         sessionStorage.setItem('orderData', JSON.stringify(orderData));
                         console.log('Cleared currentLP from sessionStorage on rank change to Immortal');
                     }
+                } else if (rrDropdown) {
+                    rrDropdown.disabled = false;
+                    window.currentLP = rrDropdown.value || '0-20';
                 }
                 console.log('Current rank changed:', window.currentRank, 'Division:', window.currentDivision, 'RR:', window.currentRR, 'LP:', window.currentLP);
                 debouncedUpdateTotalPrice();
