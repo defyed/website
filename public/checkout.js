@@ -137,7 +137,8 @@
                     const optionsDisplay = orderData.extras?.length 
                         ? orderData.extras.map(option => option.label).join(', ')
                         : 'None';
-                    optionsElement.textContent = `Options: ${optionsDisplay}`;
+                    optionsElement.textContent = optionsDisplay;
+
                 }
                 if (subtotalElement && discountElement && totalElement) {
                     const finalPrice = parseFloat(orderData.finalPrice) || 0;
@@ -146,9 +147,10 @@
                     const basePrice = parseFloat(orderData.basePrice) || totalPrice - (orderData.extras?.reduce((acc, e) => acc + parseFloat(e.cost || e.price || 0), 0) || 0);
                     const discountAmount = totalPrice * (discount / 100);
 
-                    subtotalElement.textContent = `Subtotal $${totalPrice.toFixed(2)}`;
-                    discountElement.textContent = `Discount (${discount}%) $${discountAmount.toFixed(2)}`;
-                    totalElement.textContent = `Total $${finalPrice.toFixed(2)}`;
+                    subtotalElement.textContent = `$${totalPrice.toFixed(2)}`;
+                    discountElement.textContent = `$${discountAmount.toFixed(2)}`;
+                    totalElement.textContent = `$${finalPrice.toFixed(2)}`;
+
                     console.log('Order summary updated:', { basePrice, totalPrice, discount, discountAmount, finalPrice });
                 }
             } catch (error) {
