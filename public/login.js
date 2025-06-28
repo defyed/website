@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         localStorage.setItem('role', data.role);
                         hideAllPopups();
                         updateUserInterface(data.username);
-                        window.location.href = '/dashboard.html';
+                        window.location.href = '/dashboard';
                     } else {
                         loginError.textContent = data.message || 'Login failed';
                         console.log('Login failed:', data.message);
