@@ -1,6 +1,6 @@
 (function () {
     if (typeof Stripe === 'undefined') {
-        console.error('Stripe.js failed to load. Ensure <script src="https://js.stripe.com/v3/"></script> is in checkout.html.');
+        console.error('Stripe.js failed to load. Ensure <script src="https://js.stripe.com/v3/"></script> is in the /checkout page.');
         alert('Payment system is unavailable. Please try again later or contact support.');
         return;
     }
@@ -164,13 +164,13 @@ if (document.referrer.includes('/league')) {
     if (!userId || isNaN(userId)) {
         alert('Please log in to proceed with payment.');
         console.log('No valid userId found:', userId);
-        window.location.href = '/league-services.html';
+        window.location.href = '/league';
         return;
     }
     if (!orderData.currentRank || !orderData.desiredRank || !orderData.finalPrice) {
         alert('Incomplete order data. Please select ranks and options on the previous page.');
         console.log('Incomplete orderData:', orderData);
-        window.location.href = '/league-services.html';
+        window.location.href = '/league';
         return;
     }
 
@@ -240,7 +240,7 @@ if (document.referrer.includes('/league')) {
             const errorData = await response.json();
             console.error('Failed to create checkout session:', errorData);
             alert(`Failed to initiate payment: ${errorData.error || 'Unknown error'}`);
-            window.location.href = '/checkout.html';
+            window.location.href = '/checkout';
             return;
         }
 
@@ -251,12 +251,12 @@ if (document.referrer.includes('/league')) {
         if (error) {
             console.error('Stripe redirectToCheckout error:', error.message, error);
             alert(`Payment error: ${error.message}. Please try again or contact support.`);
-            window.location.href = '/checkout.html';
+            window.location.href = '/checkout';
         }
     } catch (error) {
         console.error('Checkout error:', error.message, error.stack);
         alert(`An error occurred while processing your payment: ${error.message}. Please try again or contact support.`);
-        window.location.href = '/checkout.html';
+        window.location.href = '/checkout';
     }
 });
 

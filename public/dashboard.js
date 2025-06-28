@@ -5,7 +5,7 @@
     if (!userId || isNaN(userId)) {
         console.error('No valid userId found, redirecting to login');
         alert('Please log in to view your dashboard.');
-        window.location.href = '/league-services.html';
+        window.location.href = '/league';
         return;
     }
 
@@ -229,7 +229,7 @@ async function fetchCoachingOrders() {
     if (!userId || !role) {
         console.error('No userId or role found in localStorage');
         alert('Please log in to view coaching orders.');
-        window.location.href = '/league-services.html';
+        window.location.href = '/league';
         return;
     }
     try {
@@ -1745,7 +1745,7 @@ if (isAvailable) {
             if (!userId) {
                 console.error('No userId found in localStorage');
                 alert('Please log in to claim orders.');
-                window.location.href = '/league-services.html';
+                window.location.href = '/league';
                 return;
             }
             try {
@@ -1782,7 +1782,7 @@ if (isAvailable) {
             if (!userId) {
                 console.error('No userId found in localStorage');
                 alert('Please log in to cancel orders.');
-                window.location.href = '/league-services.html';
+                window.location.href = '/league';
                 return;
             }
             if (confirm('Are you sure you want to cancel this order?')) {
@@ -1819,7 +1819,7 @@ if (isAvailable) {
             if (!userId) {
                 console.error('No userId found in localStorage');
                 alert('Please log in to complete orders.');
-                window.location.href = '/league-services.html';
+                window.location.href = '/league';
                 return;
             }
             if (confirm('Are you sure you want to mark this order as completed?')) {
@@ -1857,7 +1857,7 @@ if (isCompleted) {
             if (!userId) {
                 console.error('No userId found in localStorage');
                 alert('Please log in to approve payouts.');
-                window.location.href = '/league-services.html';
+                window.location.href = '/league';
                 return;
             }
             if (confirm(`Are you sure you want to approve the payout for order ${orderId}?`)) {
@@ -1982,7 +1982,7 @@ if (isCompleted) {
         localStorage.removeItem('userId');
         localStorage.removeItem('loggedInUser');
         localStorage.removeItem('role');
-        window.location.href = '/league-services.html';
+        window.location.href = '/league';
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -2100,7 +2100,7 @@ if (isCompleted) {
             settingsButton.addEventListener('click', (e) => {
                 e.preventDefault();
                 console.log('Settings button clicked');
-                window.location.href = '/account-settings.html';
+          //      window.location.href = '/account-settings.html';
             });
         } else {
             console.error('Settings button not found in #settings-panel');
@@ -2112,7 +2112,7 @@ if (isCompleted) {
             orderNowButton.addEventListener('click', (e) => {
                 e.preventDefault();
                 console.log('Order Now button clicked');
-                window.location.href = '/league-services.html';
+                window.location.href = '/league';
             });
         } else {
             console.error('Order Now button not found in #order-boost-panel');
