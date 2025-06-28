@@ -49,7 +49,7 @@ function getRankUpRRDiscount(rrRange) {
 }
 
 function calculateImmortalRRCost(rrDifference) {
-    if (!rrDifference || rrDifference < 40) return 0;
+    if (!rrDifference || rrDifference < 40) return 25.35; // Default to base price for display
     const basePrice = 25.35; // Base price for 40 RR
     const additionalRR = rrDifference - 40; // RR points beyond 40
     const additionalCost = additionalRR * 0.65; // $0.65 per additional RR
@@ -100,10 +100,6 @@ function calculateBasePrice() {
     const desiredRR = window.desiredRR || 0;
 
     if (startRank === 'Immortal' && endRank === 'Immortal') {
-        if (desiredRR <= currentRR) {
-            console.log('Immortal to Immortal, desired RR <= current RR, price: 0');
-            return 0;
-        }
         const rrDifference = desiredRR - currentRR;
         totalPrice = calculateImmortalRRCost(rrDifference);
         console.log(`Immortal to Immortal, RR difference: ${rrDifference}, Price: $${totalPrice.toFixed(2)}`);
@@ -130,7 +126,7 @@ function calculateBasePrice() {
                         const nextDiv = `${rankOrder[i + 1]} ${divisionOrder[j + 1]}`;
                         const divStepPrice = priceData[currentDiv]?.[nextDiv] || 0;
                         console.log(`Step 2 (intermediate): ${currentDiv} to ${nextDiv} = $${divStepPrice}`);
-                        totalPrice += stepPrice;
+                        totalPrice += divStepPrice;
                     }
                 }
             }
@@ -315,6 +311,8 @@ function updateTotalPrice() {
     const discountedPriceDisplay = document.querySelector('.discounted-price');
     const discountRateDisplay = document.querySelector('.discount-rate');
     const cashbackDisplay = document.querySelector('.cashback-offer p');
+    const priceNote = document.querySelector('.price-note');
+
     if (originalPriceDisplay && discountedPriceDisplay && discountRateDisplay && cashbackDisplay) {
         if (isCouponApplied) {
             originalPriceDisplay.textContent = `$${originalPrice.toFixed(2)}`;
@@ -333,6 +331,16 @@ function updateTotalPrice() {
             discountRateDisplay.classList.remove('coupon-active');
         }
         cashbackDisplay.textContent = `Get $${cashback.toFixed(2)} cashback on your purchase`;
+
+        // Add note for Immortal to Immortal with invalid RR
+        if (window.currentRank === 'Immortal' && window.desiredRank === 'Immortal' && (desiredRR - currentRR < 40 || desiredRR <= currentRR)) {
+            if (priceNote) {
+                priceNote.textContent = 'Price shown is for 40 RR minimum. Enter a valid RR (at least 40 more than current RR).';
+                priceNote.style.display = 'block';
+            }
+        } else if (priceNote) {
+            priceNote.style.display = 'none';
+        }
     } else {
         console.warn('Price or cashback elements not found');
     }
