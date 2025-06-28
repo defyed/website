@@ -126,8 +126,7 @@ if (document.referrer.includes('/league')) {
                     const optionsDisplay = orderData.extras?.length 
                         ? orderData.extras.map(option => option.label).join(', ')
                         : 'None';
-                    optionsElement.textContent = optionsDisplay;
-
+                    optionsElement.textContent = `Options: ${optionsDisplay}`;
                 }
 
                 if (subtotalElement && discountElement && totalElement) {
@@ -241,7 +240,7 @@ if (document.referrer.includes('/league')) {
             const errorData = await response.json();
             console.error('Failed to create checkout session:', errorData);
             alert(`Failed to initiate payment: ${errorData.error || 'Unknown error'}`);
-            window.location.href = '/checkout';
+            window.location.href = '/checkout.html';
             return;
         }
 
@@ -252,12 +251,12 @@ if (document.referrer.includes('/league')) {
         if (error) {
             console.error('Stripe redirectToCheckout error:', error.message, error);
             alert(`Payment error: ${error.message}. Please try again or contact support.`);
-            window.location.href = '/checkout';
+            window.location.href = '/checkout.html';
         }
     } catch (error) {
         console.error('Checkout error:', error.message, error.stack);
         alert(`An error occurred while processing your payment: ${error.message}. Please try again or contact support.`);
-        window.location.href = '/checkout';
+        window.location.href = '/checkout.html';
     }
 });
 
