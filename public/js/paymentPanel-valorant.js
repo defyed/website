@@ -1,26 +1,26 @@
 const priceData = {
-    "Iron I": { "Iron II": 5.25 },
-    "Iron II": { "Iron III": 5.25 },
-    "Iron III": { "Bronze I": 5.25 },
-    "Bronze I": { "Bronze II": 5.25 },
-    "Bronze II": { "Bronze III": 5.25 },
-    "Bronze III": { "Silver I": 5.25 },
-    "Silver I": { "Silver II": 8.00 },
-    "Silver II": { "Silver III": 8.50 },
-    "Silver III": { "Gold I": 9.25 },
-    "Gold I": { "Gold II": 10.00 },
-    "Gold II": { "Gold III": 10.00 },
-    "Gold III": { "Platinum I": 12.00 },
-    "Platinum I": { "Platinum II": 13.25 },
-    "Platinum II": { "Platinum III": 16.50 },
-    "Platinum III": { "Diamond I": 20.00 },
-    "Diamond I": { "Diamond II": 28.25 },
-    "Diamond II": { "Diamond III": 32.00 },
-    "Diamond III": { "Ascendant I": 49.25 },
-    "Ascendant I": { "Ascendant II": 68.00 },
-    "Ascendant II": { "Ascendant III": 75.00 },
-    "Ascendant III": { "Immortal": 116.22 },
-    "Immortal": { "Immortal": 116.22 }
+    "Iron I": { "Iron II": 3.18 },
+    "Iron II": { "Iron III": 3.18 },
+    "Iron III": { "Bronze I": 3.18 },
+    "Bronze I": { "Bronze II": 3.18 },
+    "Bronze II": { "Bronze III": 3.18 },
+    "Bronze III": { "Silver I": 3.18 },
+    "Silver I": { "Silver II": 4.78 },
+    "Silver II": { "Silver III": 5.18 },
+    "Silver III": { "Gold I": 5.57 },
+    "Gold I": { "Gold II": 5.97 },
+    "Gold II": { "Gold III": 6.37 },
+    "Gold III": { "Platinum I": 7.17 },
+    "Platinum I": { "Platinum II": 7.96 },
+    "Platinum II": { "Platinum III": 9.96 },
+    "Platinum III": { "Diamond I": 11.95 },
+    "Diamond I": { "Diamond II": 16.82 },
+    "Diamond II": { "Diamond III": 18.93},
+    "Diamond III": { "Ascendant I": 29.44 },
+    "Ascendant I": { "Ascendant II": 40.65 },
+    "Ascendant II": { "Ascendant III": 45.43 },
+    "Ascendant III": { "Immortal": 52.60 },
+    "Immortal": { "Immortal": 15.53 }
 };
 
 const rankOrder = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal'];
@@ -50,8 +50,10 @@ function getRankUpRRDiscount(rrRange) {
 
 function calculateImmortalRRCost(rrDifference) {
     if (!rrDifference || rrDifference < 40) return 0;
-    if (rrDifference === 40) return 116.22;
-    return (rrDifference / 40) * 116.22;
+    const basePrice = 15.53; // Base price for 40 RR
+    const additionalRR = rrDifference - 40; // RR points beyond 40
+    const additionalCost = additionalRR * 0.65; // $0.65 per additional RR
+    return basePrice + additionalCost;
 }
 
 function calculateRankDistance(startRank, endRank) {
@@ -469,7 +471,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             debouncedUpdateTotalPrice();
             window.location.href = '/checkout';
-
         });
     }
 
