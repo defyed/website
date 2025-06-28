@@ -8,6 +8,7 @@
         window.location.href = '/league';
         return;
     }
+const socket = io(); // auto-connects to same origin
 
     // Flag to prevent multiple fetch calls
     let isFetchingAvailableOrders = false;
@@ -1129,6 +1130,14 @@ function renderCoachingOrders(orders, containerId) {
     modal.className = 'modal order-form-modal';
     const isCustomer = userRole !== 'booster' && userRole !== 'admin';
     const isCoachingOrder = order.order_type === 'coaching';
+    const roomId = `order-${order.order_id}`;
+socket.emit('joinRoom', roomId);
+
+// Listen for incoming chat messages
+socket.on('chatMessage', (message) => {
+  appendMessageToChatBox(message);
+});
+
 
     let credentials = { account_username: '', summoner_name: '', plaintext_password: '' };
     if (!isCoachingOrder) {

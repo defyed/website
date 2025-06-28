@@ -1664,7 +1664,7 @@ app.get('/api/coupons/latest', async (req, res) => {
 });
 
 
-const PORT = process.env.PORT || 3000;
+
 
 // GET latest coupon for League or Valorant
 app.get('/api/latest-coupon', async (req, res) => {
@@ -1742,7 +1742,37 @@ app.get('*', (req, res) => {
     res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
 });
 
-app.listen(PORT, async () => {
-    console.log(`Server running on port ${PORT}`);
-    await initializeDatabase();
+const http = require('http').createServer(app);
+const { Server } = require('socket.io');
+const io = new Server(http, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
 });
+
+// Socket.IO connection handler
+io.on('connection', (socket) => {
+  console.log('A user connected:', socket.id);
+
+  socket.on('joinRoom', (roomId) => {
+    socket.join(roomId);
+    console.log(`User joined room ${roomId}`);
+  });
+
+  socket.on('chatMessage', ({ roomId, message }) => {
+    console.log(`Message to room ${roomId}:`, message);
+    io.to(roomId).emit('chatMessage', message); // Send to everyone in room
+  });
+
+  socket.on('disconnect', () => {
+    console.log('A user disconnected:', socket.id);
+  });
+});
+
+// Start server
+const PORT = process.env.PORT || 3000;
+http.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
