@@ -223,8 +223,8 @@
 
                 const updatedOrderData = {
                     ...orderData,
-                    currentLP: currentLP,
-                    desiredLP: desiredLP,
+                    currentLP: isMasterOrImmortal(orderData.currentRank) ? undefined : orderData.currentLP,
+                    desiredLP: isMasterOrImmortal(orderData.desiredRank) ? undefined : orderData.desiredLP,
                     currentMasterLP: parseInt(orderData.currentMasterLP) || 0,
                     desiredMasterLP: parseInt(orderData.desiredMasterLP) || 0,
                     currentRR: parseInt(orderData.currentRR) || 0,
