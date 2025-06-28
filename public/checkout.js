@@ -148,7 +148,8 @@
                     const discountAmount = totalPrice * (discount / 100);
 
                     subtotalElement.textContent = `$${totalPrice.toFixed(2)}`;
-                    discountElement.textContent = `$${discountAmount.toFixed(2)}`;
+                    discountElement.textContent = `${(discount * 100).toFixed(0)}% ($${discountAmount.toFixed(2)})`;
+
                     totalElement.textContent = `$${finalPrice.toFixed(2)}`;
 
                     console.log('Order summary updated:', { basePrice, totalPrice, discount, discountAmount, finalPrice });
