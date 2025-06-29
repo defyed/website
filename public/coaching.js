@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const coachCard = document.createElement('div');
             coachCard.className = 'coach-card';
-            coachCard.id = `coach-card-${coach.id}`; // Unique ID for debugging
+            coachCard.id = `coach-card-${coach.id}`;
             console.log(`Creating coach card: coach-card-${coach.id}`);
             const header = document.createElement('div');
             header.className = 'card-header';
@@ -108,31 +108,38 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const footer = document.createElement('div');
             footer.className = 'card-footer';
-            footer.id = `card-footer-${coach.id}`; // Unique ID for debugging
+            footer.id = `card-footer-${coach.id}`;
             console.log(`Creating footer: card-footer-${coach.id}`);
-            if (coach.lol_preferred_lanes) {
+
+            // LoL Section
+            if (coach.lol_preferred_lanes || coach.lol_preferred_champions) {
                 console.log('Lanes condition true for coach:', coach.id, 'lanes:', coach.lol_preferred_lanes);
                 const lolSection = document.createElement('div');
                 lolSection.className = 'game-section lol-section';
                 lolSection.id = `lol-section-${coach.id}`;
-                const lanesDiv = document.createElement('div');
-                lanesDiv.className = 'lanes';
-                lanesDiv.innerHTML = '<span class="section-title">Lanes</span>';
-                const lanesImages = document.createElement('div');
-                lanesImages.className = 'images';
-                const lanes = (coach.lol_preferred_lanes || '').split(',').filter(Boolean);
-                if (lanes.length === 0) {
-                    lanesImages.textContent = 'No lanes selected (fallback)';
+                if (coach.lol_preferred_lanes) {
+                    const lanesDiv = document.createElement('div');
+                    lanesDiv.className = 'lanes';
+                    lanesDiv.style.display = 'flex'; // Force visibility
+                    lanesDiv.innerHTML = '<span class="section-title">Lanes</span>';
+                    const lanesImages = document.createElement('div');
+                    lanesImages.className = 'images';
+                    const lanes = (coach.lol_preferred_lanes || '').split(',').filter(Boolean);
+                    if (lanes.length === 0) {
+                        lanesImages.textContent = 'No lanes selected (fallback)';
+                    }
+                    lanes.forEach(lane => {
+                        const img = document.createElement('img');
+                        img.src = `/images/lanes/${lane.toLowerCase().replace(/\s+/g, '-')}.png`;
+                        img.alt = lane;
+                        img.className = 'profile-image';
+                        img.onerror = () => console.error(`Failed to load image: /images/lanes/${lane.toLowerCase().replace(/\s+/g, '-')}.png for coach ${coach.id}`);
+                        lanesImages.appendChild(img);
+                    });
+                    lanesDiv.appendChild(lanesImages);
+                    lolSection.appendChild(lanesDiv);
+                    console.log('Appended lanes for coach:', coach.id, 'HTML:', lanesDiv.outerHTML);
                 }
-                lanes.forEach(lane => {
-                    const img = document.createElement('img');
-                    img.src = `/images/lanes/${lane.toLowerCase().replace(/\s+/g, '-')}.png`;
-                    img.alt = lane;
-                    img.className = 'profile-image';
-                    img.onerror = () => console.error(`Failed to load image: /images/lanes/${lane.toLowerCase().replace(/\s+/g, '-')}.png for coach ${coach.id}`);
-                    lanesImages.appendChild(img);
-                });
-                lanesDiv.appendChild(lanesImages);
                 if (coach.lol_preferred_champions) {
                     const champsDiv = document.createElement('div');
                     champsDiv.className = 'champions';
@@ -160,33 +167,41 @@ document.addEventListener('DOMContentLoaded', async () => {
                     });
                     champsDiv.appendChild(champsImages);
                     lolSection.appendChild(champsDiv);
+                    console.log('Appended champions for coach:', coach.id, 'HTML:', champsDiv.outerHTML);
                 }
                 footer.appendChild(lolSection);
-                console.log('Appended LoL section for coach:', coach.id, 'with lanes:', coach.lol_preferred_lanes);
+                console.log('Appended LoL section for coach:', coach.id, 'with lanes:', coach.lol_preferred_lanes, 'HTML:', lolSection.outerHTML);
             }
-            if (coach.valorant_preferred_roles) {
+
+            // Valorant Section
+            if (coach.valorant_preferred_roles || coach.valorant_preferred_agents) {
                 console.log('Roles condition true for coach:', coach.id, 'roles:', coach.valorant_preferred_roles);
                 const valorantSection = document.createElement('div');
                 valorantSection.className = 'game-section valorant-section';
                 valorantSection.id = `valorant-section-${coach.id}`;
-                const rolesDiv = document.createElement('div');
-                rolesDiv.className = 'roles';
-                rolesDiv.innerHTML = '<span class="section-title">Roles</span>';
-                const rolesImages = document.createElement('div');
-                rolesImages.className = 'images';
-                const roles = (coach.valorant_preferred_roles || '').split(',').filter(Boolean);
-                if (roles.length === 0) {
-                    rolesImages.textContent = 'No roles selected (fallback)';
+                if (coach.valorant_preferred_roles) {
+                    const rolesDiv = document.createElement('div');
+                    rolesDiv.className = 'roles';
+                    rolesDiv.style.display = 'flex'; // Force visibility
+                    rolesDiv.innerHTML = '<span class="section-title">Roles</span>';
+                    const rolesImages = document.createElement('div');
+                    rolesImages.className = 'images';
+                    const roles = (coach.valorant_preferred_roles || '').split(',').filter(Boolean);
+                    if (roles.length === 0) {
+                        rolesImages.textContent = 'No roles selected (fallback)';
+                    }
+                    roles.forEach(role => {
+                        const img = document.createElement('img');
+                        img.src = `/images/roles/${role.toLowerCase().replace(/\s+/g, '-')}.png`;
+                        img.alt = role;
+                        img.className = 'profile-image';
+                        img.onerror = () => console.error(`Failed to load image: /images/roles/${role.toLowerCase().replace(/\s+/g, '-')}.png for coach ${coach.id}`);
+                        rolesImages.appendChild(img);
+                    });
+                    rolesDiv.appendChild(rolesImages);
+                    valorantSection.appendChild(rolesDiv);
+                    console.log('Appended roles for coach:', coach.id, 'HTML:', rolesDiv.outerHTML);
                 }
-                roles.forEach(role => {
-                    const img = document.createElement('img');
-                    img.src = `/images/roles/${role.toLowerCase().replace(/\s+/g, '-')}.png`;
-                    img.alt = role;
-                    img.className = 'profile-image';
-                    img.onerror = () => console.error(`Failed to load image: /images/roles/${role.toLowerCase().replace(/\s+/g, '-')}.png for coach ${coach.id}`);
-                    rolesImages.appendChild(img);
-                });
-                rolesDiv.appendChild(rolesImages);
                 if (coach.valorant_preferred_agents) {
                     const agentsDiv = document.createElement('div');
                     agentsDiv.className = 'agents';
@@ -203,9 +218,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     });
                     agentsDiv.appendChild(agentsImages);
                     valorantSection.appendChild(agentsDiv);
+                    console.log('Appended agents for coach:', coach.id, 'HTML:', agentsDiv.outerHTML);
                 }
                 footer.appendChild(valorantSection);
-                console.log('Appended Valorant section for coach:', coach.id, 'with roles:', coach.valorant_preferred_roles);
+                console.log('Appended Valorant section for coach:', coach.id, 'with roles:', coach.valorant_preferred_roles, 'HTML:', valorantSection.outerHTML);
             }
             coachCard.appendChild(footer);
             console.log('Final footer HTML for coach:', coach.id, footer.outerHTML);
@@ -242,7 +258,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             coachesContainer.appendChild(coachCard);
             console.log('Appended coach card:', coach.id, 'Final card HTML:', coachCard.outerHTML);
+
+            // Verify DOM after appending
+            const verifyLanes = coachCard.querySelector('.lanes');
+            const verifyRoles = coachCard.querySelector('.roles');
+            console.log('Post-append verification for coach:', coach.id, {
+                lanesPresent: !!verifyLanes,
+                lanesHTML: verifyLanes ? verifyLanes.outerHTML : 'Not found',
+                rolesPresent: !!verifyRoles,
+                rolesHTML: verifyRoles ? verifyRoles.outerHTML : 'Not found'
+            });
         });
+
+        // Set up MutationObserver to detect DOM changes
+        const observer = new MutationObserver(mutations => {
+            mutations.forEach(mutation => {
+                if (mutation.removedNodes.length || mutation.addedNodes.length) {
+                    console.log('DOM mutation detected in coaches-list:', mutation);
+                }
+            });
+        });
+        observer.observe(coachesContainer, { childList: true, subtree: true });
     }
 
     async function showEditProfileModal(coach) {
