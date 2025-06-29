@@ -6,7 +6,9 @@
         linear-gradient(to bottom, rgba(19, 23, 31, 0.7) 0%, rgba(19, 23, 31, 0.3) 70%, rgba(19, 23, 31, 0) 100%), 
         url('images/pageArt/league1.png');
     background-size: 80%; /* smaller size */
-    background-position: 90% top; /* move to the left */
+    background-position-x: 30%; /* horizontal shift */
+background-position-y: top;
+
     background-repeat: no-repeat;
     z-index: 0;
 }
