@@ -21,23 +21,25 @@
 </nav>
     </header>
     <main>
-        <h1>Our Coaches</h1>
-        <div id="coach-profile"></div>
+    <h1>Our Coaches</h1>
+    <div class="edit-profile-wrapper">
         <button id="edit-my-profile-btn" style="display: none;">Edit My Coach Profile</button>
-        <div id="coaches-list"></div>
-        <div id="edit-coach-modal" class="modal">
-            <div class="modal-content">
-                <span class="close">×</span>
-                <h2>Edit Coach Profile</h2>
-                <span id="coach-name-display">Username: Loading...</span>
-                <form id="edit-coach-form">
-                    <div class="form-group">
-                        <label for="coach-game">Game:</label>
-                        <select id="coach-game" required>
-                            <option value="League of Legends">League of Legends</option>
-                            <option value="Valorant">Valorant</option>
-                        </select>
-                    </div>
+    </div>
+    <div id="coach-profile"></div>
+    <div id="coaches-list"></div>
+    <div id="edit-coach-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">×</span>
+            <h2>Edit Coach Profile</h2>
+            <span id="coach-name-display">Username: Loading...</span>
+            <form id="edit-coach-form">
+                <div class="form-group">
+                    <label for="coach-game">Game:</label>
+                    <select id="coach-game" required>
+                        <option value="League of Legends">League of Legends</option>
+                        <option value="Valorant">Valorant</option>
+                    </select>
+                </div>
                     <div class="form-group">
                         <label for="lol-highest-rank">LoL Highest Rank (if applicable):</label>
                         <select id="lol-highest-rank">

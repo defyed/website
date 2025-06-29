@@ -184,13 +184,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             coachCard.appendChild(footer);
 
-            if (['admin', 'coach'].includes(userRole) && coach.id == userId) {
-                const editBtn = document.createElement('button');
-                editBtn.className = 'edit-coach-btn';
-                editBtn.textContent = 'Edit Profile';
-                editBtn.addEventListener('click', () => showEditProfileModal(coach));
-                coachCard.appendChild(editBtn);
-            } else {
+          if (!(['admin', 'coach'].includes(userRole) && coach.id == userId)) {
                 const purchaseSection = document.createElement('div');
                 purchaseSection.className = 'purchase-section';
                 const hoursLabel = document.createElement('label');
@@ -220,7 +214,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 coachCard.appendChild(purchaseSection);
             }
 
-            coachesContainer.appendChild(coachCard);
+
+                coachesContainer.appendChild(coachCard);
+
         });
     }
 
