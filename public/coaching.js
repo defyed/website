@@ -112,12 +112,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const lanesImages = document.createElement('div');
                 lanesImages.className = 'images';
                 (coach.lol_preferred_lanes || '').split(',').filter(Boolean).forEach(lane => {
-                    const img = document.createElement('img');
-                    img.src = `/images/lanes/${lane.toLowerCase().replace(/\s+/g, '-')}.png`;
-                    img.alt = lane;
-                    img.className = 'profile-image';
-                    lanesImages.appendChild(img);
+                const img = document.createElement('img');
+                img.src = `/images/lanes/${lane.toLowerCase().replace(/\s+/g, '-')}.png`;
+                img.alt = lane;
+                img.className = 'profile-image';
+                lanesImages.appendChild(img);
                 });
+
                 lanesDiv.appendChild(lanesImages);
                 if (coach.lol_preferred_champions) {
                     const champsDiv = document.createElement('div');
@@ -369,29 +370,61 @@ editProfileForm.addEventListener('submit', async (e) => {
     }
 
     function setupLaneButtons() {
-        const buttons = document.querySelectorAll('#lol-preferred-lanes-buttons .lane-button');
-        const hiddenInput = document.getElementById('lol-preferred-lanes');
-        const maxSelections = 3;
-        buttons.forEach(button => {
-            button.addEventListener('click', () => {
-                const lane = button.getAttribute('data-lane');
-                let selectedLanes = hiddenInput.value ? hiddenInput.value.split(',') : [];
-                if (button.classList.contains('selected')) {
-                    selectedLanes = selectedLanes.filter(l => l !== lane);
-                    button.classList.remove('selected');
-                } else {
-                    if (selectedLanes.length >= maxSelections) {
-                        alert(`You can select up to ${maxSelections} lanes.`);
-                        return;
-                    }
-                    selectedLanes.push(lane);
-                    button.classList.add('selected');
+    const buttons = document.querySelectorAll('#lol-preferred-lanes-buttons .lane-button');
+    const hiddenInput = document.getElementById('lol-preferred-lanes');
+    const maxSelections = 3;
+
+    buttons.forEach(button => {
+        button.addEventListener('click', () => {
+            const lane = button.getAttribute('data-lane');
+            let selectedLanes = hiddenInput.value ? hiddenInput.value.split(',') : [];
+
+            if (button.classList.contains('selected')) {
+                selectedLanes = selectedLanes.filter(l => l !== lane);
+                button.classList.remove('selected');
+            } else {
+                if (selectedLanes.length >= maxSelections) {
+                    alert(`You can select up to ${maxSelections} lanes.`);
+                    return;
                 }
-                hiddenInput.value = selectedLanes.join(',');
-                updateImageDisplay('lol-preferred-lanes', 'lanes');
-            });
+                selectedLanes.push(lane);
+                button.classList.add('selected');
+            }
+
+            hiddenInput.value = selectedLanes.join(',');
+            updateImageDisplay('lol-preferred-lanes', 'lanes'); // ✅ Add this line
         });
-    }
+    });
+}
+
+
+function setupRoleButtons() {
+    const buttons = document.querySelectorAll('#valorant-preferred-roles-buttons .role-button');
+    const hiddenInput = document.getElementById('valorant-preferred-roles');
+    const maxSelections = 2;
+
+    buttons.forEach(button => {
+        button.addEventListener('click', () => {
+            const role = button.getAttribute('data-role');
+            let selectedRoles = hiddenInput.value ? hiddenInput.value.split(',') : [];
+
+            if (button.classList.contains('selected')) {
+                selectedRoles = selectedRoles.filter(r => r !== role);
+                button.classList.remove('selected');
+            } else {
+                if (selectedRoles.length >= maxSelections) {
+                    alert(`You can select up to ${maxSelections} roles.`);
+                    return;
+                }
+                selectedRoles.push(role);
+                button.classList.add('selected');
+            }
+
+            hiddenInput.value = selectedRoles.join(',');
+        });
+    });
+}
+
 
     function setupRoleButtons() {
         const buttons = document.querySelectorAll('#valorant-preferred-roles-buttons .role-button');
