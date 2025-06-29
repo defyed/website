@@ -1,26 +1,26 @@
 const priceData = {
-    "Iron I": { "Iron II": 3.18 },
-    "Iron II": { "Iron III": 3.18 },
-    "Iron III": { "Bronze I": 3.18 },
-    "Bronze I": { "Bronze II": 3.18 },
-    "Bronze II": { "Bronze III": 3.18 },
-    "Bronze III": { "Silver I": 3.18 },
-    "Silver I": { "Silver II": 4.78 },
-    "Silver II": { "Silver III": 5.18 },
-    "Silver III": { "Gold I": 5.57 },
-    "Gold I": { "Gold II": 5.97 },
-    "Gold II": { "Gold III": 6.37 },
-    "Gold III": { "Platinum I": 7.17 },
-    "Platinum I": { "Platinum II": 7.96 },
-    "Platinum II": { "Platinum III": 9.96 },
-    "Platinum III": { "Diamond I": 11.95 },
-    "Diamond I": { "Diamond II": 16.82 },
-    "Diamond II": { "Diamond III": 18.93 },
-    "Diamond III": { "Ascendant I": 29.44 },
-    "Ascendant I": { "Ascendant II": 40.65 },
-    "Ascendant II": { "Ascendant III": 45.43 },
-    "Ascendant III": { "Immortal": 52.60 },
-    "Immortal": { "Immortal": 15.53 }
+    "Iron I": { "Iron II": 4.18 },
+    "Iron II": { "Iron III": 4.18 },
+    "Iron III": { "Bronze I": 4.18 },
+    "Bronze I": { "Bronze II": 4.18 },
+    "Bronze II": { "Bronze III": 4.18 },
+    "Bronze III": { "Silver I": 4.18 },
+    "Silver I": { "Silver II": 5.78 },
+    "Silver II": { "Silver III": 6.18 },
+    "Silver III": { "Gold I": 6.57 },
+    "Gold I": { "Gold II": 6.97 },
+    "Gold II": { "Gold III": 7.37 },
+    "Gold III": { "Platinum I": 8.17 },
+    "Platinum I": { "Platinum II": 8.96 },
+    "Platinum II": { "Platinum III": 10.96 },
+    "Platinum III": { "Diamond I": 12.95 },
+    "Diamond I": { "Diamond II": 17.82 },
+    "Diamond II": { "Diamond III": 19.93 },
+    "Diamond III": { "Ascendant I": 30.44 },
+    "Ascendant I": { "Ascendant II": 41.65 },
+    "Ascendant II": { "Ascendant III": 46.43 },
+    "Ascendant III": { "Immortal": 53.60 },
+    "Immortal": { "Immortal": 18.53 }
 };
 
 const rankOrder = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal'];
@@ -49,8 +49,8 @@ function getRankUpRRDiscount(rrRange) {
 }
 
 function calculateImmortalRRCost(rrDifference) {
-    if (!rrDifference || rrDifference < 40) return 15.53; // Default to base price for display
-    const basePrice = 25.35; // Base price for 40 RR
+    if (!rrDifference || rrDifference < 40) return 18.53; // Default to base price for display
+    const basePrice = 26.35; // Base price for 40 RR
     const additionalRR = rrDifference - 40; // RR points beyond 40
     const additionalCost = additionalRR * 0.65; // $0.65 per additional RR
     return basePrice + additionalCost;
