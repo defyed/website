@@ -16,10 +16,17 @@
     padding: 0;
     box-sizing: border-box;
 }
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    
+    color: #f5f5f5;
+}
 
 /* Body and Background (excluding dashboard) */
 body:not(.dashboard-body) {
-    background-color: #1a2526;
+    background-color: #13171F;
     color: white;
     font-family: Arial, Helvetica, sans-serif;
     min-height: 100vh;
