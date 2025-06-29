@@ -1590,12 +1590,12 @@ app.get('/api/booster-profile', authenticate, checkRole(['booster', 'admin']), a
 
 app.post('/api/booster-profile', authenticate, checkRole(['booster', 'admin']), async (req, res) => {
   const {
-    lolHighestRank,
-    valorantHighestRank,
-    lolPreferredLanes,
-    lolPreferredChampions,
-    valorantPreferredRoles,
-    valorantPreferredAgents,
+    lol_highest_rank,
+    valorant_highest_rank,
+    lol_preferred_lanes,
+    lol_preferred_champions,
+    valorant_preferred_roles,
+    valorant_preferred_agents,
     language,
     bio
   } = req.body;
@@ -1605,8 +1605,8 @@ app.post('/api/booster-profile', authenticate, checkRole(['booster', 'admin']), 
         user_id, lol_highest_rank, valorant_highest_rank, 
         lol_preferred_lanes, lol_preferred_champions, 
         valorant_preferred_roles, valorant_preferred_agents,
-        language, bio
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        language, bio, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
       ON DUPLICATE KEY UPDATE
         lol_highest_rank = VALUES(lol_highest_rank),
         valorant_highest_rank = VALUES(valorant_highest_rank),
@@ -1615,15 +1615,16 @@ app.post('/api/booster-profile', authenticate, checkRole(['booster', 'admin']), 
         valorant_preferred_roles = VALUES(valorant_preferred_roles),
         valorant_preferred_agents = VALUES(valorant_preferred_agents),
         language = VALUES(language),
-        bio = VALUES(bio)`,
+        bio = VALUES(bio),
+        updated_at = NOW()`,
       [
         req.user.id,
-        lolHighestRank || null,
-        valorantHighestRank || null,
-        lolPreferredLanes || null,
-        lolPreferredChampions || null,
-        valorantPreferredRoles || null,
-        valorantPreferredAgents || null,
+        lol_highest_rank || null,
+        valorant_highest_rank || null,
+        lol_preferred_lanes || null,
+        lol_preferred_champions || null,
+        valorant_preferred_roles || null,
+        valorant_preferred_agents || null,
         language || null,
         bio || null
       ]
