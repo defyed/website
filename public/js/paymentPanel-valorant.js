@@ -50,7 +50,7 @@ function getRankUpRRDiscount(rrRange) {
 
 function calculateImmortalRRCost(rrDifference) {
     if (!rrDifference || rrDifference < 40) return 18.53; // Default to base price for display
-    const basePrice = 26.35; // Base price for 40 RR
+    const basePrice = 28.35; // Base price for 40 RR
     const additionalRR = rrDifference - 40; // RR points beyond 40
     const additionalCost = additionalRR * 0.65; // $0.65 per additional RR
     return basePrice + additionalCost;
