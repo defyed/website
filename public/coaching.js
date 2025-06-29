@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 lanesDiv.innerHTML = '<span class="section-title">Lanes</span>';
                 const lanesImages = document.createElement('div');
                 lanesImages.className = 'images';
-                coach.lol_preferred_lanes.split(',').forEach(lane => {
+                (coach.lol_preferred_lanes || '').split(',').filter(Boolean).forEach(lane => {
                     const img = document.createElement('img');
                     img.src = `/images/lanes/${lane.toLowerCase().replace(/\s+/g, '-')}.png`;
                     img.alt = lane;
@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 rolesDiv.innerHTML = '<span class="section-title">Roles</span>';
                 const rolesImages = document.createElement('div');
                 rolesImages.className = 'images';
-                coach.valorant_preferred_roles.split(',').forEach(role => {
+                (coach.valorant_preferred_roles || '').split(',').filter(Boolean).forEach(role => {
                     const img = document.createElement('img');
                     img.src = `/images/roles/${role.toLowerCase().replace(/\s+/g, '-')}.png`;
                     img.alt = role;
@@ -434,14 +434,17 @@ editProfileForm.addEventListener('submit', async (e) => {
         });
     }
 
-    function getSelectedValues(selectId) {
-        if (selectId === 'lol-preferred-lanes' || selectId === 'valorant-preferred-roles') {
-            const hiddenInput = document.getElementById(selectId);
-            return hiddenInput.value;
-        }
-        const select = document.getElementById(selectId);
-        return Array.from(select.selectedOptions).map(option => option.value).join(',');
+   function getSelectedValues(selectId) {
+    if (selectId === 'lol-preferred-lanes' || selectId === 'valorant-preferred-roles') {
+        const hiddenInput = document.getElementById(selectId);
+        const value = hiddenInput.value?.trim();
+        return value ? value : null;
     }
+    const select = document.getElementById(selectId);
+    const selected = Array.from(select.selectedOptions).map(option => option.value).filter(Boolean);
+    return selected.length ? selected.join(',') : null;
+}
+
     
 
     if (['admin', 'coach'].includes(userRole)) {
