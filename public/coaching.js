@@ -1,8 +1,6 @@
-
 document.addEventListener('DOMContentLoaded', async () => {
     const userId = localStorage.getItem('userId');
     const userRole = localStorage.getItem('userRole');
-    const role = localStorage.getItem('role');
     if (!userId || isNaN(userId)) {
         window.location.href = 'login.html';
         return;
@@ -17,9 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function fetchCoaches(attempts = 3, delay = 1000) {
         while (attempts > 0) {
             try {
-                const response = await fetch('/api/coaches', {
-                    credentials: 'include'
-                });
+                const response = await fetch('/api/coaches', { credentials: 'include' });
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${await response.text()}`);
                 }
@@ -112,13 +108,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const lanesImages = document.createElement('div');
                 lanesImages.className = 'images';
                 (coach.lol_preferred_lanes || '').split(',').filter(Boolean).forEach(lane => {
-                const img = document.createElement('img');
-                img.src = `/images/lanes/${lane.toLowerCase().replace(/\s+/g, '-')}.png`;
-                img.alt = lane;
-                img.className = 'profile-image';
-                lanesImages.appendChild(img);
+                    const img = document.createElement('img');
+                    img.src = `/images/lanes/${lane.toLowerCase().replace(/\s+/g, '-')}.png`;
+                    img.alt = lane;
+                    img.className = 'profile-image';
+                    lanesImages.appendChild(img);
                 });
-
                 lanesDiv.appendChild(lanesImages);
                 if (coach.lol_preferred_champions) {
                     const champsDiv = document.createElement('div');
@@ -137,7 +132,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         "Vel'Koz": "vel-koz",
                         "Wukong": "wukong"
                     };
-                    coach.lol_preferred_champions.split(',').forEach(champion => {
+                    (coach.lol_preferred_champions || '').split(',').filter(Boolean).forEach(champion => {
                         const img = document.createElement('img');
                         img.src = `/images/champions/${championNameToFile[champion] || champion.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`;
                         img.alt = champion;
@@ -171,7 +166,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     agentsDiv.innerHTML = '<span class="section-title">Agents</span>';
                     const agentsImages = document.createElement('div');
                     agentsImages.className = 'images';
-                    coach.valorant_preferred_agents.split(',').forEach(agent => {
+                    (coach.valorant_preferred_agents || '').split(',').filter(Boolean).forEach(agent => {
                         const img = document.createElement('img');
                         img.src = `/images/agents/${agent.toLowerCase().replace(/\s+/g, '-')}.png`;
                         img.alt = agent;
@@ -185,7 +180,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             coachCard.appendChild(footer);
 
-          if (!(['admin', 'coach'].includes(userRole) && coach.id == userId)) {
+            if (!(['admin', 'coach'].includes(userRole) && coach.id == userId)) {
                 const purchaseSection = document.createElement('div');
                 purchaseSection.className = 'purchase-section';
                 const hoursLabel = document.createElement('label');
@@ -215,129 +210,130 @@ document.addEventListener('DOMContentLoaded', async () => {
                 coachCard.appendChild(purchaseSection);
             }
 
-
-                coachesContainer.appendChild(coachCard);
-
+            coachesContainer.appendChild(coachCard);
         });
     }
 
     async function showEditProfileModal(coach) {
-    try {
+        try {
+            const userId = parseInt(localStorage.getItem('userId'));
+            if (!userId || isNaN(userId)) {
+                console.error('No userId found in localStorage');
+                alert('You must be logged in to edit your profile.');
+                return;
+            }
+
+            const response = await fetch(`https://chboosting.com/api/coach-profile?userId=${userId}`, { credentials: 'include' });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+            }
+            const profile = await response.json();
+            console.log('Fetched profile:', profile);
+
+            const usernameDisplay = document.getElementById('coach-name-display');
+            usernameDisplay.textContent = `Username: ${profile.username || 'Unknown'}`;
+
+            document.getElementById('coach-game').value = profile.game_type || 'League of Legends';
+            document.getElementById('lol-highest-rank').value = profile.lol_highest_rank || '';
+            document.getElementById('valorant-highest-rank').value = profile.valorant_highest_rank || '';
+            document.getElementById('coach-rate').value = profile.price_per_hour || '';
+            document.getElementById('coach-bio').value = profile.bio || '';
+            updateLaneButtons(profile.lol_preferred_lanes);
+            updateSearchableDropdown('lol-preferred-champions', profile.lol_preferred_champions, 'champions');
+            updateRoleButtons(profile.valorant_preferred_roles);
+            updateSearchableDropdown('valorant-preferred-agents', profile.valorant_preferred_agents, 'agents');
+
+            editProfileModal.style.display = 'block';
+        } catch (error) {
+            console.error('Error loading coach profile:', error);
+            alert(`Failed to load profile: ${error.message}`);
+        }
+    }
+
+    editProfileForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
         const userId = parseInt(localStorage.getItem('userId'));
         if (!userId || isNaN(userId)) {
             console.error('No userId found in localStorage');
-            alert('You must be logged in to edit your profile.');
+            alert('You must be logged in to save your profile.');
             return;
         }
 
-        const response = await fetch(`https://chboosting.com/api/coach-profile?userId=${userId}`, {
-            credentials: 'include'
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+        try {
+            const profileData = {
+                game_type: document.getElementById('coach-game').value,
+                lol_highest_rank: document.getElementById('lol-highest-rank').value || null,
+                valorant_highest_rank: document.getElementById('valorant-highest-rank').value || null,
+                lol_preferred_lanes: getSelectedValues('lol-preferred-lanes') || null,
+                lol_preferred_champions: getSelectedValues('lol-preferred-champions') || null,
+                valorant_preferred_roles: getSelectedValues('valorant-preferred-roles') || null,
+                valorant_preferred_agents: getSelectedValues('valorant-preferred-agents') || null,
+                price_per_hour: parseFloat(document.getElementById('coach-rate').value) || null,
+                bio: document.getElementById('coach-bio').value.trim() || null
+            };
+
+            console.log('Saving profile data:', profileData);
+
+            if (!profileData.game_type || !profileData.price_per_hour || profileData.price_per_hour <= 0) {
+                alert('Please select a game and provide a valid hourly rate.');
+                return;
+            }
+
+            const response = await fetch(`https://chboosting.com/api/coach-profile?userId=${userId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(profileData),
+                credentials: 'include'
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+            }
+            alert('Profile saved successfully');
+            editProfileModal.style.display = 'none';
+            fetchCoaches();
+        } catch (error) {
+            console.error('Error saving profile:', error);
+            alert(`Failed to save profile: ${error.message}`);
         }
-        const profile = await response.json();
-
-        // Display username
-        const usernameDisplay = document.getElementById('coach-name-display');
-        usernameDisplay.textContent = `Username: ${profile.username || 'Unknown'}`;
-
-        // Populate form fields
-        document.getElementById('coach-game').value = profile.game_type || 'League of Legends';
-        document.getElementById('lol-highest-rank').value = profile.lol_highest_rank || '';
-        document.getElementById('valorant-highest-rank').value = profile.valorant_highest_rank || '';
-        document.getElementById('coach-rate').value = profile.price_per_hour || '';
-        document.getElementById('coach-bio').value = profile.bio || '';
-        updateLaneButtons(profile.lol_preferred_lanes);
-        updateSearchableDropdown('lol-preferred-champions', profile.lol_preferred_champions, 'champions');
-        updateRoleButtons(profile.valorant_preferred_roles);
-        updateSearchableDropdown('valorant-preferred-agents', profile.valorant_preferred_agents, 'agents');
-updateImageDisplay('lol-preferred-lanes', 'lanes');
-updateImageDisplay('valorant-preferred-roles', 'roles');
-
-        editProfileModal.style.display = 'block';
-    } catch (error) {
-        console.error('Error loading coach profile:', error);
-        alert(`Failed to load profile: ${error.message}`);
-    }
-}
-
-editProfileForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const userId = parseInt(localStorage.getItem('userId'));
-    if (!userId || isNaN(userId)) {
-        console.error('No userId found in localStorage');
-        alert('You must be logged in to save your profile.');
-        return;
-    }
-
-    try {
-        const profileData = {
-            game_type: document.getElementById('coach-game').value,
-            lol_highest_rank: document.getElementById('lol-highest-rank').value || null,
-            valorant_highest_rank: document.getElementById('valorant-highest-rank').value || null,
-            lol_preferred_lanes: getSelectedValues('lol-preferred-lanes') || null,
-            lol_preferred_champions: getSelectedValues('lol-preferred-champions') || null,
-            valorant_preferred_roles: getSelectedValues('valorant-preferred-roles') || null,
-            valorant_preferred_agents: getSelectedValues('valorant-preferred-agents') || null,
-            price_per_hour: parseFloat(document.getElementById('coach-rate').value) || null,
-            bio: document.getElementById('coach-bio').value.trim() || null
-        };
-
-        if (!profileData.game_type || !profileData.price_per_hour || profileData.price_per_hour <= 0) {
-            alert('Please fill in all required fields with valid values.');
-            return;
-        }
-
-        const response = await fetch(`https://chboosting.com/api/coach-profile?userId=${userId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(profileData)
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${await response.text()}`);
-        }
-        alert('Profile saved successfully');
-        editProfileModal.style.display = 'none';
-        fetchCoaches();
-    } catch (error) {
-        console.error('Error saving profile:', error);
-        alert(`Failed to save profile: ${error.message}`);
-    }
-});
+    });
 
     function updateLaneButtons(selectedLanes) {
         const buttons = document.querySelectorAll('#lol-preferred-lanes-buttons .lane-button');
         const hiddenInput = document.getElementById('lol-preferred-lanes');
-        const selected = selectedLanes ? selectedLanes.split(',') : [];
+        const selected = selectedLanes ? selectedLanes.split(',').filter(Boolean) : [];
         buttons.forEach(button => {
             const lane = button.getAttribute('data-lane');
             button.classList.toggle('selected', selected.includes(lane));
+            button.dataset.selected = selected.includes(lane) ? 'true' : 'false';
         });
-        hiddenInput.value = selected.join(',');
+        hiddenInput.value = selected.join(',') || '';
+        console.log('Updated lol_preferred_lanes:', hiddenInput.value);
         updateImageDisplay('lol-preferred-lanes', 'lanes');
     }
 
     function updateRoleButtons(selectedRoles) {
         const buttons = document.querySelectorAll('#valorant-preferred-roles-buttons .role-button');
         const hiddenInput = document.getElementById('valorant-preferred-roles');
-        const selected = selectedRoles ? selectedRoles.split(',') : [];
+        const selected = selectedRoles ? selectedRoles.split(',').filter(Boolean) : [];
         buttons.forEach(button => {
             const role = button.getAttribute('data-role');
             button.classList.toggle('selected', selected.includes(role));
+            button.dataset.selected = selected.includes(role) ? 'true' : 'false';
         });
-        hiddenInput.value = selected.join(',');
+        hiddenInput.value = selected.join(',') || '';
+        console.log('Updated valorant_preferred_roles:', hiddenInput.value);
         updateImageDisplay('valorant-preferred-roles', 'roles');
     }
 
     function updateSearchableDropdown(selectId, selectedValues, imageType) {
         const $select = $(`#${selectId}`);
         if (selectedValues) {
-            const values = selectedValues.split(',');
+            const values = selectedValues.split(',').filter(Boolean);
             $select.val(values).trigger('change');
         } else {
             $select.val(null).trigger('change');
         }
+        console.log(`Updated ${selectId}:`, $select.val());
         updateImageDisplay(selectId, imageType);
     }
 
@@ -356,10 +352,10 @@ editProfileForm.addEventListener('submit', async (e) => {
         let selectedValues = [];
         if (selectId === 'lol-preferred-lanes' || selectId === 'valorant-preferred-roles') {
             const hiddenInput = document.getElementById(selectId);
-            selectedValues = hiddenInput.value ? hiddenInput.value.split(',') : [];
+            selectedValues = hiddenInput.value ? hiddenInput.value.split(',').filter(Boolean) : [];
         } else {
             const select = document.getElementById(selectId);
-            selectedValues = Array.from(select.selectedOptions).map(option => option.value);
+            selectedValues = Array.from(select.selectedOptions).map(option => option.value).filter(Boolean);
         }
         imageContainer.innerHTML = '';
         selectedValues.forEach(value => {
@@ -369,111 +365,55 @@ editProfileForm.addEventListener('submit', async (e) => {
             img.className = 'selected-image';
             imageContainer.appendChild(img);
         });
+        console.log(`Updated images for ${selectId}:`, selectedValues);
     }
-    function updateLaneImages(hiddenInputId, containerId) {
-    const input = document.getElementById(hiddenInputId);
-    const imageContainer = document.getElementById(containerId);
-    imageContainer.innerHTML = ''; // Clear previous images
-    const selectedValues = input.value.split(',').filter(Boolean);
-    selectedValues.forEach(value => {
-        const fileName = `${value.toLowerCase().replace(/\s+/g, '-')}.png`;
-        const img = document.createElement('img');
-        img.src = `/images/lanes/${fileName}`;
-        img.alt = value;
-        img.className = 'selected-image';
-        imageContainer.appendChild(img);
-    });
-}
-
-function updateRoleImages(hiddenInputId, containerId) {
-    const input = document.getElementById(hiddenInputId);
-    const imageContainer = document.getElementById(containerId);
-    imageContainer.innerHTML = ''; // Clear previous images
-    const selectedValues = input.value.split(',').filter(Boolean);
-    selectedValues.forEach(value => {
-        const fileName = `${value.toLowerCase().replace(/\s+/g, '-')}.png`;
-        const img = document.createElement('img');
-        img.src = `/images/roles/${fileName}`;
-        img.alt = value;
-        img.className = 'selected-image';
-        imageContainer.appendChild(img);
-    });
-}
-
-
 
     function setupLaneButtons() {
-  const buttons = document.querySelectorAll('#lol-preferred-lanes-buttons .lane-button');
-  const hiddenInput = document.getElementById('lol-preferred-lanes');
-  const maxSelections = 3;
-
-  buttons.forEach(button => {
-    button.addEventListener('click', () => {
-      const lane = button.getAttribute('data-lane');
-      let selectedLanes = hiddenInput.value ? hiddenInput.value.split(',') : [];
-
-      if (button.classList.contains('selected')) {
-        selectedLanes = selectedLanes.filter(l => l !== lane);
-        button.classList.remove('selected');
-      } else {
-        if (selectedLanes.length >= maxSelections) {
-          alert(`You can select up to ${maxSelections} lanes.`);
-          return;
-        }
-        selectedLanes.push(lane);
-        button.classList.add('selected');
-      }
-
-      hiddenInput.value = selectedLanes.join(',');
-updateLaneImages('lol-preferred-lanes', 'lol-lanes-images');
-
-    });
-  });
-}
-
-
-
-function setupRoleButtons() {
-    const buttons = document.querySelectorAll('#valorant-preferred-roles-buttons .role-button');
-    const hiddenInput = document.getElementById('valorant-preferred-roles');
-    const maxSelections = 2;
-
-    buttons.forEach(button => {
-        button.addEventListener('click', () => {
-            const role = button.getAttribute('data-role');
-            let selectedRoles = hiddenInput.value ? hiddenInput.value.split(',') : [];
-
-            if (button.classList.contains('selected')) {
-                selectedRoles = selectedRoles.filter(r => r !== role);
-                button.classList.remove('selected');
-            } else {
-                if (selectedRoles.length >= maxSelections) {
-                    alert(`You can select up to ${maxSelections} roles.`);
-                    return;
+        const buttons = document.querySelectorAll('#lol-preferred-lanes-buttons .lane-button');
+        const hiddenInput = document.getElementById('lol-preferred-lanes');
+        hiddenInput.value = ''; // Initialize empty
+        const maxSelections = 3;
+        buttons.forEach(button => {
+            button.classList.remove('selected');
+            button.dataset.selected = 'false';
+            button.addEventListener('click', () => {
+                const lane = button.getAttribute('data-lane');
+                let selectedLanes = hiddenInput.value ? hiddenInput.value.split(',').filter(Boolean) : [];
+                if (button.dataset.selected === 'true') {
+                    selectedLanes = selectedLanes.filter(l => l !== lane);
+                    button.classList.remove('selected');
+                    button.dataset.selected = 'false';
+                } else {
+                    if (selectedLanes.length >= maxSelections) {
+                        alert(`You can select up to ${maxSelections} lanes.`);
+                        return;
+                    }
+                    selectedLanes.push(lane);
+                    button.classList.add('selected');
+                    button.dataset.selected = 'true';
                 }
-                selectedRoles.push(role);
-                button.classList.add('selected');
-            }
-
-            hiddenInput.value = selectedRoles.join(',');
-updateRoleImages('valorant-preferred-roles', 'valorant-roles-images');
-
+                hiddenInput.value = selectedLanes.join(',') || '';
+                console.log('Lane button clicked, updated lol_preferred_lanes:', hiddenInput.value);
+                updateImageDisplay('lol-preferred-lanes', 'lanes');
+            });
         });
-    });
-}
-
+    }
 
     function setupRoleButtons() {
         const buttons = document.querySelectorAll('#valorant-preferred-roles-buttons .role-button');
         const hiddenInput = document.getElementById('valorant-preferred-roles');
+        hiddenInput.value = ''; // Initialize empty
         const maxSelections = 2;
         buttons.forEach(button => {
+            button.classList.remove('selected');
+            button.dataset.selected = 'false';
             button.addEventListener('click', () => {
                 const role = button.getAttribute('data-role');
-                let selectedRoles = hiddenInput.value ? hiddenInput.value.split(',') : [];
-                if (button.classList.contains('selected')) {
+                let selectedRoles = hiddenInput.value ? hiddenInput.value.split(',').filter(Boolean) : [];
+                if (button.dataset.selected === 'true') {
                     selectedRoles = selectedRoles.filter(r => r !== role);
                     button.classList.remove('selected');
+                    button.dataset.selected = 'false';
                 } else {
                     if (selectedRoles.length >= maxSelections) {
                         alert(`You can select up to ${maxSelections} roles.`);
@@ -481,8 +421,10 @@ updateRoleImages('valorant-preferred-roles', 'valorant-roles-images');
                     }
                     selectedRoles.push(role);
                     button.classList.add('selected');
+                    button.dataset.selected = 'true';
                 }
-                hiddenInput.value = selectedRoles.join(',');
+                hiddenInput.value = selectedRoles.join(',') || '';
+                console.log('Role button clicked, updated valorant_preferred_roles:', hiddenInput.value);
                 updateImageDisplay('valorant-preferred-roles', 'roles');
             });
         });
@@ -504,165 +446,128 @@ updateRoleImages('valorant-preferred-roles', 'valorant-roles-images');
         });
     }
 
-   function getSelectedValues(selectId) {
-    if (selectId === 'lol-preferred-lanes' || selectId === 'valorant-preferred-roles') {
-        const hiddenInput = document.getElementById(selectId);
-        const value = hiddenInput.value?.trim();
-        return value ? value : null;
+    function getSelectedValues(selectId) {
+        if (selectId === 'lol-preferred-lanes' || selectId === 'valorant-preferred-roles') {
+            const hiddenInput = document.getElementById(selectId);
+            const value = hiddenInput.value?.trim();
+            console.log(`getSelectedValues(${selectId}):`, value);
+            return value || null;
+        }
+        const select = document.getElementById(selectId);
+        const selected = Array.from(select.selectedOptions).map(option => option.value).filter(Boolean);
+        const value = selected.length ? selected.join(',') : null;
+        console.log(`getSelectedValues(${selectId}):`, value);
+        return value;
     }
-    const select = document.getElementById(selectId);
-    const selected = Array.from(select.selectedOptions).map(option => option.value).filter(Boolean);
-    return selected.length ? selected.join(',') : null;
-}
-
-    
 
     if (['admin', 'coach'].includes(userRole)) {
         editMyProfileBtn.style.display = 'block';
         editMyProfileBtn.addEventListener('click', () => showEditProfileModal({ user_id: userId }));
     }
 
-coachesContainer.addEventListener('click', async (e) => {
-  if (e.target.classList.contains('purchase-coach-btn')) {
-    const coachId = e.target.dataset.id;
-    const hoursSelect = e.target.parentElement.querySelector('.session-hours');
-    const hours = parseInt(hoursSelect?.value);
-    const coachCard = e.target.closest('.coach-card');
-    const coachNameElement = coachCard?.querySelector('.username-wrapper h3');
-    const coachName = coachNameElement?.textContent?.trim();
-    const gameTypeElement = coachCard?.querySelector('.game-icon');
-    const gameType = gameTypeElement?.alt?.trim();
-    const pricePerHourElement = coachCard?.querySelector('.rate-value');
-    const pricePerHourText = pricePerHourElement?.textContent?.replace('$', '').replace('/hr', '').trim();
-    const pricePerHour = parseFloat(pricePerHourText);
-    const totalPrice = hours * pricePerHour;
-    const cashback = totalPrice * 0.03; // Calculate cashback as 3% of totalPrice
-    const userId = parseInt(localStorage.getItem('userId'));
+    coachesContainer.addEventListener('click', async (e) => {
+        if (e.target.classList.contains('purchase-coach-btn')) {
+            const coachId = e.target.dataset.id;
+            const hoursSelect = e.target.parentElement.querySelector('.session-hours');
+            const hours = parseInt(hoursSelect?.value);
+            const coachCard = e.target.closest('.coach-card');
+            const coachNameElement = coachCard?.querySelector('.username-wrapper h3');
+            const coachName = coachNameElement?.textContent?.trim();
+            const gameTypeElement = coachCard?.querySelector('.game-icon');
+            const gameType = gameTypeElement?.alt?.trim();
+            const pricePerHourElement = coachCard?.querySelector('.rate-value');
+            const pricePerHourText = pricePerHourElement?.textContent?.replace('$', '').replace('/hr', '').trim();
+            const pricePerHour = parseFloat(pricePerHourText);
+            const totalPrice = hours * pricePerHour;
+            const cashback = totalPrice * 0.03;
+            const userId = parseInt(localStorage.getItem('userId'));
 
-    // Log extracted values for debugging
-    console.log('Extracted checkout data:', { 
-      coachId, 
-      hours, 
-      coachName, 
-      gameType, 
-      pricePerHour, 
-      totalPrice, 
-      cashback, // Include cashback in debug log
-      userId,
-      coachNameElement: coachNameElement?.outerHTML,
-      gameTypeElement: gameTypeElement?.outerHTML,
-      pricePerHourElement: pricePerHourElement?.outerHTML
-    });
+            console.log('Extracted checkout data:', {
+                coachId,
+                hours,
+                coachName,
+                gameType,
+                pricePerHour,
+                totalPrice,
+                cashback,
+                userId,
+                coachNameElement: coachNameElement?.outerHTML,
+                gameTypeElement: gameTypeElement?.outerHTML,
+                pricePerHourElement: pricePerHourElement?.outerHTML
+            });
 
-    // Validate inputs
-    if (!coachId || isNaN(parseInt(coachId))) {
-      console.error('Invalid coachId:', coachId);
-      alert('Invalid coach selected.');
-      return;
-    }
-    if (!hoursSelect || isNaN(hours) || hours < 1 || hours > 4) {
-      console.error('Invalid hours:', hours, 'Hours select:', hoursSelect?.outerHTML);
-      alert('Please select 1–4 hours.');
-      return;
-    }
-    if (!coachName || coachName === '') {
-      console.error('Invalid coachName:', coachName, 'Element:', coachNameElement?.outerHTML);
-      alert('Coach name not found. Please check the coach profile.');
-      return;
-    }
-    if (!gameType || !['League of Legends', 'Valorant'].includes(gameType)) {
-      console.error('Invalid gameType:', gameType, 'Element:', gameTypeElement?.outerHTML);
-      alert('Invalid game type. Please check the coach profile.');
-      return;
-    }
-    if (!pricePerHourText || isNaN(pricePerHour) || pricePerHour <= 0) {
-      console.error('Invalid pricePerHour:', pricePerHourText, 'Element:', pricePerHourElement?.outerHTML);
-      alert('Invalid price. Please check the coach profile.');
-      return;
-    }
-    if (isNaN(totalPrice) || totalPrice <= 0) {
-      console.error('Invalid totalPrice:', totalPrice);
-      alert('Invalid total price.');
-      return;
-    }
-    if (!userId || isNaN(userId)) {
-      console.error('Invalid userId:', userId);
-      alert('You must be logged in to book a coaching session.');
-      return;
-    }
-
-    // Construct request body
-    const requestBody = {
-      userId,
-      type: 'coaching',
-      orderData: {
-        coachId: parseInt(coachId),
-        hours,
-        game: gameType,
-        totalPrice: totalPrice.toFixed(2), // Format to two decimal places
-        cashback: cashback.toFixed(2), // Include cashback, formatted to two decimal places
-        coachName
-      }
-    };
-    console.log('Sending coaching checkout request:', requestBody);
-
-    try {
-      const response = await fetch('https://chboosting.com/api/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`HTTP ${response.status}: ${JSON.stringify(errorData)}`);
-      }
-      const { id: sessionId } = await response.json();
-      const stripe = Stripe('pk_test_51RQDfjPPazfqaVG5QhEgsle6jH6ohhSrqObHzyzOUk6sbh3nERA6impvrDL0judz7e7d0ylipgmgv1sTATWT6ylj00kTO65wlC');
-      const { error } = await stripe.redirectToCheckout({ sessionId });
-      if (error) {
-        console.error('Stripe redirectToCheckout error:', error.message);
-        alert(`Payment error: ${error.message}. Please try again or contact support.`);
-      }
-    } catch (error) {
-      console.error('Error initiating coaching checkout:', error.message);
-      alert(`Failed to book coaching session: ${error.message}`);
-    }
-  }
-});
-
-    editProfileForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        try {
-            const profileData = {
-                
-                game_type: document.getElementById('coach-game').value,
-                lol_highest_rank: document.getElementById('lol-highest-rank').value || null,
-                valorant_highest_rank: document.getElementById('valorant-highest-rank').value || null,
-                lol_preferred_lanes: getSelectedValues('lol-preferred-lanes') || null,
-                lol_preferred_champions: getSelectedValues('lol-preferred-champions') || null,
-                valorant_preferred_roles: getSelectedValues('valorant-preferred-roles') || null,
-                valorant_preferred_agents: getSelectedValues('valorant-preferred-agents') || null,
-                price_per_hour: parseFloat(document.getElementById('coach-rate').value) || null,
-                bio: document.getElementById('coach-bio').value.trim() || null
-            };
-            if (!profileData.name || !profileData.game_type || !profileData.price_per_hour || profileData.price_per_hour <= 0) {
-                alert('Please fill in all required fields with valid values.');
+            if (!coachId || isNaN(parseInt(coachId))) {
+                console.error('Invalid coachId:', coachId);
+                alert('Invalid coach selected.');
                 return;
             }
-            const response = await fetch(`/api/coach-profile?userId=${userId}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-                body: JSON.stringify(profileData)
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+            if (!hoursSelect || isNaN(hours) || hours < 1 || hours > 4) {
+                console.error('Invalid hours:', hours, 'Hours select:', hoursSelect?.outerHTML);
+                alert('Please select 1–4 hours.');
+                return;
             }
-            alert('Profile saved successfully');
-            editProfileModal.style.display = 'none';
-            fetchCoaches();
-        } catch (error) {
-            console.error('Error saving profile:', error);
-            alert(`Failed to save profile: ${error.message}`);
+            if (!coachName || coachName === '') {
+                console.error('Invalid coachName:', coachName, 'Element:', coachNameElement?.outerHTML);
+                alert('Coach name not found. Please check the coach profile.');
+                return;
+            }
+            if (!gameType || !['League of Legends', 'Valorant'].includes(gameType)) {
+                console.error('Invalid gameType:', gameType, 'Element:', gameTypeElement?.outerHTML);
+                alert('Invalid game type. Please check the coach profile.');
+                return;
+            }
+            if (!pricePerHourText || isNaN(pricePerHour) || pricePerHour <= 0) {
+                console.error('Invalid pricePerHour:', pricePerHourText, 'Element:', pricePerHourElement?.outerHTML);
+                alert('Invalid price. Please check the coach profile.');
+                return;
+            }
+            if (isNaN(totalPrice) || totalPrice <= 0) {
+                console.error('Invalid totalPrice:', totalPrice);
+                alert('Invalid total price.');
+                return;
+            }
+            if (!userId || isNaN(userId)) {
+                console.error('Invalid userId:', userId);
+                alert('You must be logged in to book a coaching session.');
+                return;
+            }
+
+            const requestBody = {
+                userId,
+                type: 'coaching',
+                orderData: {
+                    coachId: parseInt(coachId),
+                    hours,
+                    game: gameType,
+                    totalPrice: totalPrice.toFixed(2),
+                    cashback: cashback.toFixed(2),
+                    coachName
+                }
+            };
+            console.log('Sending coaching checkout request:', requestBody);
+
+            try {
+                const response = await fetch('https://chboosting.com/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody),
+                    credentials: 'include'
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`HTTP ${response.status}: ${JSON.stringify(errorData)}`);
+                }
+                const { id: sessionId } = await response.json();
+                const stripe = Stripe('pk_test_51RQDfjPPazfqaVG5QhEgsle6jH6ohhSrqObHzyzOUk6sbh3nERA6impvrDL0judz7e7d0ylipgmgv1sTATWT6ylj00kTO65wlC');
+                const { error } = await stripe.redirectToCheckout({ sessionId });
+                if (error) {
+                    console.error('Stripe redirectToCheckout error:', error.message);
+                    alert(`Payment error: ${error.message}. Please try again or contact support.`);
+                }
+            } catch (error) {
+                console.error('Error initiating coaching checkout:', error.message);
+                alert(`Failed to book coaching session: ${error.message}`);
+            }
         }
     });
 
