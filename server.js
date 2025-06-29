@@ -1394,23 +1394,122 @@ app.get('/api/coaches', async (req, res) => {
     res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 });
-app.get('/api/coach-profile', authenticate, async (req, res) => {
-  console.log('GET /api/coach-profile called for userId:', req.user?.id);
+app.post('/api/coach-profile', authenticate, async (req, res) => {
+  console.log('POST /api/coach-profile called for userId:', req.user?.id, 'Body:', req.body);
   const userId = req.user.id;
   const role = req.user.role;
+  const {
+    game_type,
+    bio,
+    price_per_hour,
+    lol_highest_rank,
+    valorant_highest_rank,
+    lol_preferred_lanes,
+    lol_preferred_champions,
+    valorant_preferred_roles,
+    valorant_preferred_agents
+  } = req.body;
+
   if (role !== 'coach') {
     console.log('Forbidden: User role is', role, 'userId:', userId);
-    return res.status(403).json({ error: 'Forbidden' });
+    return res.status(403).json({ error: 'Forbidden: Only coaches can update profiles' });
   }
+
+  if (!game_type || !['League of Legends', 'Valorant'].includes(game_type)) {
+    console.log('Validation failed: Invalid game_type:', game_type);
+    return res.status(400).json({ error: 'Invalid or missing game_type' });
+  }
+
+  if (!price_per_hour || isNaN(parseFloat(price_per_hour)) || price_per_hour <= 0) {
+    console.log('Validation failed: Invalid price_per_hour:', price_per_hour);
+    return res.status(400).json({ error: 'Invalid or missing price_per_hour' });
+  }
+
   try {
-    const [profileRows] = await pool.query('SELECT * FROM coach_profiles WHERE user_id = ?', [userId]);
-    const [userRows] = await pool.query('SELECT username FROM users WHERE id = ?', [userId]);
-    const profile = profileRows[0] || {};
-    const username = userRows[0]?.username || 'Unknown';
-    res.json({ ...profile, username });
+    const sanitizedData = {
+      game_type,
+      bio: bio ? bio.trim() : null,
+      price_per_hour: parseFloat(price_per_hour),
+      lol_highest_rank: lol_highest_rank ? lol_highest_rank.trim() : null,
+      valorant_highest_rank: valorant_highest_rank ? valorant_highest_rank.trim() : null,
+      lol_preferred_lanes: lol_preferred_lanes ? lol_preferred_lanes.trim() : null,
+      lol_preferred_champions: lol_preferred_champions ? lol_preferred_champions.trim() : null,
+      valorant_preferred_roles: valorant_preferred_roles ? valorant_preferred_roles.trim() : null,
+      valorant_preferred_agents: valorant_preferred_agents ? valorant_preferred_agents.trim() : null
+    };
+
+    const [existing] = await pool.query('SELECT id FROM coach_profiles WHERE user_id = ?', [userId]);
+    if (existing.length > 0) {
+      const [result] = await pool.query(
+        `UPDATE coach_profiles SET
+          game_type = ?,
+          bio = ?,
+          price_per_hour = ?,
+          lol_highest_rank = ?,
+          valorant_highest_rank = ?,
+          lol_preferred_lanes = ?,
+          lol_preferred_champions = ?,
+          valorant_preferred_roles = ?,
+          valorant_preferred_agents = ?,
+          updated_at = NOW()
+        WHERE user_id = ?`,
+        [
+          sanitizedData.game_type,
+          sanitizedData.bio,
+          sanitizedData.price_per_hour,
+          sanitizedData.lol_highest_rank,
+          sanitizedData.valorant_highest_rank,
+          sanitizedData.lol_preferred_lanes,
+          sanitizedData.lol_preferred_champions,
+          sanitizedData.valorant_preferred_roles,
+          sanitizedData.valorant_preferred_agents,
+          userId
+        ]
+      );
+      if (result.affectedRows === 0) {
+        console.error('Failed to update profile for userId:', userId);
+        return res.status(500).json({ error: 'Failed to update profile' });
+      }
+    } else {
+      const [result] = await pool.query(
+        `INSERT INTO coach_profiles (
+          user_id,
+          game_type,
+          bio,
+          price_per_hour,
+          lol_highest_rank,
+          valorant_highest_rank,
+          lol_preferred_lanes,
+          lol_preferred_champions,
+          valorant_preferred_roles,
+          valorant_preferred_agents,
+          created_at,
+          updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+        [
+          userId,
+          sanitizedData.game_type,
+          sanitizedData.bio,
+          sanitizedData.price_per_hour,
+          sanitizedData.lol_highest_rank,
+          sanitizedData.valorant_highest_rank,
+          sanitizedData.lol_preferred_lanes,
+          sanitizedData.lol_preferred_champions,
+          sanitizedData.valorant_preferred_roles,
+          sanitizedData.valorant_preferred_agents
+        ]
+      );
+      if (result.affectedRows === 0) {
+        console.error('Failed to create profile for userId:', userId);
+        return res.status(500).json({ error: 'Failed to create profile' });
+      }
+    }
+
+    console.log('Profile saved successfully for userId:', userId, 'Data:', sanitizedData);
+    res.json({ message: 'Profile saved successfully' });
   } catch (error) {
-    console.error('Error fetching coach profile:', error);
-    res.status(500).json({ error: 'Failed to fetch profile' });
+    console.error('Error saving coach profile:', error.message);
+    res.status(500).json({ error: 'Failed to save profile', details: error.message });
   }
 });
 app.get('/api/my-coaching-orders', authenticate, checkRole(['coach', 'admin']), async (req, res) => {
