@@ -11,12 +11,6 @@
     
 </head>
 <body class="league-services">
-    <div class="hero-section">
-        <div class="hero-content">
-    <h1></h1>
-    <h2></h2>
-    <h3></h3>
-</div>
     <div class="content-wrapper">
         <canvas id="particle-canvas"></canvas>
       <header>
@@ -24,20 +18,43 @@
                 <a href="/"><img src="/images/logo.png" alt="CH Boosting"></a>
             </div>
          <nav>
-   <nav>
-    <span class="nav-toggle">☰</span>
-    <ul>
-        <li><a href="/">Home</a></li>
-        <li><a href="/boosters" onclick="return checkLoginAndNavigate('/boosters')">Boosters</a></li>
-        <li><a href="/coaching" onclick="return checkLoginAndNavigate('/coaching')">Coaching</a></li>
-        <li><a href="#" id="sign-in-btn" class="sign-in-btn" onclick="showSignInModal()">Sign In</a></li>
-    </ul>
-</nav>
+                <span class="nav-toggle">☰</span>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="#" onclick="checkLoginAndNavigate('boosters.html')">Boosters</a></li>
+                    <li><a href="/coaching.html">Coaching</a></li>
+                    <li><a href="#" id="sign-in-btn" class="sign-in-btn">Sign In</a></li>
+                </ul>
+            </nav>
 
         </header>
         <div id="loginPopup" class="popup" style="display: none;"></div>
         <main>
-          
+            <section class="hero">
+                <h1>League of Legends Elo Boost</h1>
+                <h2>Reach Your Desired Rank with Expert Boosters</h2>
+               
+            </section>
+            <section class="ls-pricing-process">
+                <h3>Pricing & Process</h3>
+                <div class="ls-process-steps">
+                    <div class="ls-step">
+                        <h4>Step 1: Place Order</h4>
+                        <p>Select your current and target ranks, then proceed to payment.</p>
+                    </div>
+                    <div class="ls-step">
+                        <h4>Step 2: Booster Assigned</h4>
+                        <p>A Challenger-level booster is matched to your account within minutes.</p>
+                    </div>
+                    <div class="ls-step">
+                        <h4>Step 3: Track Progress</h4>
+                        <p>Monitor your boost in real-time with our dashboard.</p>
+                    </div>
+                </div>
+                <div class="ls-pricing-table">
+                    <p>Time varies by rank (1-5 days).</p>
+                </div>
+            </section>
            <section class="ls-new-section-top"> 
     <h2>Choose Your Game</h2>
     <div class="game-selection">
@@ -263,7 +280,37 @@
                     </section>
                 </div>
             </section>
-            
+            <section class="ls-testimonials">
+                <h3>What Our Customers Say</h3>
+                <div class="ls-testimonial-card">
+                    <p>"Fast and secure boost to Platinum! Highly recommend."</p>
+                    <span>- John D., Gold I</span>
+                </div>
+                <div class="ls-testimonial-card">
+                    <p>"Great experience, booster was professional and quick."</p>
+                    <span>- Sarah K., Silver III</span>
+                </div>
+                
+                <section class="ls-guarantees">
+                    <h3>Why Choose Us?</h3>
+                    <ul>
+                        <li>100% Account Safety with VPN</li>
+                        <li>24/7 Customer Support</li>
+                    </ul>
+                </section>
+            </section>
+            <section class="service-panels">
+                <div class="service-card">
+                    <img src="https://via.placeholder.com/60?text=Strategy" alt="Strategic Advancement Icon">
+                    <h3>Strategic Advancement</h3>
+                    <p>Tailored training to dominate the competition.</p>
+                </div>
+                <div class="service-card">
+                    <img src="https://via.placeholder.com/60?text=Edge" alt="Competitive Edge Icon">
+                    <h3>Competitive Edge</h3>
+                    <p>Overcome slow climbs and low LP gains.</p>
+                </div>
+            </section>
         </main>
         <footer>
             <p>© 2025 CH|Boost. All rights reserved.</p>
@@ -284,18 +331,6 @@
     </div>
     <div id="loginPopup" class="popup" style="display: none;"></div>
     
-<!--Start of Tawk.to Script-->
-<script type="text/javascript">
-var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-(function(){
-var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-s1.async=true;
-s1.src='https://embed.tawk.to/686028506a55a6191184c80f/1iurpqug2';
-s1.charset='UTF-8';
-s1.setAttribute('crossorigin','*');
-s0.parentNode.insertBefore(s1,s0);
-})();
-</script>
-<!--End of Tawk.to Script-->
+
 </body>
 </html>
