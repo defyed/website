@@ -8,7 +8,7 @@
     background-size: 80%; /* smaller size */
     background-position: left top; /* move to the left */
     background-repeat: no-repeat;
-    z-index: 0;
+    z-index: 50;
 }
 
 
