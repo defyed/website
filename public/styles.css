@@ -5,15 +5,12 @@
     background-image: 
         linear-gradient(to bottom, rgba(19, 23, 31, 0.7) 0%, rgba(19, 23, 31, 0.3) 70%, rgba(19, 23, 31, 0) 100%), 
         url('images/pageArt/league1.png');
-    background-size: 50%; /* smaller size */
-    background-position: 50% 85%; /* Moves it 15% down from the top */
-
-    
-background-position-y: top;
-
+    background-size: 50%;
+    background-position: center 80px; /* ← this moves it DOWN */
     background-repeat: no-repeat;
     z-index: 0;
 }
+
 
 
 /* Body and Background (excluding dashboard) */
