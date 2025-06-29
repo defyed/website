@@ -57,6 +57,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const coachCard = document.createElement('div');
             coachCard.className = 'coach-card';
+            coachCard.id = `coach-card-${coach.id}`; // Unique ID for debugging
+            console.log(`Creating coach card: coach-card-${coach.id}`);
             const header = document.createElement('div');
             header.className = 'card-header';
             const usernameWrapper = document.createElement('div');
@@ -106,9 +108,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const footer = document.createElement('div');
             footer.className = 'card-footer';
+            footer.id = `card-footer-${coach.id}`; // Unique ID for debugging
+            console.log(`Creating footer: card-footer-${coach.id}`);
             if (coach.lol_preferred_lanes) {
+                console.log('Lanes condition true for coach:', coach.id, 'lanes:', coach.lol_preferred_lanes);
                 const lolSection = document.createElement('div');
                 lolSection.className = 'game-section lol-section';
+                lolSection.id = `lol-section-${coach.id}`;
                 const lanesDiv = document.createElement('div');
                 lanesDiv.className = 'lanes';
                 lanesDiv.innerHTML = '<span class="section-title">Lanes</span>';
@@ -123,7 +129,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     img.src = `/images/lanes/${lane.toLowerCase().replace(/\s+/g, '-')}.png`;
                     img.alt = lane;
                     img.className = 'profile-image';
-                    img.onerror = () => console.error(`Failed to load image: /images/lanes/${lane.toLowerCase().replace(/\s+/g, '-')}.png`);
+                    img.onerror = () => console.error(`Failed to load image: /images/lanes/${lane.toLowerCase().replace(/\s+/g, '-')}.png for coach ${coach.id}`);
                     lanesImages.appendChild(img);
                 });
                 lanesDiv.appendChild(lanesImages);
@@ -149,7 +155,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         img.src = `/images/champions/${championNameToFile[champion] || champion.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`;
                         img.alt = champion;
                         img.className = 'profile-image champion-image';
-                        img.onerror = () => console.error(`Failed to load image: /images/champions/${championNameToFile[champion] || champion.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`);
+                        img.onerror = () => console.error(`Failed to load image: /images/champions/${championNameToFile[champion] || champion.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png for coach ${coach.id}`);
                         champsImages.appendChild(img);
                     });
                     champsDiv.appendChild(champsImages);
@@ -159,8 +165,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 console.log('Appended LoL section for coach:', coach.id, 'with lanes:', coach.lol_preferred_lanes);
             }
             if (coach.valorant_preferred_roles) {
+                console.log('Roles condition true for coach:', coach.id, 'roles:', coach.valorant_preferred_roles);
                 const valorantSection = document.createElement('div');
                 valorantSection.className = 'game-section valorant-section';
+                valorantSection.id = `valorant-section-${coach.id}`;
                 const rolesDiv = document.createElement('div');
                 rolesDiv.className = 'roles';
                 rolesDiv.innerHTML = '<span class="section-title">Roles</span>';
@@ -175,7 +183,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     img.src = `/images/roles/${role.toLowerCase().replace(/\s+/g, '-')}.png`;
                     img.alt = role;
                     img.className = 'profile-image';
-                    img.onerror = () => console.error(`Failed to load image: /images/roles/${role.toLowerCase().replace(/\s+/g, '-')}.png`);
+                    img.onerror = () => console.error(`Failed to load image: /images/roles/${role.toLowerCase().replace(/\s+/g, '-')}.png for coach ${coach.id}`);
                     rolesImages.appendChild(img);
                 });
                 rolesDiv.appendChild(rolesImages);
@@ -190,7 +198,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         img.src = `/images/agents/${agent.toLowerCase().replace(/\s+/g, '-')}.png`;
                         img.alt = agent;
                         img.className = 'profile-image agent-image';
-                        img.onerror = () => console.error(`Failed to load image: /images/agents/${agent.toLowerCase().replace(/\s+/g, '-')}.png`);
+                        img.onerror = () => console.error(`Failed to load image: /images/agents/${agent.toLowerCase().replace(/\s+/g, '-')}.png for coach ${coach.id}`);
                         agentsImages.appendChild(img);
                     });
                     agentsDiv.appendChild(agentsImages);
@@ -200,6 +208,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 console.log('Appended Valorant section for coach:', coach.id, 'with roles:', coach.valorant_preferred_roles);
             }
             coachCard.appendChild(footer);
+            console.log('Final footer HTML for coach:', coach.id, footer.outerHTML);
 
             if (!(['admin', 'coach'].includes(userRole) && coach.id == userId)) {
                 const purchaseSection = document.createElement('div');
@@ -232,7 +241,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             coachesContainer.appendChild(coachCard);
-            console.log('Appended coach card:', coach.id);
+            console.log('Appended coach card:', coach.id, 'Final card HTML:', coachCard.outerHTML);
         });
     }
 
@@ -261,8 +270,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('coach-rate').value = profile.price_per_hour || '';
             document.getElementById('coach-bio').value = profile.bio || '';
             updateLaneButtons(profile.lol_preferred_lanes);
-            updateSearchableDropdown('lol-preferred-champions', profile.lol_preferred_champions, 'champions');
             updateRoleButtons(profile.valorant_preferred_roles);
+            updateSearchableDropdown('lol-preferred-champions', profile.lol_preferred_champions, 'champions');
             updateSearchableDropdown('valorant-preferred-agents', profile.valorant_preferred_agents, 'agents');
 
             editProfileModal.style.display = 'block';
@@ -336,7 +345,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function updateRoleButtons(selectedRoles) {
         const buttons = document.querySelectorAll('#valorant-preferred-roles-buttons .role-button');
         const hiddenInput = document.getElementById('valorant-preferred-roles');
-        const selected = selectedRoles ? selectedLanes.split(',').filter(Boolean) : [];
+        const selected = selectedRoles ? selectedRoles.split(',').filter(Boolean) : [];
         buttons.forEach(button => {
             const role = button.getAttribute('data-role');
             button.classList.toggle('selected', selected.includes(role));

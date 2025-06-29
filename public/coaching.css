@@ -406,3 +406,26 @@ button[type="submit"]:hover {
     border: 1px solid #555;
     color: #e0e0e0;
 }
+game-section.lol-section,
+.game-section.valorant-section {
+    display: flex !important;
+    flex-direction: column;
+    gap: 8px;
+}
+.game-section.lol-section .lanes,
+.game-section.valorant-section .roles {
+    display: flex !important;
+    flex-direction: column;
+    gap: 8px;
+}
+.game-section .images {
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+.profile-image {
+    width: 35px;
+    height: 35px;
+    object-fit: cover;
+    border-radius: 4px;
+}
