@@ -412,25 +412,9 @@ footer {
     opacity: 0.8;
     transform: scale(1.05);
 }
-.ls-pricing-process {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 40px 20px;
-    text-align: center;
-    max-width: 1000px;
-    margin: 0 auto 30px;
-    border-radius: 10px;
-    
-}
-.ls-pricing-process h3{
-    font-size: 2em;
-    margin-bottom: 20px;
-}
-.ls-pricing-process{
-padding: 20px;
-}
 
 
-.league-services  {
+.league-services .ls-pricing-process {
     background: rgba(255, 255, 255, 0.1);
     padding: 40px 20px;
     text-align: center;
@@ -439,7 +423,7 @@ padding: 20px;
     border-radius: 10px;
 }
 
-.league-services  {
+.league-services .ls-pricing-process h3 {
     font-size: 2em;
     margin-bottom: 20px;
 }
@@ -1523,7 +1507,7 @@ header .profile-dropdown .dropdown-content {
         padding: 10px 20px;
         font-size: 1em;
     }
-    .league-services {
+    .league-services .ls-pricing-process {
         padding: 20px;
     }
     .league-services .ls-process-steps {
