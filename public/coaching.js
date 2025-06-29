@@ -368,6 +368,23 @@ editProfileForm.addEventListener('submit', async (e) => {
             imageContainer.appendChild(img);
         });
     }
+    function updateLaneImages(hiddenInputId, containerId) {
+  const input = document.getElementById(hiddenInputId);
+  const imageContainer = document.getElementById(containerId);
+  imageContainer.innerHTML = ''; // clear previous
+
+  const selectedValues = input.value.split(',').filter(Boolean);
+
+  selectedValues.forEach(value => {
+    const fileName = `${value.toLowerCase().replace(/\s+/g, '-')}.png`;
+    const img = document.createElement('img');
+    img.src = `/images/lanes/${fileName}`;
+    img.alt = value;
+    img.className = 'selected-image';
+    imageContainer.appendChild(img);
+  });
+}
+
 
     function setupLaneButtons() {
   const buttons = document.querySelectorAll('#lol-preferred-lanes-buttons .lane-button');
