@@ -370,32 +370,33 @@ editProfileForm.addEventListener('submit', async (e) => {
     }
 
     function setupLaneButtons() {
-    const buttons = document.querySelectorAll('#lol-preferred-lanes-buttons .lane-button');
-    const hiddenInput = document.getElementById('lol-preferred-lanes');
-    const maxSelections = 3;
+  const buttons = document.querySelectorAll('#lol-preferred-lanes-buttons .lane-button');
+  const hiddenInput = document.getElementById('lol-preferred-lanes');
+  const maxSelections = 3;
 
-    buttons.forEach(button => {
-        button.addEventListener('click', () => {
-            const lane = button.getAttribute('data-lane');
-            let selectedLanes = hiddenInput.value ? hiddenInput.value.split(',') : [];
+  buttons.forEach(button => {
+    button.addEventListener('click', () => {
+      const lane = button.getAttribute('data-lane');
+      let selectedLanes = hiddenInput.value ? hiddenInput.value.split(',') : [];
 
-            if (button.classList.contains('selected')) {
-                selectedLanes = selectedLanes.filter(l => l !== lane);
-                button.classList.remove('selected');
-            } else {
-                if (selectedLanes.length >= maxSelections) {
-                    alert(`You can select up to ${maxSelections} lanes.`);
-                    return;
-                }
-                selectedLanes.push(lane);
-                button.classList.add('selected');
-            }
+      if (button.classList.contains('selected')) {
+        selectedLanes = selectedLanes.filter(l => l !== lane);
+        button.classList.remove('selected');
+      } else {
+        if (selectedLanes.length >= maxSelections) {
+          alert(`You can select up to ${maxSelections} lanes.`);
+          return;
+        }
+        selectedLanes.push(lane);
+        button.classList.add('selected');
+      }
 
-            hiddenInput.value = selectedLanes.join(',');
-            updateImageDisplay('lol-preferred-lanes', 'lanes'); // ✅ Add this line
-        });
+      hiddenInput.value = selectedLanes.join(',');
+      updateLaneImages('lol-preferred-lanes', 'lol-lanes-images'); // ✅ using new logic
     });
+  });
 }
+
 
 
 function setupRoleButtons() {
