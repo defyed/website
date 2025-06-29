@@ -148,7 +148,11 @@ h1 {
     font-size: 0.9em;
     font-style: italic;
     color: #0082b2;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
 }
+
 
 .card-footer {
     display: flex;
