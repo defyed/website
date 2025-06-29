@@ -416,7 +416,7 @@ footer {
     background: rgba(255, 255, 255, 0.1);
     padding: 40px 20px;
     text-align: center;
-    max-width: 100px;
+    max-width: 1000px;
     margin: 0 auto 30px;
     border-radius: 10px;
     
@@ -434,7 +434,7 @@ padding: 20px;
     background: rgba(255, 255, 255, 0.1);
     padding: 40px 20px;
     text-align: center;
-    max-width: 100px;
+    max-width: 1000px;
     margin: 0 auto 30px;
     border-radius: 10px;
 }
