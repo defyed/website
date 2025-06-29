@@ -122,7 +122,7 @@ body {
 }
 
 .ls-new-section-top {
-    margin-top: 60px!important;
+    margin-top: -100px!important;
     background-color: rgba(25, 25, 34, 0.8)!important;
 }
 

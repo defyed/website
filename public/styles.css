@@ -643,6 +643,10 @@ footer {
     margin: 0 auto 20px;
     border-radius: 10px;
 }
+.ls-new-section-top {
+    margin-top: -80px!important;
+    background-color: rgba(25, 25, 34, 0.8)!important;
+}
 
 .league-services .ls-new-section-top h2 {
     font-size: 1.8em;
