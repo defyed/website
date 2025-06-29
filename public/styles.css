@@ -7,8 +7,7 @@
         url('images/pageArt/league1.png');
     background-size: 50%; /* smaller size */
     background-position-x: 50%; /* horizontal shift */
-    background-position-y: 40px;
-
+    
 background-position-y: top;
 
     background-repeat: no-repeat;
