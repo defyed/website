@@ -252,6 +252,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateSearchableDropdown('lol-preferred-champions', profile.lol_preferred_champions, 'champions');
         updateRoleButtons(profile.valorant_preferred_roles);
         updateSearchableDropdown('valorant-preferred-agents', profile.valorant_preferred_agents, 'agents');
+updateImageDisplay('lol-preferred-lanes', 'lanes');
+updateImageDisplay('valorant-preferred-roles', 'roles');
 
         editProfileModal.style.display = 'block';
     } catch (error) {
@@ -369,21 +371,35 @@ editProfileForm.addEventListener('submit', async (e) => {
         });
     }
     function updateLaneImages(hiddenInputId, containerId) {
-  const input = document.getElementById(hiddenInputId);
-  const imageContainer = document.getElementById(containerId);
-  imageContainer.innerHTML = ''; // clear previous
-
-  const selectedValues = input.value.split(',').filter(Boolean);
-
-  selectedValues.forEach(value => {
-    const fileName = `${value.toLowerCase().replace(/\s+/g, '-')}.png`;
-    const img = document.createElement('img');
-    img.src = `/images/lanes/${fileName}`;
-    img.alt = value;
-    img.className = 'selected-image';
-    imageContainer.appendChild(img);
-  });
+    const input = document.getElementById(hiddenInputId);
+    const imageContainer = document.getElementById(containerId);
+    imageContainer.innerHTML = ''; // Clear previous images
+    const selectedValues = input.value.split(',').filter(Boolean);
+    selectedValues.forEach(value => {
+        const fileName = `${value.toLowerCase().replace(/\s+/g, '-')}.png`;
+        const img = document.createElement('img');
+        img.src = `/images/lanes/${fileName}`;
+        img.alt = value;
+        img.className = 'selected-image';
+        imageContainer.appendChild(img);
+    });
 }
+
+function updateRoleImages(hiddenInputId, containerId) {
+    const input = document.getElementById(hiddenInputId);
+    const imageContainer = document.getElementById(containerId);
+    imageContainer.innerHTML = ''; // Clear previous images
+    const selectedValues = input.value.split(',').filter(Boolean);
+    selectedValues.forEach(value => {
+        const fileName = `${value.toLowerCase().replace(/\s+/g, '-')}.png`;
+        const img = document.createElement('img');
+        img.src = `/images/roles/${fileName}`;
+        img.alt = value;
+        img.className = 'selected-image';
+        imageContainer.appendChild(img);
+    });
+}
+
 
 
     function setupLaneButtons() {
@@ -409,7 +425,8 @@ editProfileForm.addEventListener('submit', async (e) => {
       }
 
       hiddenInput.value = selectedLanes.join(',');
-      updateLaneImages('lol-preferred-lanes', 'lol-lanes-images'); // ✅ using new logic
+updateLaneImages('lol-preferred-lanes', 'lol-lanes-images');
+
     });
   });
 }
@@ -439,6 +456,8 @@ function setupRoleButtons() {
             }
 
             hiddenInput.value = selectedRoles.join(',');
+updateRoleImages('valorant-preferred-roles', 'valorant-roles-images');
+
         });
     });
 }
