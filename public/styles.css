@@ -1,4 +1,16 @@
-/* Reset and Global Styles */
+/* Hero Section */
+.hero-section {
+    position: relative;
+    width: 100%;
+    min-height: 500px;
+    background-image: 
+        linear-gradient(to bottom, rgba(19, 23, 31, 0.7) 0%, rgba(19, 23, 31, 0.3) 70%, rgba(19, 23, 31, 0) 100%), 
+        url('images/pageArt/league.png');
+    background-size: contain;
+    background-position: center top;
+    background-repeat: no-repeat;
+    z-index: 0;
+}
 * {
     margin: 0;
     padding: 0;
