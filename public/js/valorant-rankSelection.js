@@ -1,4 +1,4 @@
-const ranks = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal'];
+const ranks = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal', 'Radiant'];
 const divisions = ['I', 'II', 'III'];
 window.ranks = ranks;
 window.divisions = divisions;
@@ -47,6 +47,7 @@ const rankImages = {
         III: '/images/Ascendant_3_Rank.png'
     },
     Immortal: '/images/Immortal_3_Rank.png',
+    Radiant: '/images/Radiant_Rank.png',
     default: '/images/default.png'
 };
 
@@ -82,14 +83,17 @@ document.addEventListener('DOMContentLoaded', () => {
         return container;
     }
 
+    // Initialize RR containers for Immortal and Radiant
     if (!currentRRContainer && document.querySelector('.ls-current-league-group .ls-rank-box')) {
-        currentRRContainer = createRRInput('current-rr-input', 'current-rr-input', 'Current Immortal RR (Numbers Only): ');
-        document.querySelector('.ls-current-league-group .ls-rank-box').appendChild(currentRRContainer);
+        currentRRContainer = createRRInput('current-rr-input', 'current-rr-input', 'Current RR (Numbers Only): ');
+        const queueServerContainer = document.querySelector('.ls-current-league-group .queue-server-container');
+        document.querySelector('.ls-current-league-group .ls-rank-box').insertBefore(currentRRContainer, queueServerContainer);
     }
 
     if (!desiredRRContainer && document.querySelector('.ls-target-league-group .ls-rank-box')) {
-        desiredRRContainer = createRRInput('desired-rr-input', 'desired-rr-input', 'Target Desired Immortal RR (Numbers Only): ');
-        document.querySelector('.ls-target-league-group .ls-rank-box').appendChild(desiredRRContainer);
+        desiredRRContainer = createRRInput('desired-rr-input', 'desired-rr-input', 'Target Desired RR (Numbers Only): ');
+        const queueServerContainer = document.querySelector('.ls-target-league-group .queue-server-container');
+        document.querySelector('.ls-target-league-group .ls-rank-box').insertBefore(desiredRRContainer, queueServerContainer);
     }
 
     const currentRRInput = document.getElementById('current-rr-input');
@@ -114,28 +118,39 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateButtonStates() {
         console.log('Updating button states:', window.currentRank, window.currentDivision, window.desiredRank, window.desiredDivision, 'RR/LP:', window.currentLP, 'Current RR:', window.currentRR, 'Desired RR:', window.desiredRR);
 
-        const isCurrentImmortal = window.currentRank === 'Immortal';
-        const isDesiredImmortal = window.desiredRank === 'Immortal';
+        const isCurrentImmortalOrRadiant = window.currentRank === 'Immortal' || window.currentRank === 'Radiant';
+        const isDesiredImmortalOrRadiant = window.desiredRank === 'Immortal' || window.desiredRank === 'Radiant';
         const isAscendantToImmortal = window.currentRank === 'Ascendant' && window.currentDivision === 'III' && window.desiredRank === 'Immortal';
 
         const currentDivisionSelect = document.querySelector('.ls-current-league-group .division-select');
         const currentLPSelect = document.querySelector('.ls-current-league-group .lp-select');
         const desiredDivisionSelect = document.querySelector('.ls-target-league-group .division-select');
 
-        if (currentDivisionSelect) currentDivisionSelect.style.display = isCurrentImmortal ? 'none' : '';
-        if (currentLPSelect) currentLPSelect.style.display = isCurrentImmortal ? 'none' : '';
-        if (currentRRContainer) currentRRContainer.style.display = isCurrentImmortal ? '' : 'none';
+        if (currentDivisionSelect) currentDivisionSelect.style.display = isCurrentImmortalOrRadiant ? 'none' : '';
+        if (currentLPSelect) currentLPSelect.style.display = isCurrentImmortalOrRadiant ? 'none' : '';
+        if (currentRRContainer) {
+            currentRRContainer.style.display = isCurrentImmortalOrRadiant ? '' : 'none';
+            if (isCurrentImmortalOrRadiant) {
+                currentRRContainer.querySelector('label').textContent = `Current ${window.currentRank} RR (Numbers Only): `;
+            }
+        }
 
         if (desiredDivisionSelect) {
-            const hideDiv = (isDesiredImmortal || isAscendantToImmortal);
+            const hideDiv = (isDesiredImmortalOrRadiant || isAscendantToImmortal);
             desiredDivisionSelect.style.display = hideDiv ? 'none' : '';
             desiredDivisionButtons.forEach(btn => {
                 btn.style.display = hideDiv ? 'none' : '';
             });
         }
 
-        if (desiredRRContainer) desiredRRContainer.style.display = (isDesiredImmortal || isAscendantToImmortal) ? '' : 'none';
-        if (desiredRRInput && (isDesiredImmortal || isAscendantToImmortal)) {
+        if (desiredRRContainer) {
+            desiredRRContainer.style.display = (isDesiredImmortalOrRadiant || isAscendantToImmortal) ? '' : 'none';
+            if (isDesiredImmortalOrRadiant || isAscendantToImmortal) {
+                desiredRRContainer.querySelector('label').textContent = `Target Desired ${window.desiredRank} RR (Numbers Only): `;
+            }
+        }
+
+        if (desiredRRInput && (isDesiredImmortalOrRadiant || isAscendantToImmortal)) {
             if (!desiredRRInput.value) {
                 desiredRRInput.value = '';
                 window.desiredRR = 0;
@@ -143,10 +158,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (window.currentRank) {
-            const displayDivision = window.currentRank === 'Immortal' ? '' : ` ${window.currentDivision || 'I'}`;
+            const displayDivision = isCurrentImmortalOrRadiant ? '' : ` ${window.currentDivision || 'I'}`;
             if (currentRankText) currentRankText.textContent = `${window.currentRank}${displayDivision}`;
             if (currentRankImage) {
-                const imageSrc = window.currentRank === 'Immortal' 
+                const imageSrc = isCurrentImmortalOrRadiant 
                     ? rankImages[window.currentRank] 
                     : rankImages[window.currentRank]?.[window.currentDivision || 'I'] || rankImages.default;
                 currentRankImage.src = imageSrc;
@@ -162,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (window.currentRank && !window.desiredRank) {
             window.desiredRank = window.currentRank;
-            window.desiredDivision = window.currentRank === 'Immortal' ? '' : 'II';
+            window.desiredDivision = isCurrentImmortalOrRadiant ? '' : 'II';
             desiredRankButtons.forEach(btn => btn.classList.toggle('selected', btn.dataset.rank === window.currentRank));
             desiredDivisionButtons.forEach(btn => btn.classList.toggle('selected', btn.dataset.division === 'II'));
         }
@@ -179,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const desiredRankIndex = ranks.indexOf(window.desiredRank);
                 if (desiredRankIndex < currentRankIndex) {
                     window.desiredRank = ranks[currentRankIndex];
-                    window.desiredDivision = window.currentRank === 'Immortal' ? '' : 'I';
+                    window.desiredDivision = isCurrentImmortalOrRadiant ? '' : 'I';
                     desiredRankButtons.forEach(btn => btn.classList.toggle('selected', btn.dataset.rank === window.desiredRank));
                     desiredDivisionButtons.forEach(btn => btn.classList.toggle('selected', btn.dataset.division === window.desiredDivision));
                 }
@@ -191,12 +206,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        if (window.desiredRank !== window.currentRank || window.currentRank === 'Immortal' || !window.currentDivision) {
+        if (window.desiredRank !== window.currentRank || isCurrentImmortalOrRadiant || !window.currentDivision) {
             desiredDivisionButtons.forEach(btn => {
                 btn.disabled = false;
                 btn.classList.remove('disabled');
             });
-        } else if (window.currentRank && window.currentDivision && window.desiredRank === window.currentRank && window.currentRank !== 'Immortal') {
+        } else if (window.currentRank && window.currentDivision && window.desiredRank === window.currentRank && !isCurrentImmortalOrRadiant) {
             const currentDivisionIndex = divisions.indexOf(window.currentDivision);
             desiredDivisionButtons.forEach((btn, index) => {
                 const isDisabled = index <= currentDivisionIndex;
@@ -217,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const currentRankIndex = ranks.indexOf(window.currentRank);
                         if (currentRankIndex + 1 < ranks.length) {
                             window.desiredRank = ranks[currentRankIndex + 1];
-                            window.desiredDivision = ranks[currentRankIndex + 1] === 'Immortal' ? '' : 'I';
+                            window.desiredDivision = ranks[currentRankIndex + 1] === 'Immortal' || ranks[currentRankIndex + 1] === 'Radiant' ? '' : 'I';
                             desiredRankButtons.forEach(btn => btn.classList.toggle('selected', btn.dataset.rank === ranks[currentRankIndex + 1]));
                             desiredDivisionButtons.forEach(btn => btn.classList.toggle('selected', btn.dataset.division === 'I'));
                             updateButtonStates();
@@ -228,10 +243,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (window.desiredRank) {
-            const displayDivision = window.desiredRank === 'Immortal' ? '' : ` ${window.desiredDivision || 'I'}`;
+            const displayDivision = isDesiredImmortalOrRadiant ? '' : ` ${window.desiredDivision || 'I'}`;
             if (targetRankText) targetRankText.textContent = `${window.desiredRank}${displayDivision}`;
             if (targetRankImage) {
-                const imageSrc = window.desiredRank === 'Immortal' 
+                const imageSrc = isDesiredImmortalOrRadiant 
                     ? rankImages[window.desiredRank] 
                     : rankImages[window.desiredRank]?.[window.desiredDivision || 'I'] || rankImages.default;
                 targetRankImage.src = imageSrc;
@@ -316,16 +331,16 @@ document.addEventListener('DOMContentLoaded', () => {
             window.currentRank = btn.dataset.rank;
             currentRankButtons.forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
-            if (window.currentRank !== 'Immortal') {
+            if (window.currentRank !== 'Immortal' && window.currentRank !== 'Radiant') {
                 window.currentDivision = 'I';
                 currentDivisionButtons.forEach(b => {
                     b.classList.toggle('selected', b.dataset.division === 'I');
                 });
             } else {
                 window.currentDivision = '';
-                window.desiredRank = 'Immortal';
+                window.desiredRank = window.currentRank;
                 window.desiredDivision = '';
-                desiredRankButtons.forEach(b => b.classList.toggle('selected', b.dataset.rank === 'Immortal'));
+                desiredRankButtons.forEach(b => b.classList.toggle('selected', b.dataset.rank === window.currentRank));
                 desiredDivisionButtons.forEach(b => b.classList.remove('selected'));
                 if (desiredRRInput) desiredRRInput.value = '';
                 window.desiredRR = 0;
@@ -339,13 +354,13 @@ document.addEventListener('DOMContentLoaded', () => {
             window.desiredRank = btn.dataset.rank;
             desiredRankButtons.forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
-            window.desiredDivision = window.desiredRank === 'Immortal' ? '' : 'I';
+            window.desiredDivision = (window.desiredRank === 'Immortal' || window.desiredRank === 'Radiant') ? '' : 'I';
             desiredDivisionButtons.forEach(b => {
                 b.classList.toggle('selected', b.dataset.division === window.desiredDivision);
             });
 
             const isAscendantToImmortal = window.currentRank === 'Ascendant' && window.currentDivision === 'III' && window.desiredRank === 'Immortal';
-            if ((isAscendantToImmortal || window.desiredRank === 'Immortal') && desiredRRInput) {
+            if ((isAscendantToImmortal || window.desiredRank === 'Immortal' || window.desiredRank === 'Radiant') && desiredRRInput) {
                 desiredRRInput.value = '';
                 window.desiredRR = 0;
             }
