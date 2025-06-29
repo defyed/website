@@ -442,6 +442,7 @@ editProfileForm.addEventListener('submit', async (e) => {
         const select = document.getElementById(selectId);
         return Array.from(select.selectedOptions).map(option => option.value).join(',');
     }
+    
 
     if (['admin', 'coach'].includes(userRole)) {
         editMyProfileBtn.style.display = 'block';
