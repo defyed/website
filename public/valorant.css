@@ -2,7 +2,7 @@
 .hero-section {
     background-image: 
         linear-gradient(to bottom, rgba(19, 23, 31, 0.7) 0%, rgba(19, 23, 31, 0.3) 70%, rgba(19, 23, 31, 0) 100%), 
-        url('images/pageArt/fade(1).png');
+        url('images/pageArt/fade.png');
     background-size: 250%; /* Default for desktop */
     background-position: center 60px;
     min-height: 500px;
