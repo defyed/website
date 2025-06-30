@@ -43,17 +43,15 @@
 </head>
 <body>
     <!-- Navigation Bar -->
-    <nav class="bg-gray-900 p-4">
-        <div class="container mx-auto flex justify-between items-center">
-            <a href="index.html" class="text-2xl font-bold text-white">CH Boosting</a>
-            <div class="space-x-4">
-                <a href="index.html" class="text-white hover:text-orange-500">Home</a>
-                <a href="services.html" class="text-white hover:text-orange-500">Services</a>
-                <a href="application.html" class="text-white hover:text-orange-500">Apply</a>
-                <a href="contact.html" class="text-white hover:text-orange-500">Contact</a>
-            </div>
-        </div>
-    </nav>
+    <nav>
+    <span class="nav-toggle">☰</span>
+    <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/boosters" onclick="return checkLoginAndNavigate('/boosters')">Boosters</a></li>
+        <li><a href="/coaching" onclick="return checkLoginAndNavigate('/coaching')">Coaching</a></li>
+        <li><a href="#" id="sign-in-btn" class="sign-in-btn" onclick="showSignInModal()">Sign In</a></li>
+    </ul>
+</nav>
 
     <!-- Application Form Section -->
     <section class="py-12">
