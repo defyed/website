@@ -1843,6 +1843,9 @@ app.get('/confirmation', (req, res) => {
 app.get('/coaching', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'coaching.html'));
 });
+app.get('/application', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'application.html'));
+});
 
 // Redirect .html to clean URLs
 app.get('/index.html', (req, res) => {
@@ -1868,6 +1871,9 @@ app.get('/confirmation.html', (req, res) => {
 });
 app.get('/coaching.html', (req, res) => {
     res.redirect(301, '/coaching');
+});
+app.get('/application.html', (req, res) => {
+    res.redirect(301, '/application');
 });
 
 // 404 for unknown routes
