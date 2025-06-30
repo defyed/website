@@ -39,97 +39,13 @@
             margin: 0 auto;
             padding: 1rem;
         }
-        /* Navigation Styles */
-        header {
-            background-color: hsla(0, 0%, 100%, 0.079);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            color: #FFFFFF;
-            height: 80px;
-            width: 100%;
-            padding: 0;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
         
-        nav {
-            padding-right: 30px;
-        }
-        .nav-toggle {
-            display: none;
-            font-size: 30px;
-            color: #FFFFFF;
-            cursor: pointer;
-            padding: 10px;
-        }
-        nav ul {
-            margin: 0;
-            padding: 0;
-            list-style-type: none;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-        nav ul li a {
-            color: #FFFFFF;
-            text-decoration: none;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-size: 1.1rem;
-            padding: 8px 16px;
-            border-radius: 5px;
-            transition: background-color 0.3s ease, transform 0.3s ease;
-        }
-        nav ul li a:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-            transform: scale(1.05);
-        }
-        .sign-in-btn {
-            background-color: #007bff;
-            color: #FFFFFF;
-            padding: 8px 16px;
-            border-radius: 5px;
-            transition: background-color 0.3s ease, transform 0.3s ease;
-        }
-        .sign-in-btn:hover {
-            background-color: #0056b3;
-            transform: scale(1.05);
-        }
         /* Push content below fixed header */
         section.py-12 {
             padding-top: 100px; /* Increased to clear header (80px) + logo */
         }
         @media (max-width: 768px) {
-            .nav-toggle {
-                display: block;
-                position: fixed;
-                top: 15px;
-                right: 15px;
-                z-index: 11;
-            }
-            nav ul {
-                display: none;
-                flex-direction: column;
-                position: absolute;
-                top: 60px;
-                right: 0;
-                background-color: hsla(0, 0%, 10%, 0.9);
-                width: 200px;
-                padding: 10px;
-                border-radius: 5px;
-                z-index: 10;
-            }
-            nav ul.active {
-                display: flex;
-            }
-            nav ul li {
-                margin: 10px 0;
-                text-align: center;
-            }
+            
             
             section.py-12 {
                 padding-top: 80px; /* Adjusted for mobile header */
@@ -146,14 +62,15 @@
             <div class="logo">
                 <a href="/"><img src="/images/logo.png" alt="CH Boosting"></a>
             </div>
-            <span class="nav-toggle">☰</span>
-            <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/boosters" onclick="return checkLoginAndNavigate('/boosters')">Boosters</a></li>
-                <li><a href="/coaching" onclick="return checkLoginAndNavigate('/coaching')">Coaching</a></li>
-                <li><a href="#" id="sign-in-btn" class="sign-in-btn" onclick="showSignInModal()">Sign In</a></li>
-            </ul>
-        </nav>
+<nav>
+    <span class="nav-toggle">☰</span>
+    <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/boosters" onclick="return checkLoginAndNavigate('/boosters')">Boosters</a></li>
+        <li><a href="/coaching" onclick="return checkLoginAndNavigate('/coaching')">Coaching</a></li>
+        <li><a href="#" id="sign-in-btn" class="sign-in-btn" onclick="showSignInModal()">Sign In</a></li>
+    </ul>
+</nav>
     </header>
 
     <!-- Application Form Section -->
