@@ -1769,6 +1769,53 @@ app.post('/api/apply-coupon', async (req, res) => {
   }
 });
 
+const https = require('https');
+
+app.post('/api/submit-application', (req, res) => {
+  const payload = JSON.stringify({
+    embeds: [{
+      title: 'New Application Submission',
+      color: 0xF28C38, // Orange color
+      fields: [
+        { name: 'Full Name', value: req.body.name || 'N/A', inline: true },
+        { name: 'Email', value: req.body.email || 'N/A', inline: true },
+        { name: 'Gaming Platform', value: req.body.platform || 'N/A', inline: true },
+        { name: 'Discord ID', value: req.body.discord || 'N/A', inline: true },
+        { name: 'Previous Experience', value: req.body.experience || 'N/A' },
+        { name: 'Additional Information', value: req.body.message || 'No additional information provided' }
+      ],
+      timestamp: new Date().toISOString()
+    }]
+  });
+
+  const options = {
+    hostname: 'discord.com',
+    path: '/api/webhooks/1389063892801556532/KQNdUS93PpuZfnXWPNuUketU6kAcaB-xntOcbAFtDp0sW80iChkc6S2sECaOEAo2gl4E',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(payload)
+    }
+  };
+
+  const request = https.request(options, (response) => {
+    if (response.statusCode === 204) {
+      res.json({ success: true, message: 'Application submitted successfully' });
+    } else {
+      console.error(`Discord webhook failed with status ${response.statusCode}`);
+      res.status(500).json({ error: 'Failed to submit application' });
+    }
+  });
+
+  request.on('error', (error) => {
+    console.error('Error sending to Discord:', error.message);
+    res.status(500).json({ error: 'Failed to submit application' });
+  });
+
+  request.write(payload);
+  request.end();
+});
+
 app.get('/api/coupons/latest', async (req, res) => {
   const { game } = req.query;
   if (!game || !['league', 'valorant'].includes(game.toLowerCase())) {

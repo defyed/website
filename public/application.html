@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Application - CH Boosting</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="icon" type="image/png" href="/favicon.png">
     <style>
         body {
             background-color: #1A1A1A;
@@ -18,7 +17,6 @@
             padding: 0.75rem 1.5rem;
             border-radius: 0.375rem;
             transition: background-color 0.3s ease, transform 0.2s ease;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         .btn-primary:hover {
             background-color: #e07b30;
@@ -35,8 +33,6 @@
             padding: 0.75rem;
             border-radius: 0.375rem;
             width: 100%;
-            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
         .form-input:focus {
             outline: none;
@@ -48,38 +44,23 @@
             margin: 0 auto;
             padding: 1.5rem;
         }
-        header {
-            background-color: #1A1A1A;
-            padding: 1rem 0;
-            border-bottom: 1px solid #444;
-        }
         nav {
             display: flex;
             justify-content: center;
             align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 1.5rem;
-        }
-        .nav-toggle {
-            display: none;
-            cursor: pointer;
-            font-size: 1.5rem;
-            color: #FFFFFF;
+            padding: 1rem;
+            background-color: #1A1A1A;
+            border-bottom: 1px solid #444;
         }
         nav ul {
             display: flex;
             gap: 2rem;
             list-style: none;
-            margin: 0;
-            padding: 0;
         }
         nav ul li a {
             color: #FFFFFF;
             text-decoration: none;
             font-size: 1.1rem;
-            padding: 0.5rem;
-            transition: color 0.3s ease;
         }
         nav ul li a:hover {
             color: #F28C38;
@@ -90,67 +71,37 @@
             padding: 0.5rem 1rem;
             border-radius: 0.375rem;
             text-decoration: none;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         .sign-in-btn:hover {
             background-color: #e07b30;
-            transform: translateY(-1px);
         }
         .title {
             color: #F28C38;
         }
-        footer a {
-            transition: color 0.3s ease;
-        }
         @media (max-width: 768px) {
-            .nav-toggle {
-                display: block;
-                position: absolute;
-                left: 1.5rem;
-            }
             nav ul {
-                display: none;
                 flex-direction: column;
-                width: 100%;
-                position: absolute;
-                top: 60px;
-                left: 0;
-                background-color: #1A1A1A;
-                padding: 1.5rem;
-                border-top: 1px solid #444;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            }
-            nav ul.active {
-                display: flex;
-            }
-            nav ul li {
-                width: 100%;
-                text-align: center;
-                margin-bottom: 0.5rem;
+                gap: 1rem;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Navigation Bar -->
     <header>
         <nav>
-            <span class="nav-toggle">☰</span>
             <ul>
                 <li><a href="/">Home</a></li>
-                <li><a href="/boosters" onclick="return checkLoginAndNavigate('/boosters')">Boosters</a></li>
-                <li><a href="/coaching" onclick="return checkLoginAndNavigate('/coaching')">Coaching</a></li>
-                <li><a href="/sign-in" id="sign-in-btn" class="sign-in-btn">Sign In</a></li>
+                <li><a href="/boosters">Boosters</a></li>
+                <li><a href="/coaching">Coaching</a></li>
+                <li><a href="/sign-in" class="sign-in-btn">Sign In</a></li>
             </ul>
         </nav>
     </header>
 
-    <!-- Application Form Section -->
     <section class="py-12">
         <div class="container mx-auto">
             <h1 class="text-4xl font-bold text-center mb-8 title">Apply to Join CH Boosting</h1>
-            <p class="text-center mb-8 text-gray-300">We're looking for skilled boosters and coaches to join our team! Fill out the form below to apply.</p>
+            <p class="text-center mb-8 text-gray-300">We're looking for skilled boosters and coaches! Fill out the form below.</p>
             <form id="application-form" class="max-w-lg mx-auto space-y-6">
                 <div>
                     <label for="name" class="block text-sm font-medium">Full Name</label>
@@ -172,7 +123,7 @@
                 </div>
                 <div>
                     <label for="discord" class="block text-sm font-medium">Discord ID</label>
-                    <input type="text" id="discord" name="discord" required class="form-input" placeholder="Username#1234">
+                    <input type="text" id="discord" name="discord" required class="form-input" placeholder="Username#1234 or username.123">
                 </div>
                 <div>
                     <label for="experience" class="block text-sm font-medium">Previous Experience</label>
@@ -189,37 +140,26 @@
         </div>
     </section>
 
-    <!-- Footer -->
     <footer class="bg-gray-900 py-8">
         <div class="container mx-auto text-center">
             <p class="text-gray-400">© 2025 CH Boosting. All rights reserved.</p>
             <div class="mt-4 flex justify-center gap-4">
-                <a href="contact.html" class="text-white hover:text-orange-500">Contact</a>
-                <a href="terms.html" class="text-white hover:text-orange-500">Terms</a>
-                <a href="privacy.html" class="text-white hover:text-orange-500">Privacy</a>
+                <a href="/contact" class="text-white hover:text-orange-500">Contact</a>
+                <a href="/terms" class="text-white hover:text-orange-500">Terms</a>
+                <a href="/privacy" class="text-white hover:text-orange-500">Privacy</a>
                 <a href="https://discord.gg/chboosting" class="text-white hover:text-orange-500">Discord</a>
                 <a href="https://twitter.com/chboosting" class="text-white hover:text-orange-500">Twitter</a>
             </div>
         </div>
     </footer>
 
-    <script src="/utils.js"></script>
-    <script src="/login.js" defer></script>
-    <script src="/auth.js" defer></script>
     <script>
-        // Mobile menu toggle
-        document.querySelector('.nav-toggle').addEventListener('click', function() {
-            document.querySelector('nav ul').classList.toggle('active');
-        });
-
-        // Form submission to Discord webhook with loading state
         document.getElementById('application-form').addEventListener('submit', async function(event) {
-            event.preventDefault(); // Prevent default form submission
+            event.preventDefault();
             const submitBtn = document.getElementById('submit-btn');
             submitBtn.disabled = true;
             submitBtn.textContent = 'Submitting...';
 
-            // Collect form data
             const formData = new FormData(event.target);
             const data = {
                 name: formData.get('name'),
@@ -230,40 +170,22 @@
                 message: formData.get('message') || 'No additional information provided.'
             };
 
-            // Format the Discord embed
-            const embed = {
-                title: "New Application Submission",
-                color: 0xF28C38, // Orange color in hex
-                fields: [
-                    { name: "Full Name", value: data.name, inline: true },
-                    { name: "Email", value: data.email, inline: true },
-                    { name: "Gaming Platform", value: data.platform, inline: true },
-                    { name: "Discord ID", value: data.discord, inline: true },
-                    { name: "Previous Experience", value: data.experience },
-                    { name: "Additional Information", value: data.message }
-                ],
-                timestamp: new Date().toISOString()
-            };
-
-            // Send to Discord webhook (replace with a secure backend endpoint)
             try {
                 const response = await fetch('/api/submit-application', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(embed)
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
                 });
 
                 if (response.ok) {
                     alert('Application submitted successfully!');
-                    event.target.reset(); // Clear the form
+                    event.target.reset();
                 } else {
-                    alert('Failed to submit application. Please try again later.');
+                    const errorData = await response.json();
+                    alert(`Failed to submit application: ${errorData.error || 'Unknown error'}`);
                 }
             } catch (error) {
-                console.error('Error sending application:', error);
-                alert('An error occurred. Please try again later.');
+                alert('Error submitting application. Please try again.');
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Submit Application';
